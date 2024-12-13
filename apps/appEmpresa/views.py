@@ -345,11 +345,12 @@ def movimentacoes(request, cnpj):
 
 
 #
-# MOVIMENTAÇÕES
+# CARDÁPIO
 #
 
 
-
+# TO DO: ADICIONAR FUNÇÃO DE PESQUISA
+@login_required
 def cardapio(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
@@ -375,18 +376,11 @@ def cardapio(request, cnpj):
 
 
 
+@login_required
 def adicionar_categoria(request, cnpj):
 
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
-
-    if not request.user.is_superuser:
-        if empUsu.usuario != request.user:
-            usu = EmpresaUsuario.objects.get(usuario=request.user)
-            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
-            return redirect('dashboard', cnpj=cnpj_usuario)
-
 
     if request.method == 'POST':
         try:
@@ -412,6 +406,29 @@ def adicionar_categoria(request, cnpj):
 
 
 
+@login_required
+def editar_categoria(request, cnpj, item_id):
+
+    item = get_object_or_404(Categoria, id=item_id)
+
+    if request.method == 'POST':
+        try:
+            nome = request.POST.get('nomeE')
+
+            item.nome = nome
+            item.save()
+
+            messages.success(request, f'Categoria editada com sucesso! Novo nome: {nome}')
+            return redirect('cardapio', cnpj=cnpj)
+
+
+        except Exception as e:
+            messages.error(request, 'Erro ao editar, verifique os dados e tente novamente.') 
+            return redirect('cardapio', cnpj=cnpj)
+
+
+
+@login_required
 def deletar_categoria(request, cnpj, item_id):
     item = get_object_or_404(Categoria, id=item_id)
 
@@ -420,7 +437,9 @@ def deletar_categoria(request, cnpj, item_id):
     return redirect('cardapio', cnpj=cnpj)
 
 
+
 # Adicionar item do cardápio
+@login_required
 def adicionar_item(request, cnpj, categoria_id):
     categoria = get_object_or_404(Categoria, id=categoria_id)
 
@@ -439,10 +458,10 @@ def adicionar_item(request, cnpj, categoria_id):
         try:
             nome = request.POST.get(f'nome{categoria.id}')
             descricao = request.POST.get(f'descricao{categoria.id}')
-            preco = request.POST.get(f'preco_unitario{categoria.id}')
+            preco = request.POST.get(f'preco_unitarioC{categoria.id}')
             preco = remover_mascara_preço(preco)
             imagem = request.FILES.get(f'imagem{categoria.id}')
-            ativo = True  # O item estará sempre ativo (por enquanto)
+            ativo = True
             borda_recheada = f'borda_recheada{categoria.id}' in request.POST
 
             with transaction.atomic():
@@ -467,6 +486,7 @@ def adicionar_item(request, cnpj, categoria_id):
 
 
 # Editar item do cardápio
+@login_required
 def editar_item(request, cnpj, item_id):
     item = get_object_or_404(Cardapio, id_cardapio=item_id)
 
@@ -490,6 +510,7 @@ def editar_item(request, cnpj, item_id):
 
 
 # Deletar item do cardápio
+@login_required
 def deletar_item(request, cnpj, item_id):
     item = get_object_or_404(Cardapio, id_cardapio=item_id)
 
@@ -498,9 +519,49 @@ def deletar_item(request, cnpj, item_id):
     return redirect('cardapio', cnpj=cnpj)
 
 
+
+@login_required
 def toggle_ativo_item(request, cnpj, item_id):
     item = get_object_or_404(Cardapio, id_cardapio=item_id)
     item.ativo = not item.ativo
     item.save()
 
     return JsonResponse({'status': 'success', 'ativo': item.ativo})
+
+
+
+@login_required
+def toggle_ativo_categoria(request, cnpj, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    categoria.ativo = not categoria.ativo
+    categoria.save()
+
+    return JsonResponse({'status': 'success', 'ativo': categoria.ativo})
+
+
+
+#
+# RECEITA PIZZA
+#
+
+
+
+def receitas(request, cnpj):
+
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+    
+    context = {
+        'page_title': 'Receitas',
+        'empresa': empresa,
+    }
+    
+    return render(request, 'appEmpresa/receita.html', context)

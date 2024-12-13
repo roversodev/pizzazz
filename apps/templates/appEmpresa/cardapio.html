@@ -83,11 +83,11 @@
                                                 <!-- Campo Preço Unitário -->
                                                 <div class="mb-3 input-group input-group-outline"
                                                     id="precoUnitarioContainer" style="display: flex;">
-                                                    <label for="preco_unitario{{categoria.id}}" class="form-label">Preço
+                                                    <label for="preco_unitarioC{{categoria.id}}" class="form-label">Preço
                                                         Unitário</label>
                                                     <input type="text" class="form-control"
-                                                        id="preco_unitario{{categoria.id}}"
-                                                        name="preco_unitario{{categoria.id}}" required>
+                                                        id="preco_unitarioC{{categoria.id}}"
+                                                        name="preco_unitarioC{{categoria.id}}" required>
                                                 </div>
 
 
@@ -127,7 +127,7 @@
                             </div>
                             <script>
                                 document.addEventListener("DOMContentLoaded", function () {
-                                    const campoPreco = document.getElementById("preco_unitario{{categoria.id}}");
+                                    const campoPreco = document.getElementById("preco_unitarioC{{categoria.id}}");
                                     const im = new Inputmask("numeric", {
                                         groupSeparator: ".",
                                         autoGroup: true,
@@ -160,8 +160,8 @@
 
                             </script>
                             <div class="form-check form-switch d-flex align-items-center justify-content-end">
-                                <input class="form-check-input" type="checkbox" id="ativoCategoria{{categoria.id}}"
-                                    name="ativoCategoria{{categoria.id}}" {% if categoria.ativo %}checked{% endif %}>
+                                <input class="form-check-input categoria-ativo" type="checkbox" id="ativoCategoria{{categoria.id}}"
+                                    name="ativoCategoria{{categoria.id}}" data-item-id="{{categoria.id}}" {% if categoria.ativo %}checked{% endif %}>
                             </div>
                             <a href="javascript:;" class="cursor-pointer btn btn-link mb-0 text-secondary"
                                 id="dropCategoria" data-bs-toggle="dropdown" aria-expanded="false">
@@ -171,13 +171,39 @@
                             </a>
                             <ul class="dropdown-menu px-2 py-3 shadow" aria-labelledby="dropCategoria"
                                 style="border: 1px solid #e5e5e5">
-                                <li><a class="dropdown-item border-radius-md" href="javascript:;">Editar</a></li>
+                                <li><a class="dropdown-item border-radius-md" href="javascript:;" data-bs-toggle="modal" data-bs-target="#modalEditCategoria{{categoria.id}}">Editar</a></li>
                                 <li><a class="dropdown-item border-radius-md dele-link" href="javascript:;"
                                         data-bs-toggle="modal" data-bs-target="#confirmarDeletarModal"
                                         data-id="{{ categoria.id }}"
                                         data-url="{% url 'deletar_categoria' cnpj=empresa.cnpj|remove_mask item_id=categoria.id %}">Deletar</a>
                                 </li>
                             </ul>
+                            <div class="modal fade" id="modalEditCategoria{{categoria.id}}" tabindex="-1" aria-labelledby="modalEditCategoria{{categoria.id}}Label" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content rounded-lg border-radius-xl shadow">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="modalCadastroEstoqueLabel">Editar Categoria: {{categoria.nome}}</h5>
+                                            <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
+                                                aria-label="Close">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="POST" action="{% url 'editar_categoria' cnpj=empresa.cnpj|remove_mask item_id=categoria.id %}"
+                                                class="needs-validation" novalidate>
+                                                {% csrf_token %}
+                                                <!-- Campo Observação -->
+                                                <div class="mb-3 input-group input-group-outline is-filled">
+                                                    <label for="nomeE" class="form-label">Nome</label>
+                                                    <input type="text" class="form-control" id="nomeE" name="nomeE" value="{{categoria.nome}}" required>
+                                                    <div class="invalid-feedback">Digite o nome</div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <button type="submit" id="submitBtn" class="btn bg-gradient-danger w-100">Cadastrar</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -213,7 +239,7 @@
                                 <td>
                                     <div
                                         class="form-check form-switch text-center d-flex row justify-content-center align-items-center">
-                                        <input class="form-check-input" type="checkbox"
+                                        <input class="form-check-input item-ativo-vende" type="checkbox"
                                             id="ativoCardapio{{item.id_cardapio}}" {% if item.ativo %}checked{% endif %}
                                             data-item-id="{{ item.id_cardapio }}">
                                 </td>
@@ -287,7 +313,7 @@
                                                         <div class="form-check mb-3" style="margin-left: -27px;">
                                                             <input type="checkbox" class="form-check-input"
                                                                 id="borda_recheada{{categoria.id}}"
-                                                                value="{{item.borda_recheada}}"
+                                                                {% if item.borda_recheada %} checked {%endif%}
                                                                 name="borda_recheada{{categoria.id}}">
                                                             <label class="form-check-label"
                                                                 for="borda_recheada{{categoria.id}}">Oferecer Borda
@@ -320,6 +346,21 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <script>
+                                        document.addEventListener("DOMContentLoaded", function () {
+                                            const campoPreco = document.getElementById("preco_unitario{{item.id_cardapio}}");
+                                            const im = new Inputmask("numeric", {
+                                                groupSeparator: ".",
+                                                autoGroup: true,
+                                                radixPoint: ",",
+                                                prefix: "R$ ",
+                                                rightAlign: false,
+                                                digits: 2,
+                                                digitsOptional: false,
+                                            });
+                                            im.mask(campoPreco);
+                                        });
+                                    </script>
                                 </td>
                             </tr>
                             {% endif %}
@@ -410,10 +451,29 @@
 
 
 <script>
-    document.querySelectorAll('.form-check-input').forEach(function (checkbox) {
+    document.querySelectorAll('.item-ativo-vende').forEach(function (checkbox) {
         checkbox.addEventListener('change', function () {
             let itemId = this.getAttribute('data-item-id');
             fetch(`/empresas/{{empresa.cnpj|remove_mask}}/cardapio/item/${itemId}/toggle-ativo`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('Status alterado com sucesso!');
+                    }
+                });
+        });
+    });
+</script>
+
+<script>
+    document.querySelectorAll('.categoria-ativo').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            let itemId = this.getAttribute('data-item-id');
+            fetch(`/empresas/{{empresa.cnpj|remove_mask}}/cardapio/categoria/${itemId}/toggle-ativo`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

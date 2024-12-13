@@ -22,10 +22,17 @@ urlpatterns = [
 
     # Cardápio
     path('cardapio', views.cardapio, name='cardapio'),
+    # Categoria CRUD
     path('cardapio/categoria/cadastrar', views.adicionar_categoria, name='adicionar_categoria'),
+    path('cardapio/categoria/<int:item_id>/editar', views.editar_categoria, name='editar_categoria'),
     path('cardapio/categoria/<int:item_id>/deletar', views.deletar_categoria, name='deletar_categoria'),
-    path('cardapio/categoria/<int:categoria_id>/adicionar/', views.adicionar_item, name='adicionar_item'),
+    path('cardapio/categoria/<int:categoria_id>/toggle-ativo/', views.toggle_ativo_categoria, name='toggle_ativo_categoria'),
+    # Item CRUD
+    path('cardapio/item/<int:categoria_id>/adicionar/', views.adicionar_item, name='adicionar_item'),
     path('cardapio/item/<int:item_id>/editar/', views.editar_item, name='editar_item'),
     path('cardapio/item/<int:item_id>/deletar/', views.deletar_item, name='deletar_item'),
     path('cardapio/item/<int:item_id>/toggle-ativo/', views.toggle_ativo_item, name='toggle_ativo_item'),
+
+    # Receitas
+    path('receitas', views.receitas, name='receitas')
 ]
