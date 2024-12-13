@@ -1,0 +1,135 @@
+{% extends 'layouts/base.html' %}
+
+{% load static %}
+
+{% block title %}Cadastrar Clientes{% endblock %}
+
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'css/form-reset.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<section>
+    <div class="page-header min-vh-100">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0 mx-auto">
+                    
+                    {% include 'includes/messages.html' %}
+                    <div class="card card-plain">
+                        <div class="card-header pb-0 text-left">
+                            <img src="{{ASSETS_ROOT}}/img/logo-black.png" alt="Logo" class="mb-4"
+                                style="max-width: 150px; margin-left: -5px;">
+                            <h4 class="font-weight-bolder text-gradient text-danger">Cadastre-se</h4>
+                            <p class="mb-0">Digite todas as informações corretamente</p>
+                        </div>
+                        <div class="card-body pb-3">
+                            <form action="{% url 'cadastrar_clientes' %}" id="meuFormulario" autocomplete="off" method="post"
+                                class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="nomeC">Nome Completo</label>
+                                    <input type="text" class="form-control" id="nomeC" name="nomeC" aria-label="nomeC"
+                                        required>
+                                    <div class="invalid-feedback">Digite seu nome completo.</div>
+                                </div>
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="cpf">CPF</label>
+                                    <input type="text" class="form-control" id="cpf" name="cpf" aria-label="cpf"
+                                        minlength="14" required>
+                                    <div class="invalid-feedback">Digite seu cpf corretamente.</div>
+                                </div>
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="dataN">Data de Nascimento</label>
+                                    <input type="text" class="form-control" id="dataN" name="dataN"
+                                        aria-label="dataN" required minlength="10">
+                                    <div class="invalid-feedback">Digite sua data de nascimento corretamente.</div>
+                                </div>
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label for="telefone" class="form-label">Celular</label>
+                                    <input type="text" class="form-control" id="telefone" name="telefone"
+                                        aria-label="telefone" required minlength="15">
+                                    <div class="invalid-feedback">Digite seu telefone celular corretamente.</div>
+                                </div>
+                                <div class="mb-3 input-group input-group-outline">
+                                    <select class="form-control" id="genero" name="genero" aria-label="genero" required>
+                                        <option value="" disabled selected>Selecione seu gênero</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Feminino">Feminino</option>
+                                        <option value="Outro">Outro</option>
+                                    </select>
+                                    <div class="invalid-feedback">Selecione seu gênero.</div>
+                                </div>
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" aria-label="Email"
+                                        required autocomplete="off">
+                                    <div class="invalid-feedback">Digitar um e-mail válido é obrigatório.</div>
+                                </div>
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="password">Senha</label>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                        aria-label="Password" required>
+                                    <div class="invalid-feedback">Digitar a senha é obrigatório.</div>
+                                </div>
+                                <div class="form-check form-check-info text-left" style="margin-left: -28px;">
+                                    <input class="form-check-input" type="checkbox" value="" id="termos" checked=""
+                                        required>
+                                    <label class="form-check-label" for="termos">
+                                        Eu concordo com os <a href="#" class="text-dark font-weight-bolder">Termos e
+                                            Condições</a>
+                                    </label>
+                                </div>
+                                <div class="text-center">
+                                    <button type="submit" id="submitBtn"
+                                        class="btn bg-gradient-danger w-100 mt-4 mb-0 icon-move-right">Continuar <i
+                                            class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-footer text-center pt-0 px-sm-4 px-1">
+                            <p class="mb-4 mx-auto">
+                                Já tem uma conta?
+                                <a href="{% url 'login' %}"
+                                    class="text-danger text-gradient font-weight-bold">Login</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
+                    <div
+                        class="position-relative bg-gradient-danger h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center">
+                        <img src="{{ASSETS_ROOT}}/img/shapes/pattern-lines.svg" alt="pattern-lines"
+                            class="position-absolute opacity-4 start-0">
+                        <div class="position-relative">
+                            <img class="max-width-500 w-100 position-relative z-index-2"
+                                src="{{ASSETS_ROOT}}/img/illustrations/rocket-white.png" alt="image">
+                        </div>
+                        <h4 class="mt-5 text-white font-weight-bolder">Pizza, a um clique de distância!</h4>
+                        <p class="text-white">Explore as melhores opções de pizza e receba tudo na sua porta em minutos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% block javascripts %}
+<script>
+    $(document).ready(function () {
+        $('#cpf').mask('000.000.000-00');
+        $('#dataN').mask('00/00/0000');
+        $('#telefone').mask('(00) 00000-0000');
+    });
+</script>
+<script src="{% static 'js/validar-form.js' %}"></script>
+{% endblock %}
+
+
+
+
+{% endblock %}

@@ -1,0 +1,83 @@
+<div class="container position-sticky z-index-sticky top-0 rebond">
+    <div class="row">
+        <div class="col-12">
+            <nav
+                class="navbar navbar-expand-lg  blur blur-rounded top-0 z-index-fixed shadow position-absolute my-3 py-2 start-0 end-0 mx-4">
+                <div class="container-fluid px-0">
+                    <a class="navbar-brand font-weight-bolder ms-sm-3" href="#" rel="tooltip"
+                        title="Designed and Coded by Creative Tim" data-placement="bottom">
+                        <img src="{{ASSETS_ROOT}}/img/logo-black.png" alt="" 
+                        class="d-block mx-auto img-fluid position-relative" 
+                        style="width: 100px;" 
+                        onload="if (window.innerWidth >= 992) this.style.width = '120px';">
+                    </a>
+                    <a class="btn btn-sm btn-dark btn-round mb-0 ms-auto d-lg-none d-block" href="{% url 'login' %}">Faça seu Pedido</a>
+                    <button class="navbar-toggler shadow-none ms-md-2 border-0 collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#navigation" aria-controls="navigation"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon mt-2">
+                            <span class="navbar-toggler-bar bar1"></span>
+                            <span class="navbar-toggler-bar bar2"></span>
+                            <span class="navbar-toggler-bar bar3"></span>
+                        </span>
+                    </button>
+                    <div class="navbar-collapse w-100 pt-3 pb-2 py-lg-0 collapse" id="navigation">
+                        <ul class="navbar-nav navbar-nav-hover mx-auto">
+                            <li class="nav-item dropdown dropdown-hover mx-2">
+                                <a class="nav-link ps-2 d-flex cursor-pointer align-items-center font-weight-semibold"
+                                    id="dropdownMenuPages" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="material-symbols-rounded opacity-6 me-2 text-md"><i
+                                            class="ph-bold ph-squares-four"></i></i>
+                                    Navegar
+                                    <img src="{{ASSETS_ROOT}}/img/down-arrow-dark.svg" alt="down-arrow"
+                                        class="arrow ms-auto ms-md-2">
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-animation ms-n3 dropdown-md p-3 border-radius-xl mt-0 mt-lg-3"
+                                    aria-labelledby="dropdownMenuPages">
+                                    <div class="d-block d-lg-block">
+                                        <h6
+                                            class="dropdown-header text-dark font-weight-bolder d-flex align-items-center px-1">
+                                            Navegação
+                                        </h6>
+                                        <a onclick="smoothTo('home')" class="dropdown-item border-radius-md" id="home-btn">
+                                            <span>Home</span>
+                                        </a>
+                                        <a onclick="smoothTo('pedido-simplificado')" class="dropdown-item border-radius-md" id="servicos-btn">
+                                            <span>Como pedir?</span>
+                                        </a>
+                                        <a onclick="smoothTo('variedades')" class="dropdown-item border-radius-md" id="port-btn">
+                                            <span>Variedades</span>
+                                        </a>
+                                        <a onclick="smoothTo('clientes')" class="dropdown-item border-radius-md" id="teste-btn">
+                                            <span>Testemunhos</span>
+                                        </a>
+                                        <a onclick="smoothTo('porque')" class="dropdown-item border-radius-md" id="contato-btn">
+                                            <span>Porque pedir PizzazZ?</span>
+                                        </a>
+                                        <a onclick="smoothTo('faq')" class="dropdown-item border-radius-md" id="faq-btn">
+                                            <span>Perguntas Frequentes</span>
+                                        </a>
+                                    </div>
+                            </li>
+                            <li class="nav-item ms-lg-auto">
+                                <a class="nav-link nav-link-icon me-2" href="https://instagram.com/pizzazz/"
+                                    target="_blank">
+                                    <i class="fa fa-instagram me-1"></i>
+                                    <p class="d-inline text-sm z-index-1 font-weight-semibold" data-bs-toggle="tooltip"
+                                        data-bs-placement="bottom" title="Veja nosso Instagram">
+                                        Instagram</p>
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav d-lg-block d-none">
+                            <li class="nav-item">
+                                <a href="{% url 'login' %}" class="btn btn-sm  btn-dark  btn-round mb-0 me-1">Faça seu Pedido</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- End Navbar -->
+        </div>
+    </div>
+</div>

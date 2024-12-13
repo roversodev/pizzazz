@@ -1,0 +1,183 @@
+{% extends 'layouts/base.html' %}
+
+{% load static %}
+
+
+{% block title %}Cadastrar Parceiros Etapa 3{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'css/form-reset.css' %}">
+<style>
+    .custom-file-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.custom-file-upload input[type="file"] {
+    display: none; /* Esconde o input file padrão */
+}
+
+.custom-file-upload img {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-top: 10px;
+    max-width: 100px;
+    max-height: 100px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+    <div class="page-header min-vh-100">
+        <div class="container">
+            <div class="row">
+                <!-- Coluna da esquerda - Imagem -->
+                <div
+                    class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
+                    <div
+                        class="position-relative bg-gradient-danger h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center">
+                        <img src="{{ASSETS_ROOT}}/img/shapes/pattern-lines.svg" alt="pattern-lines"
+                            class="position-absolute opacity-4 start-0">
+                        <div class="position-relative">
+                            <img class="max-width-500 w-80 position-relative z-index-2"
+                                src="{{ASSETS_ROOT}}/img/empresa-pessoas.png" alt="image">
+                        </div>
+                        <h4 class="mt-5 text-white font-weight-bolder">Seu marketing sendo feito</h4>
+                        <p class="text-white">Aqui use imagens de alta qualidade do tamanho informado nos campos.</p>
+                    </div>
+                </div>
+
+                <!-- Coluna da direita - Formulário -->
+                <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0 mx-auto">
+                    {% include 'includes/messages.html' %}
+                    <div class="card card-plain">
+                        <div class="card-header pb-0 text-left">
+                            <img src="{{ASSETS_ROOT}}/img/logo-black.png" alt="Logo" class="mb-4"
+                                style="max-width: 150px; margin-left: -5px;">
+                            <h4 class="font-weight-bolder text-gradient text-danger">{{empresa.razao}}</h4>
+                            <p class="mb-0">Você poderá alterar esses dados depois. <br><b>Para deixar frete e pedido minimo gratuitos basta não preencher.</b></p>
+                        </div>
+                        <div class="card-body pb-3">
+                            <form action="#"
+                                method="post" class="needs-validation" novalidate enctype="multipart/form-data" autocomplete="off">
+                                {% csrf_token %}
+
+                               <!-- Campo de TEMPO MIN -->
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="tempMin">Tempo mínimo de Entrega (Minutos)</label>
+                                    <input type="number" class="form-control" id="tempMin" name="tempMin" min="0" step="1" required>
+                                    <div class="invalid-feedback">Deve ser um numero inteiro.</div>
+                                </div>
+
+                                <!-- Campo de TEMPO MAX -->
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label class="form-label" for="tempMax">Tempo máximo de Entrega (Minutos)</label>
+                                    <input type="number" class="form-control" id="tempMax" name="tempMax" min="0" step="1" required>
+                                    <div class="invalid-feedback">Deve ser um numero inteiro.</div>
+                                </div>
+
+                                <!-- Campo de PEDIDO MINIMO -->
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label for="pedido_minimo" class="form-label">Pedido Mínimo</label>
+                                    <input type="text" class="form-control" id="pedido_minimo" name="pedido_minimo">
+                                </div>
+
+                                <!-- Campo de FRETE -->
+                                <div class="mb-3 input-group input-group-outline">
+                                    <label for="frete" class="form-label">Preço do Frete</label>
+                                    <input type="text" class="form-control" id="frete" name="frete">
+                                </div>
+
+                               <!-- Campo de Logo -->
+                                <div class="mb-3 input-group input-group-outline" style="margin-top: 30px;">
+                                    <label for="logo" class="position-absolute" style="top: -25px;">Tamanho Recomendado: 300x90 pixels</label>
+                                    <div class="custom-file-upload">
+                                        <input type="file" id="logo" name="logo" accept=".png, .webp" onchange="previewImage(event, 'logoPreview')">
+                                        <label for="logo" class="btn bg-gradient-danger">Escolher Logo</label>
+                                        <img id="logoPreview" src="#" alt="Prévia da logo" style="display:none; margin-top: 10px; max-width: 100px; max-height: 100px;">
+                                    </div>
+                                </div>
+
+                                <!-- Campo de Foto de Perfil -->
+                                <div class="mb-3 input-group input-group-outline" style="margin-top: 30px;">
+                                    <label for="perfil" class="position-absolute" style="top: -25px;">Tamanho Recomendado: 1080x1080 pixels</label>
+                                    <div class="custom-file-upload">
+                                        <input type="file" id="perfil" name="perfil" accept=".png, .webp, .jpg, .jpeg" onchange="previewImage(event, 'perfilPreview')">
+                                        <label for="perfil" class="btn bg-gradient-danger">Escolher Perfil</label>
+                                        <img id="perfilPreview" src="#" alt="Prévia da Foto de Perfil" style="display:none; margin-top: 10px; max-width: 100px; max-height: 100px;">
+                                    </div>
+                                </div>
+
+                                <!-- Campo de Banner -->
+                                <div class="mb-3 input-group input-group-outline" style="margin-top: 30px;">
+                                    <label for="banner" class="position-absolute" style="top: -25px;">Tamanho Recomendado: 1200x1000 pixels</label>
+                                    <div class="custom-file-upload">
+                                        <input type="file" id="banner" name="banner" accept=".png, .webp, .jpg, .jpeg" onchange="previewImage(event, 'bannerPreview')">
+                                        <label for="banner" class="btn bg-gradient-danger">Escolher Banner</label>
+                                        <img id="bannerPreview" src="#" alt="Prévia do Banner" style="display:none; margin-top: 10px; max-width: 100px; max-height: 100px;">
+                                    </div>
+                                </div>
+
+                                <!-- Botão de Enviar -->
+                                <div class="text-center">
+                                    <button type="submit" id="submitBtn"
+                                        class="btn bg-gradient-danger w-100 mt-4 mb-0 icon-move-right">Cadastrar <i
+                                            class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Função para mostrar a prévia da imagem
+    function previewImage(event, previewId) {
+        var reader = new FileReader();
+        reader.onload = function() {
+            var output = document.getElementById(previewId);
+            output.src = reader.result;
+            output.style.display = "block";
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+<script src="{% static 'js/validar-form.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.7/dist/inputmask.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const campoPreco = document.getElementById("frete");
+        const pedido_minimo = document.getElementById("pedido_minimo");
+        const im = new Inputmask("numeric", {
+            groupSeparator: ".",
+            autoGroup: true,
+            radixPoint: ",",
+            prefix: "R$ ",
+            rightAlign: false,
+            digits: 2,
+            digitsOptional: false,
+        });
+        im.mask(campoPreco);
+        const im2 = new Inputmask("numeric", {
+            groupSeparator: ".",
+            autoGroup: true,
+            radixPoint: ",",
+            prefix: "R$ ",
+            rightAlign: false,
+            digits: 2,
+            digitsOptional: false,
+        });
+        im.mask(pedido_minimo);
+    });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,587 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}LP{% endblock %}
+
+{% block content %}
+
+{% include 'includes/navbar-lp.html' %}
+
+{% block stylesheets %}
+<style>
+    .input-group-outline .form-label {
+        color: white;
+    }
+
+    .input-group-outline .form-control {
+        color: white;
+    }
+
+    .input-group.input-group-outline.is-focused .form-label+.form-control,
+    .input-group.input-group-outline.is-filled .form-label+.form-control {
+        border-color: white !important;
+        border-top-color: transparent !important;
+        box-shadow: inset 1px 0 white, inset -1px 0 white, inset 0 -1px white;
+    }
+
+    .input-group.input-group-outline.is-focused .form-label:before,
+    .input-group.input-group-outline.is-focused .form-label:after,
+    .input-group.input-group-outline.is-filled .form-label:before,
+    .input-group.input-group-outline.is-filled .form-label:after {
+        border-top-color: white;
+        box-shadow: inset 0 1px white;
+    }
+
+    .input-group.input-group-outline.is-focused .form-label,
+    .input-group.input-group-outline.is-filled .form-label {
+        width: 100%;
+        height: 100%;
+        font-size: 0.6875rem !important;
+        color: white;
+        display: flex;
+        line-height: 1.25 !important;
+    }
+
+    .card.card-background:after {
+        background: rgba(0, 0, 0, 0.35);
+    }
+</style>
+{% endblock %}
+
+
+<!-- -------- INICIO HEADER -------- -->
+<header class="header-2" id="home">
+    <div class="page-header min-vh-100 relative" style="background-image: url('/static/assets/img/pizza-header.jpg')">
+        <span class="mask bg-dark opacity-3"></span>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-7 text-center mx-auto">
+                    <h1 class="text-white font-weight-bolder pt-3 mt-n5">PizzazZ</h1>
+                    <p class="lead text-white mt-3">Peça sem sair de casa com a certeza que será zazZ.</p>
+                    <a class="btn btn-white" id="scrollButton3" href="{% url 'login' %}">Peça Aqui</a>
+                </div>
+            </div>
+        </div>
+        <div class="position-absolute w-100 z-index-1 bottom-0">
+            <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                viewBox="0 24 150 40" preserveAspectRatio="none" shape-rendering="auto">
+                <defs>
+                    <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z">
+                    </path>
+                </defs>
+                <g class="moving-waves">
+                    <use xlink:href="#gentle-wave" x="48" y="-1" fill="rgba(255,255,255,0.40"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.35)"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.25)"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="8" fill="rgba(255,255,255,0.20)"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="13" fill="rgba(255,255,255,0.15)"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="16" fill="rgba(255,255,255,0.95"></use>
+                </g>
+            </svg>
+        </div>
+    </div>
+</header>
+<!-- -------- FIM HEADER -------- -->
+
+
+
+<!-- -------- INICIO NUMEROS -------- -->
+<section class="pt-3 pb-4" id="count-stats">
+    <div class="container px-md-0 px-4">
+        <div class="row">
+            <div class="col-lg-9 z-index-2 border-radius-lg mt-n10 mx-auto py-3 blur shadow-blur">
+                <div class="row">
+                    <div class="col-md-4 position-relative">
+                        <div class="p-2 text-center">
+                            <h1 class="text-gradient text-dark font-weight-bolder"><span id="state1"
+                                    countto="3000">3000</span>+</h1>
+                            <h5 class="mt-3 font-weight-bolder">Pizzas</h5>
+                            <p>Entregues com velocidade e satisfação máxima!</p>
+                        </div>
+                        <hr class="vertical dark">
+                    </div>
+                    <div class="col-md-4 position-relative">
+                        <div class="p-2 text-center">
+                            <h1 class="text-gradient text-dark font-weight-bolder"> <span id="state2"
+                                    countto="100">100</span>+</h1>
+                            <h5 class="mt-3 font-weight-bolder">Pizzarias</h5>
+                            <p>Cadastradas na nossa base, com um alto padrão para todos os gostos!</p>
+                        </div>
+                        <hr class="vertical dark">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 text-center">
+                            <h1 class="text-gradient text-dark font-weight-bolder" id="state3" countto="8">8</h1>
+                            <h5 class="mt-3 font-weight-bolder">Regiões</h5>
+                            <p>Atendidas pelo o nosso aplicativo! Estamos crescendo cada vez mais.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- -------- FIM NUMEROS -------- -->
+
+
+
+<!-- -------- INICIO PEDIDO SIMPLIFICADO + CARD 3D -------- -->
+<section id="pedido-simplificado">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-4 ms-auto me-auto p-lg-4 mt-lg-0 mt-4">
+                <div class="position-relative tilt">
+
+                    <img class="w-100 border-radius-xl" src="{{ASSETS_ROOT}}/img/Pizza-Pexels.jpg">
+
+                    <span
+                        class="mask bg-dark opacity-4 position-absolute top-0 start-0 w-100 h-100 border-radius-xl"></span>
+
+                    <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                        <h3 class="text-white font-weight-bolder">Peça de forma simplificada!</h3>
+                        <a href="{% url 'login' %}" class="btn btn-outline-white btn-lg mt-3 up btn-round">Peça Aqui</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 ms-auto">
+                <div class="row justify-content-start">
+                    <div class="col-md-6">
+                        <div class="info">
+                            <h1 class="text-gradient text-danger font-weight-bolder mt-md-0 mt-4">01</h1>
+                            <h5 class="font-weight-bolder mt-3">Acesse nosso site</h5>
+                            <p class="pe-5">De forma simples e rápida você acessa nosso site e clica no botão "Faça seu
+                                Pedido".</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info">
+                            <h1 class="text-gradient text-danger font-weight-bolder">02</h1>
+                            <h5 class="font-weight-bolder mt-3">Cadastre-se</h5>
+                            <p class="pe-3">Faça seu login ou cadastra-se e escolha sua Pizzaria favorita.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-start mt-md-5 mt-0">
+                    <div class="col-md-6 mt-3">
+                        <div class="info">
+                            <h1 class="text-gradient text-danger font-weight-bolder">03</h1>
+                            <h5 class="font-weight-bolder mt-3">Escolha o Sabor</h5>
+                            <p class="pe-5">Escolha sua pizzaria favorita ou sabores e adicione no carrinho.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <div class="info">
+                            <h1 class="text-gradient text-danger font-weight-bolder">04</h1>
+                            <h5 class="font-weight-bolder mt-3">Faça seu pedido</h5>
+                            <p class="pe-3">Adicione suas observações, confira seus dados e pronto.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- -------- FIM PEDIDO SIMPLIFICADO + CARD 3D -------- -->
+
+
+<!-- -------   INICIO VARIEDADES   -------- -->
+<section class="py-5" id="variedades">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-12 mx-auto text-center mb-5">
+                <span class="badge bg-gradient-danger mb-2">Pizzazz</span>
+                <h2>Explore a variedades de sabor</h2>
+                <p>
+                    Sabemos que escolher o sabor sempre é uma tarefa dificil, por isso temos uma variedades de pizzarias
+                    e de sabores bem organizados e possibilitando você a favoritar e escolher o que gosta mais assim
+                    trazendo seus sabores e lugares preferidos.
+                </p>
+            </div>
+        </div>
+        <div class="row min-vh-25">
+            <div class="col-sm-4 col-5 mb-sm-0 mb-3">
+                <div style="background-image: url(&#39;{{ASSETS_ROOT}}/img/Pizza-1.jpg&#39;); background-position: center;"
+                    class="w-100 h-100 border-radius-lg shadow bg-cover"></div>
+            </div>
+            <div class="col-sm-3 col-7 mb-sm-0 mb-3">
+                <div style="background-image: url(&#39;{{ASSETS_ROOT}}/img/Pizza-2.jpg&#39;); background-position: center;"
+                    class="w-100 h-100 border-radius-lg bg-cover"></div>
+            </div>
+            <div class="col-sm-5 mb-sm-0 mb-3">
+                <div style="background-image: url(&#39;{{ASSETS_ROOT}}/img/Pizza-3.jpg&#39;); background-position: center;"
+                    class="w-100 h-100 border-radius-lg shadow bg-cover"></div>
+            </div>
+        </div>
+        <div class="row min-vh-25 mt-md-4 mt-0">
+            <div class="col-sm-3 col-7 mb-sm-0 mb-3">
+                <div style="background-image: url(&#39;{{ASSETS_ROOT}}/img/Pizza-4.jpg&#39;); background-position: center;"
+                    class="w-100 h-100 border-radius-lg shadow bg-cover"></div>
+            </div>
+            <div class="col-sm-5 col-5 mb-sm-0 mb-3">
+                <div style="background-image: url(&#39;{{ASSETS_ROOT}}/img/Pizza-5.jpg&#39;); background-position: center;"
+                    class="w-100 h-100 border-radius-lg shadow bg-cover"></div>
+            </div>
+            <div class="col-sm-4 mb-sm-0 mb-3">
+                <div style="background-image: url(&#39;{{ASSETS_ROOT}}/img/Pizza-6.jpg&#39;); background-position: center;"
+                    class="w-100 h-100 border-radius-lg shadow bg-cover"></div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- -------   FIM VARIEDADES   -------- -->
+
+
+
+<!-- INICIO TESTEMUNHOS -->
+<h2 class="text-center" id="clientes">O que nossos clientes dizem?</h2>
+<section class="bg-gradient-danger position-relative overflow-hidden py-4" id="testemunhos">
+    <div class="position-absolute w-100 z-inde-1 top-0 mt-n3">
+        <svg width="100%" viewBox="0 -2 1920 157" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <title>wave-down</title>
+            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <g fill="#FFFFFF" fill-rule="nonzero">
+                    <g id="wave-down">
+                        <path
+                            d="M0,60.8320331 C299.333333,115.127115 618.333333,111.165365 959,47.8320321 C1299.66667,-15.5013009 1620.66667,-15.2062179 1920,47.8320331 L1920,156.389409 L0,156.389409 L0,60.8320331 Z"
+                            id="Path-Copy-2"
+                            transform="translate(960.000000, 78.416017) rotate(180.000000) translate(-960.000000, -78.416017) ">
+                        </path>
+                    </g>
+                </g>
+            </g>
+        </svg>
+    </div>
+    <div id="carouselExampleIndicators" class="carousel slide pt-7 pb-11" data-bs-ride="carousel">
+        <ol class="carousel-indicators pb-7">
+            <a href="javascript:;">
+                <img style="transition: all .5s ease;" src="{{ASSETS_ROOT}}/img/team-4.jpg" alt="..."
+                    class="avatar avatar-sm avatar-scale-up shadow border-radius-lg border-0 active"
+                    data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"> <span
+                    class="text-white mx-2">&#124;</span>
+            </a>
+
+            <a href="javascript:;">
+                <img style="transition: all .5s ease;" src="{{ASSETS_ROOT}}/img/team-3.jpg" alt="..."
+                    class="avatar avatar-sm avatar-scale-up shadow border-radius-lg border-0"
+                    data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"> <span
+                    class="text-white mx-2">&#124;</span>
+            </a>
+
+            <a href="javascript:;">
+                <img style="transition: all .5s ease;" src="{{ASSETS_ROOT}}/img/team-2.jpg" alt="..."
+                    class="avatar avatar-sm avatar-scale-up shadow border-radius-lg border-0"
+                    data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2">
+            </a>
+        </ol>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-7 mx-auto text-center">
+                            <img class="w-20 mb-4" src="{{ASSETS_ROOT}}/img/logo-white.png" alt="">
+                            <p class="lead text-white">"Com o PizzazZ, fazer meu pedido de pizza nunca foi tão fácil!
+                                Tudo em um só lugar: escolha, pagamento e entrega rápida. Adoro a conveniência do app!"
+                            </p>
+                            <div class="author justify-content-center">
+                                <div class="name ps-2">
+                                    <span class="text-white">João Silva</span>
+                                    <div class="stats">
+                                        <small class="text-white opacity-6">Cliente PizzazZ</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-7 mx-auto text-center">
+                            <img class="w-20 mb-4" src="{{ASSETS_ROOT}}/img/logo-white.png" alt="">
+                            <p class="lead text-white">"Eu uso o PizzazZ para fazer pedidos em várias pizzarias ao mesmo
+                                tempo, e sempre encontro o melhor preço e qualidade. Excelente experiência!"</p>
+                            <div class="author justify-content-center">
+                                <div class="name ps-2">
+                                    <span class="text-white">Mariana Costa</span>
+                                    <div class="stats">
+                                        <small class="text-white opacity-6">Usuária frequente, PizzazZ</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-7 mx-auto text-center">
+                            <img class="w-20 mb-4" src="{{ASSETS_ROOT}}/img/logo-white.png" alt="">
+                            <p class="lead text-white">"PizzazZ tem tudo o que eu preciso para uma refeição rápida e
+                                deliciosa. Ótimas opções de pizzarias e uma entrega super rápida!"</p>
+                            <div class="author justify-content-center">
+                                <div class="name ps-2">
+                                    <span class="text-white">Carlos Lima</span>
+                                    <div class="stats">
+                                        <small class="text-white opacity-6">Entusiasta de Pizzas, PizzazZ</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="position-absolute w-100 bottom-0">
+        <svg width="100%" viewBox="0 -1 1920 166" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <title>wave-up</title>
+            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <g transform="translate(0.000000, 5.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                    <g id="wave-up" transform="translate(0.000000, -5.000000)">
+                        <path
+                            d="M0,70 C298.666667,105.333333 618.666667,95 960,39 C1301.33333,-17 1621.33333,-11.3333333 1920,56 L1920,165 L0,165 L0,70 Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+        </svg>
+    </div>
+</section>
+<!-- FIM TESTEMUNHOS -->
+
+
+
+<!-- INICIO PORQUE PIZZAZZ -->
+<section id="porque">
+    <h2 class="text-center pt-5">Por que pedir com a PizzazZ?</h2>
+    <div class="container py-5">
+        <div class="row">
+            <!-- Benefício 1 -->
+            <div class="col-lg-3 col-sm-6 bnf">
+                <div class="p-3 text-center">
+                    <div class="icon icon-shape icon-md bg-gradient-danger shadow-danger mx-auto">
+                        <i class="material-symbols-rounded opacity-10">local_pizza</i>
+                    </div>
+                    <h5 class="mt-4">Variedade Incrível</h5>
+                    <p>Mais de 50 sabores irresistíveis para escolher, dos clássicos aos especiais.</p>
+                </div>
+            </div>
+            <!-- Benefício 2 -->
+            <div class="col-lg-3 col-sm-6 bnf">
+                <div class="p-3 text-center">
+                    <div class="icon icon-shape icon-md bg-gradient-danger shadow-danger mx-auto">
+                        <i class="material-symbols-rounded opacity-10">schedule</i>
+                    </div>
+                    <h5 class="mt-4">Entrega Rápida</h5>
+                    <p>Receba sua pizza quente e saborosa em tempo recorde!</p>
+                </div>
+            </div>
+            <!-- Benefício 3 -->
+            <div class="col-lg-3 col-sm-6 bnf">
+                <div class="p-3 text-center">
+                    <div class="icon icon-shape icon-md bg-gradient-danger shadow-danger mx-auto">
+                        <i class="material-symbols-rounded opacity-10">star</i>
+                    </div>
+                    <h5 class="mt-4">Qualidade Garantida</h5>
+                    <p>Ingredientes frescos e preparo artesanal para o sabor perfeito.</p>
+                </div>
+            </div>
+            <!-- Benefício 4 -->
+            <div class="col-lg-3 col-sm-6 bnf">
+                <div class="p-3 text-center">
+                    <div class="icon icon-shape icon-md bg-gradient-danger shadow-danger mx-auto">
+                        <i class="material-symbols-rounded opacity-10">favorite</i>
+                    </div>
+                    <h5 class="mt-4">Atendimento de Primeira</h5>
+                    <p>Equipe dedicada para tornar sua experiência única e especial.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- FIM PORQUE PIZZAZZ -->
+
+
+
+<!-- -------- INICIO CTA ------- -->
+<section class="text-center" id="cta">
+    <div class="container">
+        <div class="col-md-8 col-12 ms-auto me-auto p-lg-4 mt-lg-0 mt-4">
+            <div class="position-relative tilt">
+                <img class="w-100 border-radius-xl" src="{{ASSETS_ROOT}}/img/Pizza-8.jpg"
+                    style="max-height: 400px; background-position: center;">
+            </div>
+        </div>
+        <!-- Título principal -->
+        <h2 class="mb-4 mt-6">Descubra o sabor perfeito com a PizzazZ!</h2>
+        <!-- Texto de apoio -->
+        <p class="mb-5 px-4">Sabores irresistíveis, entrega rápida e o melhor atendimento. Faça parte da nossa história de
+            sabor! <br> Se cadastrando hoje! Você ganha <strong>10% de desconto</strong> no seu primeiro pedido</p>
+        <!-- Botão de ação -->
+        <a href="{% url 'login' %}" class="btn btn-danger btn-lg px-5 py-3 rounded-pill shadow font-weight-bolder">Peça Agora</a>
+    </div>
+
+</section>
+<!-- -------- FIM CTA ------- -->
+
+
+
+<!-- -------- INICIO FAQ ------- -->
+<section class="py-5" id="faq">
+    <div class="container">
+        <div class="row my-5">
+            <div class="col-md-6 mx-auto text-center">
+                <h2>Perguntas Frequentes</h2>
+                <p>Tem alguma dúvida? Veja as perguntas mais comuns dos nossos clientes e encontre as respostas
+                    rapidamente.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-10 mx-auto">
+                <div class="accordion" id="accordionRental">
+                    <div class="accordion-item mb-3">
+                        <h5 class="accordion-header" id="headingOne">
+                            <button class="accordion-button border-bottom font-weight-bold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
+                                aria-controls="collapseOne">
+                                Como faço para pedir minha pizza?
+                                <i class="collapse-close fa fa-plus text-xs pt-1 position-absolute end-0"></i>
+                                <i class="collapse-open fa fa-minus text-xs pt-1 position-absolute end-0"></i>
+                            </button>
+                        </h5>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+                            data-bs-parent="#accordionRental">
+                            <div class="accordion-body text-sm opacity-8">
+                                Para fazer seu pedido, basta acessar nosso cardápio online, escolher a pizza dos seus
+                                sonhos e clicar em "Peça Agora". Você será guiado por um simples processo de pagamento e
+                                logo sua pizza estará a caminho!
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item mb-3">
+                        <h5 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button border-bottom font-weight-bold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false"
+                                aria-controls="collapseTwo">
+                                Quais formas de pagamento vocês aceitam?
+                                <i class="collapse-close fa fa-plus text-xs pt-1 position-absolute end-0"></i>
+                                <i class="collapse-open fa fa-minus text-xs pt-1 position-absolute end-0"></i>
+                            </button>
+                        </h5>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
+                            data-bs-parent="#accordionRental">
+                            <div class="accordion-body text-sm opacity-8">
+                                Aceitamos diversas formas de pagamento, incluindo cartão de crédito, boleto bancário,
+                                PIX e dinheiro na entrega. Se preferir, também temos opções de pagamento digital via
+                                carteiras virtuais.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item mb-3">
+                        <h5 class="accordion-header" id="headingThree">
+                            <button class="accordion-button border-bottom font-weight-bold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
+                                aria-controls="collapseThree">
+                                Quanto tempo leva para receber o pedido?
+                                <i class="collapse-close fa fa-plus text-xs pt-1 position-absolute end-0"></i>
+                                <i class="collapse-open fa fa-minus text-xs pt-1 position-absolute end-0"></i>
+                            </button>
+                        </h5>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
+                            data-bs-parent="#accordionRental">
+                            <div class="accordion-body text-sm opacity-8">
+                                O tempo de entrega pode variar dependendo da sua localização, mas normalmente entregamos
+                                em até 30 minutos! Fique tranquilo, sua pizza vai chegar quentinha e saborosa.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item mb-3">
+                        <h5 class="accordion-header" id="headingFifth">
+                            <button class="accordion-button border-bottom font-weight-bold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseFifth" aria-expanded="false"
+                                aria-controls="collapseFifth">
+                                Onde posso encontrar detalhes sobre o envio?
+                                <i class="collapse-close fa fa-plus text-xs pt-1 position-absolute end-0"></i>
+                                <i class="collapse-open fa fa-minus text-xs pt-1 position-absolute end-0"></i>
+                            </button>
+                        </h5>
+                        <div id="collapseFifth" class="accordion-collapse collapse" aria-labelledby="headingFifth"
+                            data-bs-parent="#accordionRental">
+                            <div class="accordion-body text-sm opacity-8">
+                                As informações sobre o envio estão disponíveis diretamente durante o processo de pedido.
+                                Após finalizar a compra, você receberá todos os detalhes sobre o status de entrega e o
+                                tempo estimado. Em caso de dúvidas, nossa equipe de atendimento está à disposição para
+                                ajudar!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- -------- FIM FAQ ------- -->
+
+
+
+<!-- -------- INICIO RODAPÉ ------- -->
+
+{% include 'includes/footer.html' %}
+
+<!-- -------- FIM RODAPÉ ------- -->
+{% endblock %}
+
+
+
+{% block javascripts %}
+<script src="{% static 'js/lp-cliente.js' %}"></script>
+<script type="text/javascript">
+    if (document.getElementById("state1")) {
+        const countUp = new CountUp("state1", document.getElementById("state1").getAttribute("countTo"));
+        if (!countUp.error) {
+            countUp.start();
+        } else {
+            console.error(countUp.error);
+        }
+    }
+    if (document.getElementById("state2")) {
+        const countUp1 = new CountUp("state2", document.getElementById("state2").getAttribute("countTo"));
+        if (!countUp1.error) {
+            countUp1.start();
+        } else {
+            console.error(countUp1.error);
+        }
+    }
+    if (document.getElementById("state3")) {
+        const countUp2 = new CountUp("state3", document.getElementById("state3").getAttribute("countTo"));
+        if (!countUp2.error) {
+            countUp2.start();
+        } else {
+            console.error(countUp2.error);
+        };
+    }
+</script>
+<script>
+function smoothTo(sectionId) {
+    const targetElement = document.getElementById(sectionId);
+    if (targetElement) {
+        const offset = 100; // Ajuste do deslocamento (em pixels)
+        const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    } else {
+        console.error(`Elemento com ID "${sectionId}" não encontrado.`);
+    }
+}
+
+
+</script>
+{% endblock %}

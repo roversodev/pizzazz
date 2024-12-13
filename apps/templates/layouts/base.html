@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Favicon para tema claro -->
+    <link rel="icon" type="image/png" href="{{ ASSETS_ROOT }}/img/light-favicon.png"
+        media="(prefers-color-scheme: light)">
+
+    <!-- Favicon para tema escuro -->
+    <link rel="icon" type="image/png" href="{{ ASSETS_ROOT }}/img/dark-favicon.png"
+        media="(prefers-color-scheme: dark)">
+
+    <title>
+        PizzazZ - {% block title %}{% endblock %}
+    </title>
+
+    <!--     Fonts and icons     -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/2c7dc414d4.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
+
+    <!-- CSS Files -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <link type="text/css" href="{{ ASSETS_ROOT }}/css/material-kit.css" rel="stylesheet">
+
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="{{ ASSETS_ROOT }}/js/plugins/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.2/dist/vanilla-tilt.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+
+    <!-- Specific Page CSS goes HERE  -->
+    <style>
+        .form-check-input:checked {
+            background: linear-gradient(195deg, #27272a 0%, #18181b 100%) !important;
+            border-color: #18181b !important;
+        }
+    </style>
+    <style>
+        @font-face {
+            font-family: 'Rebond';
+            src: url('/static/fonts/Rebond/Rebond-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .rebond {
+            font-family: 'Rebond', sans-serif;
+        }
+
+        .mont {
+            font-family: 'Montserat', sans-serif;
+        }
+
+        .inter {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+    {% block stylesheets %}{% endblock stylesheets %}
+
+</head>
+
+<body class="poppins" cz-shortcut-listen="true">
+
+
+    {% block content %} {% endblock %}
+
+
+
+    {% include 'includes/scripts.html' %}
+    <!-- Specific Page JS goes HERE  -->
+    {% block javascripts %}{% endblock javascripts %}
+</body>
+
+</html>
