@@ -230,8 +230,9 @@ class Cardapio(models.Model):
     preco = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='categoria')
     imagem = models.ImageField(upload_to='cardapio_images/', null=True, blank=True)
-    ativo = models.BooleanField(default=True)
+    ativo = models.BooleanField(default=False)
     borda_recheada = models.BooleanField(default=False)
+    completo = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.nome} - {self.empresa.nome_fantasia}"
@@ -334,10 +335,10 @@ class IngredienteCardapio(models.Model):
     cardapio_item = models.ForeignKey(Cardapio, on_delete=models.CASCADE, related_name='ingredientes')
     ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE)
     quantidade = models.DecimalField(max_digits=10, decimal_places=2)
-    unidade = models.CharField(max_length=50, choices=[('kg', 'kg'), ('g', 'g'), ('unidade', 'Unidade'), ('litro', 'Litro')], default='kg')
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='ingredienteCardapio')
 
     def __str__(self):
-        return f"{self.quantidade} {self.unidade} de {self.ingrediente.nome} para {self.cardapio_item.nome}"
+        return f"{self.quantidade} {self.ingrediente.unidade} de {self.ingrediente.nome} para {self.cardapio_item.nome}"
     
 
 class Carrinho(models.Model):

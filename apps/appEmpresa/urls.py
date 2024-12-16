@@ -34,5 +34,7 @@ urlpatterns = [
     path('cardapio/item/<int:item_id>/toggle-ativo/', views.toggle_ativo_item, name='toggle_ativo_item'),
 
     # Receitas
-    path('receitas', views.receitas, name='receitas')
+    path('receitas', views.receitas, name='receitas'),
+    path('receitas/cadastrar', views.cadastrar_receita, name='cadastrar_receita'),
+    path('deletar-ingrediente-receita/<int:ingrediente_id>/', views.deletar_ingrediente_receita, name='deletar_ingrediente_receita'),
 ]

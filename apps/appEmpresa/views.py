@@ -2,7 +2,7 @@ from decimal import Decimal
 import locale
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from apps.authentication.models import Cardapio, Categoria, Empresa, EmpresaUsuario, Estoque, Ingrediente, MovimentacaoEstoque
+from apps.authentication.models import Cardapio, Categoria, Cliente, Empresa, EmpresaUsuario, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, Sequencia
 import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -222,7 +222,7 @@ def estoque(request, cnpj):
     return render(request, 'appEmpresa/estoque.html', context)
 
 
-
+@login_required
 def cadastrar_movimentacao(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
@@ -299,7 +299,7 @@ def calcular_preco_medio(estoque, quantidade_nova, preco_unitario_novo):
 #
 
 
-
+@login_required
 def movimentacao_grafico(request, cnpj):
     # Filtra movimentações por empresa, ajusta de acordo com o contexto do sistema
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
@@ -319,7 +319,7 @@ def movimentacao_grafico(request, cnpj):
     return JsonResponse(data)
 
 
-
+@login_required
 def movimentacoes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
@@ -364,12 +364,17 @@ def cardapio(request, cnpj):
         
     categorias = Categoria.objects.filter(empresa=empresa)
     cardapios = Cardapio.objects.filter(empresa=empresa)
+
+    search = request.GET.get('search', '')
+    if search:
+        categorias = categorias.filter(nome__icontains=search)
         
     context = {
         'page_title': 'Cardápio',
         'empresa': empresa,
         'categorias': categorias,
         'cardapios': cardapios,
+        'search': search,
     }
         
     return render(request, 'appEmpresa/cardapio.html', context)
@@ -545,9 +550,50 @@ def toggle_ativo_categoria(request, cnpj, categoria_id):
 #
 
 
-
+@login_required
 def receitas(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
 
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+
+    # Obtenção dos ingredientes e cardápio da empresa
+    receitas = IngredienteCardapio.objects.filter(empresa=empresa)
+    ingredientes = Ingrediente.objects.filter(empresa=empresa)
+    cardapio = Cardapio.objects.filter(empresa=empresa)
+    
+    # Se houver um termo de busca, filtramos as receitas
+    search = request.GET.get('search', '')
+    if search:
+        cardapio = cardapio.filter(nome__icontains=search)
+
+    # Criar um dicionário para armazenar a quantidade de ingredientes por item do cardápio
+    quantidade_ingredientes = {}
+    for item in cardapio:
+        total_ingredientes = IngredienteCardapio.objects.filter(cardapio_item=item).count()
+        quantidade_ingredientes[item.id_cardapio] = total_ingredientes
+
+    context = {
+        'page_title': 'Receitas',
+        'empresa': empresa,
+        'ingredientes': ingredientes,
+        'cardapio': cardapio,
+        'quantidade_ingredientes': quantidade_ingredientes,
+        'receitas': receitas,
+        'search': search,  # Passando o termo de busca para o template
+    }
+
+    return render(request, 'appEmpresa/receita.html', context)
+
+
+
+@login_required
+def cadastrar_receita(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
     empUsu = EmpresaUsuario.objects.get(empresa=empresa)
@@ -558,10 +604,80 @@ def receitas(request, cnpj):
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
         
-    
-    context = {
-        'page_title': 'Receitas',
-        'empresa': empresa,
-    }
-    
-    return render(request, 'appEmpresa/receita.html', context)
+    if request.method == 'POST':
+        try:
+            # Pega os dados do formulário
+            cardapio_id = request.POST.get('cardapio')
+            ingrediente_id = request.POST.get('ingrediente')
+            quantidade = request.POST.get('quantidade')
+            completo = 'completo' in request.POST
+            
+            
+            cardapio_item = Cardapio.objects.get(id_cardapio=cardapio_id)
+            ingrediente = Ingrediente.objects.get(id_ingrediente=ingrediente_id)
+
+            # Cria a nova instância de IngredienteCardapio
+            ingrediente_cardapio = IngredienteCardapio(
+                cardapio_item=cardapio_item,
+                ingrediente=ingrediente,
+                quantidade=quantidade,
+                empresa=empresa
+            )
+
+            cardapio_att = Cardapio.objects.get(id_cardapio=cardapio_id)
+            cardapio_att.completo = completo
+
+            # Salva no banco de dados
+            cardapio_att.save()
+            ingrediente_cardapio.save()
+
+            messages.success(request, f'{ingrediente.nome} incluido na receita do(a) {cardapio_item.nome} com sucesso!') 
+            return redirect('receitas', cnpj=cnpj)
+        
+        except Exception as e:
+            messages.error(request, 'Erro ao cadastrar, verifique os dados e tente novamente.') 
+            return redirect('receitas', cnpj=cnpj)
+        
+
+
+    #cliente = Cliente.objects.get(id_cliente=1)
+    #cardapio_item = Cardapio.objects.get(id_cardapio=2)
+
+
+        # 7. Criar um pedido para o cliente
+   #pedido = Pedido.objects.create(
+        cliente=cliente,
+        empresa=empresa,
+        status="pendente",  # Pode ser alterado conforme o status do pedido
+        total=Decimal('0.00'),  # O total será calculado automaticamente depois
+        numero_pedido=Sequencia.obter_novo_valor()
+    #)
+
+    # 8. Adicionar um item ao pedido
+    #item_pedido = ItemPedido.objects.create(
+        pedido=pedido,
+        cardapio_item=cardapio_item,
+        quantidade=2,  # 2 pizzas de Margherita
+        preco_unitario=cardapio_item.preco,
+        preco_total=cardapio_item.preco * 2  # Preço total das 2 pizzas
+    #)
+
+    # 9. Calcular o total do pedido (vai percorrer os itens)
+    #pedido.calcular_total()
+
+    # 10. Atualizar o estoque conforme o pedido
+    #pedido.atualizar_estoque()
+
+
+
+def deletar_ingrediente_receita(request, cnpj, ingrediente_id):
+    if request.method == 'POST':
+        try:
+            ingrediente = get_object_or_404(IngredienteCardapio, id_ingredientecardapio=ingrediente_id)
+            ingrediente.delete()
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)

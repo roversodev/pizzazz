@@ -17,10 +17,15 @@ def capitalize_words(value):
 def truncate_text(value, arg):
     """Trunca o texto para o número de caracteres especificado."""
     if isinstance(value, str) and len(value) > arg:
-        return value[:arg] + '...'  # Adiciona '...' se o texto for maior que o limite
+        return value[:arg] + '...'
     return value
 
 @register.filter(name='remove_mask')
 def remove_mask(cnpj):
     """Remove a máscara do CNPJ (ex: 12.345.678/0001-90 -> 12345678000190)."""
     return re.sub(r'\D', '', cnpj)
+
+@register.filter
+def get_item(dictionary, key):
+    """Retorna o valor do dicionário para a chave especificada."""
+    return dictionary.get(key)
