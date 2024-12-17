@@ -210,6 +210,10 @@ def cadastrar_clientes(request):
 
             dia, mes, ano = data_nascimento.split('/')
 
+            nomes = nome.split()
+            primeiro_nome = nomes[0]
+            ultimo_nome = nomes[-1]
+
             # Formatar no formato ISO
             data_iso = f"{ano}-{mes}-{dia}"
             print(data_iso)
@@ -219,7 +223,9 @@ def cadastrar_clientes(request):
                     email=email,
                     password=password,
                     is_cliente=True,
-                    username=email
+                    username=email,
+                    first_name=primeiro_nome,
+                    last_name=ultimo_nome
                 )
                 user.save()
 
@@ -234,7 +240,7 @@ def cadastrar_clientes(request):
                 )
 
             messages.success(request, "Complete o cadastro na próxima etapa.")
-            return redirect('cadastrar_parceiros_etapa2', cliente_id=cliente.id_cliente)
+            return redirect('cadastrar_clientes_etapa2', cliente_id=cliente.id_cliente)
 
         except Exception as e:
             messages.error(request, "Erro ao cadastrar, verifique os dados e tente novamente.")

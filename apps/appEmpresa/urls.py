@@ -37,4 +37,8 @@ urlpatterns = [
     path('receitas', views.receitas, name='receitas'),
     path('receitas/cadastrar', views.cadastrar_receita, name='cadastrar_receita'),
     path('deletar-ingrediente-receita/<int:ingrediente_id>/', views.deletar_ingrediente_receita, name='deletar_ingrediente_receita'),
+
+    # Pedidos
+    path('pedidos', views.pedidos, name='pedidos'),
+    path('pedidos/detalhes/<int:pedido_id>/', views.detalhes_pedido, name='detalhes_pedido'),
 ]

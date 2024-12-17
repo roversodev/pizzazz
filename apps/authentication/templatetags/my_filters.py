@@ -29,3 +29,7 @@ def remove_mask(cnpj):
 def get_item(dictionary, key):
     """Retorna o valor do dicionário para a chave especificada."""
     return dictionary.get(key)
+
+@register.filter
+def total_bruto(pedidos):
+    return sum(p.total for p in pedidos if p.total)

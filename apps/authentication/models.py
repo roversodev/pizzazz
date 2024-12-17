@@ -118,7 +118,7 @@ class EnderecoCliente(models.Model):
 
 
     def __str__(self):
-        return f"{self.nome}: {self.endereco}, {self.numero} - {self.municipio}/{self.estado}"
+        return f"{self.cliente.nome}: {self.endereco}, {self.numero} - {self.municipio}/{self.estado}"
 
 
 class EnderecoEmpresa(models.Model):
@@ -158,11 +158,10 @@ class Sequencia(models.Model):
 
 
 class Pedido(models.Model):
-    id_pedido = models.AutoField(primary_key=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     data_pedido = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, choices=[('pendente', 'Pendente'), ('em_andamento', 'Em Andamento'), ('finalizado', 'Finalizado')], default='pendente')
+    status = models.CharField(max_length=50, choices=[('pendente', 'Pendente'), ('em_andamento', 'Em Andamento'), ('Concluido', 'Concluido')], default='pendente')
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_pedido = models.IntegerField(unique=True, null=False, blank=False)
 
@@ -193,7 +192,7 @@ class Pedido(models.Model):
                     raise ValueError(f"Erro ao atualizar o estoque para {ingrediente.ingrediente.nome}: {str(e)}")
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.cliente.usuario.username} - {self.empresa.nome_fantasia}"
+        return f"Pedido #{self.numero_pedido} - {self.cliente.usuario.username} - {self.empresa.nome_fantasia}"
     
     def save(self, *args, **kwargs):
         if not self.numero_pedido:
@@ -257,7 +256,7 @@ class ItemPedido(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.quantidade} x {self.cardapio_item.nome} - Pedido #{self.pedido.id}"
+        return f"{self.cardapio_item.nome} - {self.quantidade}x"
 
     class Meta:
         unique_together = ('pedido', 'cardapio_item')

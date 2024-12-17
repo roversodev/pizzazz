@@ -64,6 +64,9 @@
   .page-item.active{
     background: transparent !important; box-shadow: none !important;
 }
+.flatpickr-calendar .flatpickr-day.today, .flatpickr-calendar .flatpickr-day.selected, .flatpickr-calendar .flatpickr-day.startRange, .flatpickr-calendar .flatpickr-day.endRange{
+    background: #f44335 !important;
+}
 
   @media (max-width: 1200px) {
     .custom-bg {
@@ -153,6 +156,17 @@
                 class="ph-bold ph-cooking-pot top-0 text-dark {% if page_title == 'Receitas' %}text-white{% endif %}"></i>
             </div>
             <span class="nav-link-text ms-1">Receitas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Pedidos' %}active{% endif %}"
+            href="{% url 'pedidos' cnpj=empresa.cnpj|remove_mask %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i
+                class="ph-bold ph-receipt top-0 text-dark {% if page_title == 'Pedidos' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Pedidos</span>
           </a>
         </li>
         <li class="nav-item mt-3">

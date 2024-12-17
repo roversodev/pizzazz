@@ -1,0 +1,93 @@
+{% extends 'includes/side-nav.html' %}
+{% load static %}
+{% load my_filters %}
+{% block title %}Detalhes do Pedido{% endblock %}
+
+{% block content2 %}
+
+<div class="container-fluid py-4 px-4 min-vh-85">
+    <div class="row">
+        <!-- Título e informações principais -->
+        <div class="col-12 mb-4">
+            <h2 class="mb-0">Detalhes do Pedido #{{ pedido.numero_pedido }}</h2>
+            <p class="text-muted">Realizado em {{ pedido.data_pedido|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card shadow-sm w-100">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Informações do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0 row gap-4">
+                        <li><strong>Canal:</strong> {{ pedido.canal|default:"Manual" }}</li>
+                        <li><strong>Status:</strong> 
+                            {% if pedido.status == "Concluido" %}
+                                <span class="badge bg-success">Concluído</span>
+                            {% elif pedido.status == "pendente" %}
+                                <span class="badge bg-danger text-dark">Pendente</span>
+                            {% elif pedido.status == "em_andamento" %}
+                                <span class="badge bg-warning">Em Andamento</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Desconhecido</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>Total do Pedido:</strong> R$ {{ pedido.total|floatformat:2 }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card shadow-sm w-100">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Informações do Cliente</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Nome:</strong> {{ pedido.cliente.nome }}</li>
+                        <li><strong>Email:</strong> {{ pedido.cliente.usuario.email }}</li>
+                        <li><strong>Telefone:</strong> {{ pedido.cliente.telefone|default:"Não informado" }}</li>
+                        <li><strong>Endereço:</strong> {{ clienteE.endereco }}, {{ clienteE.numero }} - {{ clienteE.complemento }} <br>{{ clienteE.cep }} - {{ clienteE.municipio }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Itens do Pedido -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Itens do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for item in pedido.itens.all %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    {% if item.cardapio_item.imagem %}
+                                        <img src="{{ item.cardapio_item.imagem.url }}" alt="{{ item.cardapio_item.nome }}"
+                                             class="rounded-circle me-3" width="50" height="50">
+                                    {% else %}
+                                        <span class="rounded-circle bg-secondary me-3 d-flex justify-content-center align-items-center text-white"
+                                              style="width: 50px; height: 50px;">N/A</span>
+                                    {% endif %}
+                                    <div>
+                                        <p class="mb-0 fw-bold">{{ item.cardapio_item.nome }}</p>
+                                        <p class="mb-0 text-muted">Quantidade: {{ item.quantidade }}</p>
+                                    </div>
+                                </div>
+                                <span class="fw-bold">R$ {{ item.preco_unitario|floatformat:2 }}</span>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-muted text-center">Nenhum item encontrado.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'includes/footer-emp.html' %}
+{% endblock %}

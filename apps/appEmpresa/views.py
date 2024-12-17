@@ -2,11 +2,12 @@ from decimal import Decimal
 import locale
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from apps.authentication.models import Cardapio, Categoria, Cliente, Empresa, EmpresaUsuario, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, Sequencia
+from apps.authentication.models import Cardapio, Categoria, Cliente, Empresa, EmpresaUsuario, EnderecoCliente, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, Sequencia
 import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.utils.dateparse import parse_date
 
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
@@ -637,36 +638,8 @@ def cadastrar_receita(request, cnpj):
         except Exception as e:
             messages.error(request, 'Erro ao cadastrar, verifique os dados e tente novamente.') 
             return redirect('receitas', cnpj=cnpj)
-        
 
 
-    #cliente = Cliente.objects.get(id_cliente=1)
-    #cardapio_item = Cardapio.objects.get(id_cardapio=2)
-
-
-        # 7. Criar um pedido para o cliente
-   #pedido = Pedido.objects.create(
-        cliente=cliente,
-        empresa=empresa,
-        status="pendente",  # Pode ser alterado conforme o status do pedido
-        total=Decimal('0.00'),  # O total será calculado automaticamente depois
-        numero_pedido=Sequencia.obter_novo_valor()
-    #)
-
-    # 8. Adicionar um item ao pedido
-    #item_pedido = ItemPedido.objects.create(
-        pedido=pedido,
-        cardapio_item=cardapio_item,
-        quantidade=2,  # 2 pizzas de Margherita
-        preco_unitario=cardapio_item.preco,
-        preco_total=cardapio_item.preco * 2  # Preço total das 2 pizzas
-    #)
-
-    # 9. Calcular o total do pedido (vai percorrer os itens)
-    #pedido.calcular_total()
-
-    # 10. Atualizar o estoque conforme o pedido
-    #pedido.atualizar_estoque()
 
 
 
@@ -681,3 +654,81 @@ def deletar_ingrediente_receita(request, cnpj, ingrediente_id):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+
+
+
+#
+# PEDIDOS
+#
+
+@login_required
+def pedidos(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+    pedidos = Pedido.objects.filter(empresa=empresa)
+    
+    numero_pedido = request.GET.get('numero')
+    status = request.GET.get('status')
+    periodo = request.GET.get('periodo')
+
+    if numero_pedido:
+        pedidos = pedidos.filter(numero_pedido__icontains=numero_pedido)
+    
+    if status:
+        pedidos = pedidos.filter(status=status)
+    
+    if periodo:
+        datas = periodo.split(' até ')
+        if len(datas) == 2:
+            data_inicio = datas[0].split('/')
+            data_fim = datas[1].split('/')
+            if len(data_inicio) == 3 and len(data_fim) == 3:
+                data_inicio = f"{data_inicio[2]}-{data_inicio[1]}-{data_inicio[0]}"
+                data_fim = f"{data_fim[2]}-{data_fim[1]}-{data_fim[0]}"
+                pedidos = pedidos.filter(data_pedido__range=(data_inicio, data_fim))
+
+    # Contexto
+    context = {
+        'page_title': 'Pedidos',
+        'empresa': empresa,
+        'pedidos': pedidos,
+        'search': numero_pedido or '',
+        'selected_status': status or '',
+        'selected_periodo': periodo or '',
+    }
+    return render(request, 'appEmpresa/pedidos.html', context)
+
+
+
+
+@login_required
+def detalhes_pedido(request, cnpj, pedido_id):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+    pedido = get_object_or_404(Pedido, numero_pedido=pedido_id, empresa=empresa)
+    clienteE = get_object_or_404(EnderecoCliente, cliente=pedido.cliente)
+
+    context = {
+        'page_title': "Pedidos",
+        'empresa': empresa,
+        'pedido': pedido,
+        'clienteE': clienteE,
+    }
+
+    return render(request, 'appEmpresa/detalhes_pedido.html', context)
