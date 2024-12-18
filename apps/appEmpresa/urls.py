@@ -41,4 +41,7 @@ urlpatterns = [
     # Pedidos
     path('pedidos', views.pedidos, name='pedidos'),
     path('pedidos/detalhes/<int:pedido_id>/', views.detalhes_pedido, name='detalhes_pedido'),
+
+    # Perfil
+    path('perfil', views.perfil, name='perfil'),
 ]

@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.utils.dateparse import parse_date
+from django.contrib.sessions.models import Session
 
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
@@ -21,6 +22,44 @@ def remover_mascara_cnpj(cnpj):
 def remover_mascara_preço(preco):
     formatado = preco.replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.')
     return formatado
+
+def resumir_user_agent(user_agent):
+    # Regex para identificar o sistema operacional
+    os_patterns = [
+        (r"Windows NT 10.0", "Windows 10"),
+        (r"Windows NT 6.1", "Windows 7"),
+        (r"Macintosh; Intel Mac OS X", "Mac OS X"),
+        (r"Android", "Android"),
+        (r"iPhone", "iOS"),
+        (r"Linux", "Linux")
+    ]
+    
+    # Regex para identificar o navegador
+    browser_patterns = [
+        (r"Chrome", "Chrome"),
+        (r"Safari", "Safari"),
+        (r"Firefox", "Firefox"),
+        (r"Edge", "Edge"),
+        (r"OPR", "Opera")
+    ]
+    
+    # Procurando o sistema operacional
+    os_info = "Desconhecido"
+    for pattern, replacement in os_patterns:
+        if re.search(pattern, user_agent):
+            os_info = replacement
+            break
+    
+    # Procurando o navegador
+    browser_info = "Desconhecido"
+    for pattern, replacement in browser_patterns:
+        if re.search(pattern, user_agent):
+            browser_info = replacement
+            break
+    
+    # Resumo final no formato "Sistema Operacional - Navegador"
+    return f"{os_info} - {browser_info}"
+
 
 @login_required
 def dashboard(request, cnpj):
@@ -732,3 +771,49 @@ def detalhes_pedido(request, cnpj, pedido_id):
     }
 
     return render(request, 'appEmpresa/detalhes_pedido.html', context)
+
+
+
+
+@login_required
+def perfil(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+
+    user = EmpresaUsuario.objects.get(usuario=request.user)
+
+    sessoes = []
+
+    # Obtendo todas as sessões ativas e inativas
+    for session in Session.objects.all():
+        data = session.get_decoded()  # Decodifica os dados da sessão
+        if data.get('_auth_user_id') == str(request.user.id):  # Verifica se a sessão é do usuário logado
+            dispositivo = data.get('device_info', 'Dispositivo desconhecido')
+            dispositivo = resumir_user_agent(dispositivo)
+            status = 'Ativa' if data.get('is_active', True) else 'Inativa'  # Verifica se está ativa
+            localizacao = data.get('location', 'Desconhecido')
+            device_id = data.get('device_id', 'Desconhecido')
+
+            sessoes.append({
+                'informacoes_dispositivo': dispositivo,
+                'status': status,
+                'localizacao': localizacao,
+                'device_id': device_id,
+            })
+    
+    context = {
+        'page_title': 'Perfil',
+        'empresa': empresa,
+        'user': user,
+        'sessoes': sessoes,
+    }
+
+    return render(request, 'appEmpresa/perfil.html', context)
+

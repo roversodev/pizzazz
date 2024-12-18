@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
         return self.username
 
 
+
 class Empresa(models.Model):
     id_empresa = models.AutoField(primary_key=True)
     cnpj = models.TextField(max_length='18', unique=True)
@@ -383,3 +384,93 @@ class ItemCarrinho(models.Model):
     def __str__(self):
         return f"{self.quantidade} x {self.cardapio_item.nome} no carrinho"
 
+# Sistema de Cupons
+class Cupom(models.Model):
+    codigo = models.CharField(max_length=20, unique=True)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=[
+        ('valor_fixo', 'Valor Fixo'),
+        ('percentual', 'Percentual'),
+    ])
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    data_inicio = models.DateTimeField()
+    data_fim = models.DateTimeField()
+    valor_minimo_pedido = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    quantidade_maxima = models.IntegerField(default=1)
+    quantidade_utilizada = models.IntegerField(default=0)
+    ativo = models.BooleanField(default=True)
+
+    def esta_valido(self):
+        agora = now()
+        return (
+            self.ativo and
+            self.data_inicio <= agora <= self.data_fim and
+            self.quantidade_utilizada < self.quantidade_maxima
+        )
+
+# Programa de Fidelidade
+class ProgramaFidelidade(models.Model):
+    empresa = models.OneToOneField(Empresa, on_delete=models.CASCADE)
+    pontos_por_real = models.IntegerField(default=1)
+    valor_ponto = models.DecimalField(max_digits=10, decimal_places=2, default=0.01)
+    pontos_minimos_resgate = models.IntegerField(default=100)
+
+class PontosFidelidade(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+    pontos = models.IntegerField(default=0)
+    
+    def adicionar_pontos(self, valor_pedido):
+        programa = ProgramaFidelidade.objects.get(empresa=self.empresa)
+        pontos_ganhos = int(valor_pedido * programa.pontos_por_real)
+        self.pontos += pontos_ganhos
+        self.save()
+
+# Sistema de Notificações
+class Notificacao(models.Model):
+    TIPOS_NOTIFICACAO = [
+        ('pedido_status', 'Status do Pedido'),
+        ('promocao', 'Promoção'),
+        ('sistema', 'Sistema'),
+    ]
+    
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=TIPOS_NOTIFICACAO)
+    titulo = models.CharField(max_length=100)
+    mensagem = models.TextField()
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    lida = models.BooleanField(default=False)
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, null=True, blank=True)
+
+# Histórico de Status de Pedidos
+class HistoricoPedido(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='historico')
+    status = models.CharField(max_length=50, choices=[
+        ('pendente', 'Pendente'),
+        ('confirmado', 'Confirmado'),
+        ('preparando', 'Preparando'),
+        ('saiu_entrega', 'Saiu para Entrega'),
+        ('entregue', 'Entregue'),
+        ('cancelado', 'Cancelado'),
+    ])
+    observacao = models.TextField(null=True, blank=True)
+    data_alteracao = models.DateTimeField(auto_now_add=True)
+    alterado_por = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+
+# Pagamentos
+class Pagamento(models.Model):
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    forma_pagamento = models.CharField(max_length=50, choices=[
+        ('dinheiro', 'Dinheiro'),
+        ('cartao_credito', 'Cartão de Crédito'),
+        ('cartao_debito', 'Cartão de Débito'),
+        ('pix', 'PIX'),
+    ])
+    status = models.CharField(max_length=20, choices=[
+        ('pendente', 'Pendente'),
+        ('aprovado', 'Aprovado'),
+        ('recusado', 'Recusado'),
+    ])
+    data_pagamento = models.DateTimeField(auto_now_add=True)
+    codigo_transacao = models.CharField(max_length=100, null=True, blank=True)
