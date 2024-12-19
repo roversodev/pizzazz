@@ -14,6 +14,12 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    def is_dono(self):
+        try:
+            return self.empresa_usuario.papel == 'Dono'
+        except:
+            return False
+
 
 
 class Empresa(models.Model):
@@ -39,11 +45,57 @@ class Empresa(models.Model):
     def __str__(self):
         return self.nome_fantasia
 
+    def is_dono(self):
+        try:
+            return self.empresa_usuario.papel == 'Dono'
+        except:
+            return False
+
+    def get_vendas_mensais(self):
+        """Retorna as vendas mensais dos últimos 12 meses"""
+        from django.db.models import Sum
+        from django.db.models.functions import TruncMonth
+        
+        return Pedido.objects.filter(
+            empresa=self,
+            status='Concluido',
+            data_pedido__year=now().year
+        ).annotate(
+            mes=TruncMonth('data_pedido')
+        ).values('mes').annotate(
+            total=Sum('total')
+        ).order_by('mes')
+
+    def get_estatisticas_gerais(self):
+        """Retorna estatísticas gerais para o dashboard"""
+        from django.db.models import Count, Avg
+        
+        pedidos_total = Pedido.objects.filter(empresa=self).count()
+        clientes_ativos = Cliente.objects.filter(
+            pedido__empresa=self
+        ).distinct().count()
+        
+        avaliacao_media = AvaliacaoPedido.objects.filter(
+            pedido__empresa=self
+        ).aggregate(Avg('nota'))['nota__avg'] or 0
+        
+        itens_ativos = Cardapio.objects.filter(
+            empresa=self, 
+            ativo=True
+        ).count()
+        
+        return {
+            'pedidos_total': pedidos_total,
+            'clientes_ativos': clientes_ativos,
+            'avaliacao_media': round(avaliacao_media, 1),
+            'itens_ativos': itens_ativos
+        }
+
 
 
 class EmpresaUsuario(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='empresa_usuario')
     papel = models.CharField(max_length=50, choices=[
         ('Dono', 'Dono'),
         ('Caixa', 'Caixa'),
@@ -52,6 +104,12 @@ class EmpresaUsuario(models.Model):
 
     def __str__(self):
         return f'{self.usuario.username} - {self.papel}'
+
+    def is_dono(self):
+        try:
+            return self.papel == 'Dono'
+        except:
+            return False
 
 
 

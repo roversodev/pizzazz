@@ -33,3 +33,8 @@ def get_item(dictionary, key):
 @register.filter
 def total_bruto(pedidos):
     return sum(p.total for p in pedidos if p.total)
+
+@register.filter
+def filter_by_date(pedidos, data):
+    """Filtra pedidos pela data específica"""
+    return [p for p in pedidos if p.data_pedido.date() == data.date()]

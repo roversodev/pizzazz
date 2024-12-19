@@ -145,9 +145,9 @@
                                     <p class="text-sm mb-0 ps-3 font-weight-bold" style="color:#9A9A9A !important;">
                                         <b class="text-dark">{{ pedido.data_pedido|date:"d/m/Y" }}</b>
                                         <span class="dot"></span>
-                                        {{ pedidos|length }} Pedido(s)
+                                        {{ pedidos|filter_by_date:pedido.data_pedido|length }} Pedido(s)
                                         <span class="dot"></span>
-                                        Valor bruto de R$ {{ pedidos|total_bruto|floatformat:2 }}
+                                        Valor bruto de R$ {{ pedidos|filter_by_date:pedido.data_pedido|total_bruto|floatformat:2 }}
                                     </p>
                                 </td>
                             </tr>

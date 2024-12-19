@@ -1,15 +1,18 @@
+from datetime import date, timedelta
 from decimal import Decimal
+import json
 import locale
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from apps.authentication.models import Cardapio, Categoria, Cliente, Empresa, EmpresaUsuario, EnderecoCliente, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, Sequencia
+from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, Empresa, EmpresaUsuario, EnderecoCliente, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, AvaliacaoPedido 
 import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.utils.dateparse import parse_date
 from django.contrib.sessions.models import Session
-
+from django.db.models import Sum, Min, Count
+from django.db.models.functions import ExtractWeekDay
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def aplicar_mascara_cnpj(cnpj):
@@ -72,10 +75,135 @@ def dashboard(request, cnpj):
             usu = EmpresaUsuario.objects.get(usuario=request.user)
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
+        
+
+    pedidos_total = Pedido.objects.filter(empresa=empresa).count()
+    vendas_hoje = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).aggregate(total=Sum('total'))['total'] or 0
+    pedidos_hoje = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).count()
+    pedidos_ontem = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today() - timedelta(days=1)).count()
+    # Pegar clientes que fizeram seu primeiro pedido hoje
+    clientes_novos = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).count()
+    clientes_atendidos = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).values('cliente').count()
+    # Pegar vendas de ontem
+    vendas_ontem = Pedido.objects.filter(
+        empresa=empresa, 
+        data_pedido__date=date.today() - timedelta(days=1)
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    clientes_ontem = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today() - timedelta(days=1)).count()
+
+    # Pegar vendas de ontem
+    vendas_ontem = Pedido.objects.filter(
+        empresa=empresa, 
+        data_pedido__date=date.today() - timedelta(days=1)
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    if pedidos_ontem > 0:
+        variacao_percentual_pedidos = ((pedidos_hoje - pedidos_ontem) / pedidos_ontem) * 100
+    else:
+        variacao_percentual_pedidos = 100 if pedidos_hoje > 0 else 0
+
+    # Calcular a variação percentual
+    if vendas_ontem > 0:
+        variacao_percentual = ((vendas_hoje - vendas_ontem) / vendas_ontem) * 100
+    else:
+        variacao_percentual = 100 if vendas_hoje > 0 else 0
+
+    if clientes_ontem > 0:
+        variacao_percentual_clientes = ((clientes_novos - clientes_ontem) / clientes_ontem) * 100
+    else:
+        variacao_percentual_clientes = 100 if clientes_novos > 0 else 0
+
+
+    itens_vendidos = ItemPedido.objects.filter(pedido__empresa=empresa, pedido__data_pedido__date=date.today()).count()
+    itens_vendidos_ontem = ItemPedido.objects.filter(pedido__empresa=empresa, pedido__data_pedido__date=date.today() - timedelta(days=1)).count()
+
+    if itens_vendidos_ontem > 0:
+        variacao_percentual_itens = ((itens_vendidos - itens_vendidos_ontem) / itens_vendidos_ontem) * 100
+    else:
+        variacao_percentual_itens = 100 if itens_vendidos > 0 else 0
+
+    # Cálculo das avaliações
+    avaliacoes_positivas = AvaliacaoPedido.objects.filter(
+        pedido__empresa=empresa, 
+        nota__gte=4  # Considerando 4 e 5 como avaliações positivas
+    ).count()
+    
+    avaliacoes_neutras = AvaliacaoPedido.objects.filter(
+        pedido__empresa=empresa, 
+        nota=3  # Considerando 3 como avaliação neutra
+    ).count()
+    
+    avaliacoes_negativas = AvaliacaoPedido.objects.filter(
+        pedido__empresa=empresa, 
+        nota__lte=2  # Considerando 1 e 2 como avaliações negativas
+    ).count()
+
+    total_avaliacoes = avaliacoes_positivas + avaliacoes_neutras + avaliacoes_negativas
+
+    if total_avaliacoes > 0:
+        porcentagem_positivas = (avaliacoes_positivas / total_avaliacoes) * 100
+        porcentagem_neutras = (avaliacoes_neutras / total_avaliacoes) * 100
+        porcentagem_negativas = (avaliacoes_negativas / total_avaliacoes) * 100
+    else:
+        porcentagem_positivas = 0
+        porcentagem_neutras = 0
+        porcentagem_negativas = 0
+
+
+    
+    pedidos_por_dia = (
+        Pedido.objects.filter(empresa=empresa)
+        .annotate(dia_semana=ExtractWeekDay('data_pedido'))
+        .values('dia_semana')
+        .annotate(total=Count('id'))
+        .order_by('dia_semana')
+    )
+    
+    dados_pedidos = [0] * 7
+    for pedido in pedidos_por_dia:
+        dados_pedidos[pedido['dia_semana'] - 1] = pedido['total']
+
+    # Dados para o gráfico de vendas mensais
+    vendas_mensais = empresa.get_vendas_mensais()
+    meses = []
+    valores = []
+    
+    for venda in vendas_mensais:
+        meses.append(venda['mes'].strftime('%b'))
+        valores.append(float(venda['total']))
+
+
+    vendas_anual = Pedido.objects.filter(empresa=empresa, data_pedido__year=date.today().year).aggregate(total=Sum('total'))['total'] or 0
+    vendas_anual_anterior = Pedido.objects.filter(empresa=empresa, data_pedido__year=date.today().year - 1).aggregate(total=Sum('total'))['total'] or 0
+
+    if vendas_anual_anterior > 0:
+        variacao_percentual_vendas = ((vendas_anual - vendas_anual_anterior) / vendas_anual_anterior) * 100
+    else:
+        variacao_percentual_vendas = 100 if vendas_anual > 0 else 0
+
 
     context = {
         'page_title': 'Dashboard',
-        'empresa': empresa
+        'empresa': empresa,
+        'vendas_hoje': vendas_hoje,
+        'variacao_percentual': variacao_percentual,
+        'pedidos_hoje': pedidos_hoje,
+        'variacao_percentual_pedidos': variacao_percentual_pedidos,
+        'clientes_novos': clientes_novos,
+        'variacao_percentual_clientes': variacao_percentual_clientes,
+        'itens_vendidos': itens_vendidos,
+        'variacao_percentual_itens': variacao_percentual_itens,
+        'clientes_atendidos': clientes_atendidos,
+        'pedidos_total': pedidos_total,
+        'avaliacoes_positivas': round(porcentagem_positivas, 1),
+        'avaliacoes_neutras': round(porcentagem_neutras, 1),
+        'avaliacoes_negativas': round(porcentagem_negativas, 1),
+        'pedidos_por_dia': dados_pedidos,
+        'meses': json.dumps(meses),
+        'vendas_mensais': json.dumps(valores),
+        'estatisticas': empresa.get_estatisticas_gerais(),
+        'variacao_percentual_vendas': variacao_percentual_vendas,
     }
     return render(request, 'appEmpresa/dashboard.html', context)
 
@@ -817,3 +945,28 @@ def perfil(request, cnpj):
 
     return render(request, 'appEmpresa/perfil.html', context)
 
+
+@login_required
+def perfil_empresa(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+
+    if not empUsu.papel == 'Dono':
+        return redirect('perfil', cnpj=cnpj)
+
+
+
+
+    context = {
+        'page_title': 'Perfil Empresa',
+        'empresa': empresa,
+    }
+
+    return render(request, 'appEmpresa/perfil_empresa.html', context)

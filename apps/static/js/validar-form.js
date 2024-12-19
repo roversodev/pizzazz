@@ -15,9 +15,11 @@
                     if (input.checkValidity()) {
                         inputGroup.classList.remove('is-invalid');
                         inputGroup.classList.add('is-valid');
+                        inputGroup.classList.add('is-filled');
                     } else {
                         inputGroup.classList.remove('is-valid');
                         inputGroup.classList.add('is-invalid');
+                        inputGroup.classList.add('is-filled');
                         isValid = false;
                     }
                 });

@@ -183,6 +183,17 @@
             <span class="nav-link-text ms-1">Perfil</span>
           </a>
         </li>
+        {% if request.user.is_dono or request.user.is_superuser %}
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Perfil Empresa' %}active{% endif %}"
+            href="{% url 'perfil_empresa' cnpj=empresa.cnpj|remove_mask %}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="ph-bold ph-building top-0 text-dark {% if page_title == 'Perfil Empresa' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Perfil Empresa</span>
+          </a>
+        </li>
+        {% endif %}
       </ul>
     </div>
     <div class="sidenav-footer">
