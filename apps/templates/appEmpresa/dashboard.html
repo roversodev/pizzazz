@@ -2,6 +2,8 @@
 
 {% load static %}
 
+{% load my_filters %}
+
 {% block title %}Dashboard{% endblock %}
 
 
@@ -24,7 +26,7 @@
                       <h5 class="font-weight-bolder mb-0">
                         R$ {{ vendas_hoje|floatformat:2 }}
                         <span class="{% if variacao_percentual >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
-                          {% if variacao_percentual >= 0 %}+{%else%}-{% endif %}{{ variacao_percentual|floatformat:1 }}%
+                          {% if variacao_percentual >= 0 %}+{% endif %}{{ variacao_percentual|floatformat:1 }}%
                         </span>
                       </h5>
                     </div>
@@ -46,7 +48,7 @@
                       <h5 class="font-weight-bolder mb-0">
                         {{ pedidos_hoje }}
                         <span class="{% if variacao_percentual_pedidos >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
-                          {% if variacao_percentual_pedidos >= 0 %}+{%else%}-{% endif %}{{ variacao_percentual_pedidos|floatformat:1 }}%
+                          {% if variacao_percentual_pedidos >= 0 %}+{% endif %}{{ variacao_percentual_pedidos|floatformat:1 }}%
                         </span>
                       </h5>
                     </div>
@@ -70,7 +72,7 @@
                       <h5 class="font-weight-bolder mb-0">
                         {{ clientes_novos }}
                         <span class="{% if variacao_percentual_clientes >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
-                          {% if variacao_percentual_clientes >= 0 %}+{%else%}-{% endif %}{{ variacao_percentual_clientes|floatformat:1 }}%
+                          {% if variacao_percentual_clientes >= 0 %}+{% endif %}{{ variacao_percentual_clientes|floatformat:1 }}%
                         </span>
                       </h5>
                     </div>
@@ -92,7 +94,7 @@
                       <h5 class="font-weight-bolder mb-0">
                         {{ itens_vendidos }}
                         <span class="{% if variacao_percentual_itens >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
-                          {% if variacao_percentual_itens >= 0 %}+{%else%}-{% endif %}{{ variacao_percentual_itens|floatformat:1 }}%
+                          {% if variacao_percentual_itens >= 0 %}+{% endif %}{{ variacao_percentual_itens|floatformat:1 }}%
                         </span>
                       </h5>
                     </div>
@@ -179,7 +181,7 @@
                 </p>
               </div>
               <div class="w-40 text-end">
-                <a class="btn btn-dark mb-0 text-end" href="javascript:;">Ver todas</a>
+                <a class="btn btn-dark mb-0 text-end" href="{% url 'avaliacoes' cnpj=empresa.cnpj|remove_mask %}">Ver todas</a>
               </div>
             </div>
           </div>

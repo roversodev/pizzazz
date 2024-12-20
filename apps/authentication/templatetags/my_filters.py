@@ -38,3 +38,7 @@ def total_bruto(pedidos):
 def filter_by_date(pedidos, data):
     """Filtra pedidos pela data específica"""
     return [p for p in pedidos if p.data_pedido.date() == data.date()]
+
+@register.filter(name='range')
+def range_filter(number):
+    return range(int(number))

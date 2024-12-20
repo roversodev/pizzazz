@@ -1,0 +1,114 @@
+{% extends 'includes/side-nav.html' %}
+
+{% load static %}
+
+{% load my_filters %}
+
+{% block title %}Avaliações{% endblock %}
+
+{% block content2 %}
+<div class="container-fluid py-4 min-vh-85">
+    <h2 class="mb-0">Avaliações</h2>
+    <p class="mb-4">Aqui você encontra as avaliações dos seus clientes.</p>
+    
+    <!-- Estatísticas gerais -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Média Geral</h5>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0 me-2">{{ nota_media|floatformat:1 }}</h3>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Avaliações</h5>
+                    <h3 class="mb-0">{{ avaliacoes.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de avaliações -->
+    <div class="row">
+        {% for avaliacao in avaliacoes %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <img src="{{ avaliacao.pedido.cliente.profile_image.url|default:'/media/profile_pics/user2.jpg' }}" class="rounded-circle me-3" width="50">
+                            <div>
+                                <h6 class="mb-0">{{ avaliacao.pedido.cliente.nome }}</h6>
+                                <small class="text-muted">{{ avaliacao.data_avaliacao|date:"d/m/Y" }}</small>
+                            </div>
+                        </div>
+                        <div class="text-warning">
+                            {% for i in avaliacao.nota|range %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="card-text">{{ avaliacao.comentario }}</p>
+                    {% if avaliacao.resposta %}
+                    <div class="bg-light p-3 rounded">
+                        <small class="text-muted">Sua resposta:</small>
+                        <p class="mb-0">{{ avaliacao.resposta }}</p>
+                    </div>
+                    {% else %}
+                    <p>
+                        <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample{{ avaliacao.id_avaliacaopedido }}" aria-expanded="false" aria-controls="collapseExample{{ avaliacao.id_avaliacaopedido }}">
+                            Responder
+                          </button>
+                    </p>
+
+                    <div class="collapse" id="collapseExample{{ avaliacao.id_avaliacaopedido }}">
+                        <form class="needs-validation" novalidate>
+                            <div class="mb-3 input-group input-group-outline">
+                                <textarea class="form-control" id="resposta{{ avaliacao.id_avaliacaopedido }}" name="resposta{{ avaliacao.id_avaliacaopedido }}" required placeholder="Digite sua resposta aqui..."></textarea>
+                                <div class="invalid-feedback">
+                                    Por favor, insira uma resposta.
+                                </div>
+                            </div>
+                            <button class="btn btn-danger" type="submit" id="submitBtn">Enviar</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-body text-sm">
+                Você ainda não possui avaliações.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="responderModal{{ avaliacao.id_avaliacaopedido }}" tabindex="-1" aria-labelledby="responderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="responderModalLabel">Responder Avaliação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'includes/footer-emp.html' %}
+{% endblock %}

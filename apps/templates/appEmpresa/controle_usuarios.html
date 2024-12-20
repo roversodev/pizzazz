@@ -1,0 +1,129 @@
+{% extends 'includes/side-nav.html' %}
+
+{% load static %}
+
+{% load my_filters %}
+
+{% block title %}Controle de Usuários{% endblock %}
+
+{% block content2 %}
+<div class="container-fluid py-4 min-vh-85">
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <!-- Card header -->
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="mb-0">Controle de Usuários</h5>
+                    <a href="#"
+                        class="btn bg-gradient-dark btn-sm float-end mb-0">Adicionar Usuário</a>
+                </div>
+    
+                <div class="table-responsive card-body">
+                    <div
+                        class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-height fixed-columns">
+                        <div class="d-flex justify-content-end">
+                            <div class="dataTable-search input-group input-group-sm input-group-outline w-20 px-3"><input class="form-control" placeholder="Pesquisa..."
+                                    type="text"></div>
+                        </div>
+                        <div class="dataTable-container" style="height: 415.633px;">
+                            <table class="table table-flush dataTable-table" id="datatable-basic">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                            data-sortable="false" style="width: 22.1422%;">
+                                            Foto de Perfil
+                                        </th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                            data-sortable="" style="width: 24.3864%;"><a href="#" class="dataTable-sorter">
+                                                Nome
+                                            </a></th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                            data-sortable="" style="width: 27.8274%;"><a href="#" class="dataTable-sorter">
+                                                Email
+                                            </a></th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                            data-sortable="" style="width: 15.5594%;"><a href="#" class="dataTable-sorter">
+                                                Cargo
+                                            </a></th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                            data-sortable="" style="width: 26.9297%;"><a href="#" class="dataTable-sorter">
+                                                Data de Cadastro
+                                            </a></th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                            data-sortable="false" style="width: 13.1656%;">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for usuario in usuarios %}
+                                    <tr>
+                                        <td class="text-sm font-weight-normal">
+                                            <span class="my-2 text-xs">
+                                                <img src="{{ usuario.usuario.profile_image.url }}"
+                                                    alt="bruce" class="border-radius-lg shadow-sm height-100 w-auto">
+                                            </span>
+                                        </td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.usuario.first_name }} {{ usuario.usuario.last_name }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.usuario.email }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.papel }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.usuario.date_joined|date:'d/m/Y H:i' }}</td>
+                                        <td class="text-sm">
+                                            <span class="d-flex gap-2">
+                                                <a href="#" class="btn btn-sm btn-primary">Editar</a>
+                                                <a href="#" class="btn btn-sm btn-danger">Excluir</a>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr>
+                                        <td class="text-sm font-weight-normal">
+                                            <span class="my-2 text-xs">
+                                                <img src="http://argon-dashboard-pro-laravel.creative-tim.com/avatars/team-2.jpg"
+                                                    alt="bruce" class="border-radius-lg shadow-sm height-100 w-auto">
+                                            </span>
+                                        </td>
+                                        <td class="text-sm font-weight-normal">Creator
+                                            Creator</td>
+                                        <td class="text-sm font-weight-normal">creator@argon.com</td>
+                                        <td class="text-sm font-weight-normal">Creator</td>
+                                        <td class="text-sm font-weight-normal">2024-12-20 18:15:03</td>
+                                        <td class="text-sm">
+                                            <span class="d-flex">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-sm font-weight-normal">
+                                            <span class="my-2 text-xs">
+                                                <img src="http://argon-dashboard-pro-laravel.creative-tim.com/avatars/team-3.jpg"
+                                                    alt="bruce" class="border-radius-lg shadow-sm height-100 w-auto">
+                                            </span>
+                                        </td>
+                                        <td class="text-sm font-weight-normal">Member
+                                            Member</td>
+                                        <td class="text-sm font-weight-normal">member@argon.com</td>
+                                        <td class="text-sm font-weight-normal">Member</td>
+                                        <td class="text-sm font-weight-normal">2024-12-20 18:15:03</td>
+                                        <td class="text-sm">
+                                            <span class="d-flex">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="dataTable-bottom">
+                            <div class="dataTable-info">Showing 1 to 3 of 3 entries</div>
+                            <nav class="dataTable-pagination">
+                                <ul class="dataTable-pagination-list"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'includes/footer-emp.html' %}
+{% endblock %}

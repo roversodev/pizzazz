@@ -265,6 +265,7 @@ class AvaliacaoPedido(models.Model):
     nota = models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')], default=5)
     comentario = models.TextField(null=True, blank=True)
     data_avaliacao = models.DateTimeField(auto_now_add=True)
+    resposta = models.TextField(null=True, blank=True, unique=True)
 
     def __str__(self):
         return f"Avaliação do pedido #{self.pedido.id} - Nota: {self.nota} - {self.pedido.cliente.usuario.username}"

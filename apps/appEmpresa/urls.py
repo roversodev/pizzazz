@@ -45,4 +45,10 @@ urlpatterns = [
     # Perfil
     path('perfil', views.perfil, name='perfil'),
     path('perfil_empresa', views.perfil_empresa, name='perfil_empresa'),
+
+    # Avaliações
+    path('avaliacoes', views.avaliacoes, name='avaliacoes'),
+
+    # Controle de Usuários
+    path('controle_usuarios', views.controle_usuarios, name='controle_usuarios'),
 ]

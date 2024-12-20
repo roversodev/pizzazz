@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils.dateparse import parse_date
 from django.contrib.sessions.models import Session
-from django.db.models import Sum, Min, Count
+from django.db.models import Sum, Count, Avg
 from django.db.models.functions import ExtractWeekDay
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
@@ -83,7 +83,7 @@ def dashboard(request, cnpj):
     pedidos_ontem = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today() - timedelta(days=1)).count()
     # Pegar clientes que fizeram seu primeiro pedido hoje
     clientes_novos = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).count()
-    clientes_atendidos = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).values('cliente').count()
+    clientes_atendidos = Pedido.objects.filter(empresa=empresa).values('cliente').distinct().count()
     # Pegar vendas de ontem
     vendas_ontem = Pedido.objects.filter(
         empresa=empresa, 
@@ -206,6 +206,54 @@ def dashboard(request, cnpj):
         'variacao_percentual_vendas': variacao_percentual_vendas,
     }
     return render(request, 'appEmpresa/dashboard.html', context)
+
+
+
+def avaliacoes(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+
+    avaliacoes = AvaliacaoPedido.objects.filter(pedido__empresa=empresa)
+    nota_media = avaliacoes.aggregate(Avg('nota'))['nota__avg'] or 0
+
+    context = {
+        'page_title': 'Dashboard',
+        'empresa': empresa,
+        'avaliacoes': avaliacoes,
+        'nota_media': nota_media,
+    }
+
+    return render(request, 'appEmpresa/avaliacoes.html', context)
+
+
+
+def controle_usuarios(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+    usuarios = EmpresaUsuario.objects.filter(empresa=empresa)
+
+    context = {
+        'page_title': 'Controle de Usuários',
+        'empresa': empresa,
+        'usuarios': usuarios,
+    }
+
+    return render(request, 'appEmpresa/controle_usuarios.html', context)
 
 
 
