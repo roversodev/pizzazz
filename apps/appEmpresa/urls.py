@@ -44,6 +44,7 @@ urlpatterns = [
 
     # Perfil
     path('perfil', views.perfil, name='perfil'),
+    path('editar-imagem-perfil/<int:user_id>/', views.editar_imagem_perfil, name='editar_imagem_perfil'),
     path('perfil_empresa', views.perfil_empresa, name='perfil_empresa'),
 
     # Avaliações
@@ -51,4 +52,5 @@ urlpatterns = [
 
     # Controle de Usuários
     path('controle_usuarios', views.controle_usuarios, name='controle_usuarios'),
+    path('cadastrar_user', views.cadastrar_user, name='cadastrar_user'),
 ]

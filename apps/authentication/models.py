@@ -95,7 +95,7 @@ class Empresa(models.Model):
 
 class EmpresaUsuario(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
-    usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='empresa_usuario')
+    usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='empresa_usuario', null=False, blank=False)
     papel = models.CharField(max_length=50, choices=[
         ('Dono', 'Dono'),
         ('Caixa', 'Caixa'),

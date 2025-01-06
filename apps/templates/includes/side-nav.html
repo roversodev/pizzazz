@@ -193,6 +193,15 @@
             <span class="nav-link-text ms-1">Perfil Empresa</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Controle de Usuários' %}active{% endif %}"
+            href="{% url 'controle_usuarios' cnpj=empresa.cnpj|remove_mask %}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="ph-bold ph-user-circle top-0 text-dark {% if page_title == 'Controle de Usuários' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Controle de Usuários</span>
+          </a>
+        </li>
         {% endif %}
       </ul>
     </div>

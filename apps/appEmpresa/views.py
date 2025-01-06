@@ -4,7 +4,7 @@ import json
 import locale
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, Empresa, EmpresaUsuario, EnderecoCliente, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, AvaliacaoPedido 
+from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, AvaliacaoPedido 
 import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -13,6 +13,7 @@ from django.utils.dateparse import parse_date
 from django.contrib.sessions.models import Session
 from django.db.models import Sum, Count, Avg
 from django.db.models.functions import ExtractWeekDay
+from django.views.decorators.csrf import csrf_exempt
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def aplicar_mascara_cnpj(cnpj):
@@ -68,7 +69,7 @@ def resumir_user_agent(user_agent):
 def dashboard(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -208,11 +209,11 @@ def dashboard(request, cnpj):
     return render(request, 'appEmpresa/dashboard.html', context)
 
 
-
+@login_required
 def avaliacoes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -233,11 +234,11 @@ def avaliacoes(request, cnpj):
     return render(request, 'appEmpresa/avaliacoes.html', context)
 
 
-
+@login_required
 def controle_usuarios(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -257,6 +258,67 @@ def controle_usuarios(request, cnpj):
 
 
 
+@login_required
+def cadastrar_user(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
+
+    if not request.user.is_superuser:
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+
+    if request.method == 'POST':
+        try:    
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            papel = request.POST.get('papel')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+
+            if CustomUser.objects.filter(email=email).exists():
+                messages.error(request, "Erro ao cadastrar, e-mail já está em uso.")
+                return redirect('controle_usuarios', cnpj=cnpj)
+
+            if password != confirm_password:
+                messages.error(request, "Erro ao cadastrar, senhas não coincidem.")
+                return redirect('controle_usuarios', cnpj=cnpj)
+
+
+            with transaction.atomic():
+                # Criando o ingrediente
+                custom_user = CustomUser(
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        is_empresa=True,
+                        username=email,
+                        password=password,
+                    )
+                custom_user.set_password(password)
+                custom_user.save()
+
+                    # Criando o estoque com a quantidade inicial
+                empresaUser = EmpresaUsuario(
+                    usuario=custom_user,
+                    empresa=empresa,
+                    papel=papel
+                )
+                empresaUser.save()
+
+            messages.success(request, f'{first_name} Cadastrado com Sucesso!')
+            return redirect('controle_usuarios', cnpj=cnpj)
+        except Exception as e:
+            messages.error(request, "Erro ao cadastrar, verifique os dados e tente novamente.")
+            return redirect('controle_usuarios', cnpj=cnpj)
+
+
+
 #
 # INGREDIENTES
 #
@@ -267,7 +329,7 @@ def controle_usuarios(request, cnpj):
 def ingredientes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -293,7 +355,7 @@ def adicionar_ingredientes(request, cnpj):
 
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -347,7 +409,7 @@ def adicionar_ingredientes(request, cnpj):
 def editar_ingrediente(request, cnpj, ingrediente_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -389,7 +451,7 @@ def editar_ingrediente(request, cnpj, ingrediente_id):
 def deletar_ingrediente(request, cnpj, ingrediente_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -418,7 +480,7 @@ def deletar_ingrediente(request, cnpj, ingrediente_id):
 def estoque(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -442,7 +504,7 @@ def estoque(request, cnpj):
 def cadastrar_movimentacao(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -539,7 +601,7 @@ def movimentacao_grafico(request, cnpj):
 def movimentacoes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -570,7 +632,7 @@ def movimentacoes(request, cnpj):
 def cardapio(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -666,7 +728,7 @@ def adicionar_item(request, cnpj, categoria_id):
 
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -770,7 +832,7 @@ def toggle_ativo_categoria(request, cnpj, categoria_id):
 def receitas(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -812,7 +874,7 @@ def receitas(request, cnpj):
 def cadastrar_receita(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -880,7 +942,7 @@ def deletar_ingrediente_receita(request, cnpj, ingrediente_id):
 def pedidos(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -888,7 +950,7 @@ def pedidos(request, cnpj):
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
         
-    pedidos = Pedido.objects.filter(empresa=empresa)
+    pedidos = Pedido.objects.filter(empresa=empresa).order_by('-data_pedido')
     
     numero_pedido = request.GET.get('numero')
     status = request.GET.get('status')
@@ -928,7 +990,7 @@ def pedidos(request, cnpj):
 def detalhes_pedido(request, cnpj, pedido_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -955,7 +1017,7 @@ def detalhes_pedido(request, cnpj, pedido_id):
 def perfil(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:
@@ -994,11 +1056,26 @@ def perfil(request, cnpj):
     return render(request, 'appEmpresa/perfil.html', context)
 
 
+
+@csrf_exempt
+def editar_imagem_perfil(request, cnpj,user_id):
+    print(f"Recebida requisição para editar imagem: cnpj={cnpj}, user_id={user_id}")
+    if request.method == "POST" and request.FILES.get('profile_image'):
+        user = CustomUser.objects.get(id=user_id)
+        user.profile_image = request.FILES['profile_image']
+        user.save()
+        return JsonResponse({'new_image_url': user.profile_image.url})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
+
+
 @login_required
 def perfil_empresa(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
-    empUsu = EmpresaUsuario.objects.get(empresa=empresa)
+    empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
 
     if not request.user.is_superuser:
         if empUsu.usuario != request.user:

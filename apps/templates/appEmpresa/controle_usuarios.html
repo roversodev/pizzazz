@@ -7,25 +7,240 @@
 {% block title %}Controle de Usuários{% endblock %}
 
 {% block content2 %}
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<style>
+    /*!Simple-DataTables
+Github: https://github.com/fiduswriter/Simple-DataTables*/
+.datatable-wrapper.no-header .datatable-container {
+    border-top: 1px solid #d9d9d9
+}
+
+.datatable-wrapper.no-footer .datatable-container {
+    border-bottom: 1px solid #d9d9d9
+}
+
+.datatable-top {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.datatable-top::after{
+    display: none;
+}
+
+.datatable-selector {
+    padding: 6px
+}
+
+.datatable-input {
+    padding: 6px 12px
+}
+
+.datatable-info {
+    margin: 7px 0
+}
+
+.datatable-pagination ul {
+    margin: 0;
+    padding-left: 0
+}
+
+.datatable-pagination li {
+    list-style: none;
+    float: left
+}
+
+.datatable-pagination a {
+    border: 1px solid transparent;
+    float: left;
+    margin-left: 2px;
+    padding: 6px 12px;
+    position: relative;
+    text-decoration: none;
+    color: #333
+}
+
+.datatable-pagination a:hover {
+    background-color: #d9d9d9
+}
+
+.datatable-pagination .active a,.datatable-pagination .active a:focus,.datatable-pagination .active a:hover {
+    background-color: #d9d9d9;
+    cursor: default
+}
+
+.datatable-pagination .ellipsis a,.datatable-pagination .disabled a,.datatable-pagination .disabled a:focus,.datatable-pagination .disabled a:hover {
+    cursor: not-allowed
+}
+
+.datatable-pagination .disabled a,.datatable-pagination .disabled a:focus,.datatable-pagination .disabled a:hover {
+    cursor: not-allowed;
+    opacity: .4
+}
+
+.datatable-pagination .pager a {
+    font-weight: 700
+}
+
+.datatable-table {
+    max-width: 100%;
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: separate
+}
+
+.datatable-table>tbody>tr>td,.datatable-table>tbody>tr>th,.datatable-table>tfoot>tr>td,.datatable-table>tfoot>tr>th,.datatable-table>thead>tr>td,.datatable-table>thead>tr>th {
+    vertical-align: top;
+    padding: 8px 10px
+}
+
+.datatable-table>thead>tr>th {
+    vertical-align: bottom;
+    text-align: left;
+    border-bottom: 1px solid #d9d9d9
+}
+
+.datatable-table>tfoot>tr>th {
+    vertical-align: bottom;
+    text-align: left;
+    border-top: 1px solid #d9d9d9
+}
+
+.datatable-table th {
+    vertical-align: bottom;
+    text-align: left
+}
+
+.datatable-table th a {
+    text-decoration: none;
+    color: inherit
+}
+
+
+.dataTables-empty {
+    text-align: center
+}
+
+
+/*!Simple-DataTables
+Github: https://github.com/fiduswriter/Simple-DataTables*/
+.datatable-wrapper .datatable-top .datatable-dropdown {
+    float: left
+}
+
+.datatable-wrapper .datatable-top .datatable-dropdown label {
+    margin-bottom: 0;
+    margin-left: 0;
+    color: #8392ab;
+    font-weight: 400
+}
+
+.datatable-wrapper .datatable-top .datatable-dropdown label .datatable-selector {
+    border-color: #e9ecef;
+    border-radius: .25rem
+}
+
+.datatable-wrapper .datatable-top .datatable-search input {
+    font-size: .875rem;
+    color: #495057;
+    border: 1px solid #e9ecef;
+    border-radius: .5rem
+}
+
+.datatable-wrapper .datatable-top .datatable-search input:focus-visible {
+    outline: none
+}
+
+.datatable-wrapper .datatable-container .table thead tr th {
+    padding: .75rem 1.5rem;
+    opacity: .7;
+    font-weight: bolder;
+    color: #8392ab;
+    text-transform: uppercase;
+    font-size: .65rem
+}
+
+.datatable-wrapper .datatable-container .table tbody tr td {
+    padding: .75rem 1.5rem
+}
+
+.datatable-wrapper .datatable-bottom {
+    padding: 1.5rem;
+    padding-top: 0
+}
+
+.datatable-wrapper .datatable-bottom .datatable-info {
+    color: #8392ab;
+    font-size: .875rem
+}
+
+.datatable-bottom .datatable-pagination .datatable-pagination-list li button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8392ab;
+    padding: 0;
+    margin: 0 3px;
+    border: 1px solid #dee2e6;
+    border-radius: 50%!important;
+    width: 36px;
+    height: 36px;
+    font-size: .875rem;
+    margin-left: 0
+}
+
+.datatable-bottom .datatable-pagination .datatable-pagination-list li button:hover {
+    background: #e9ecef
+}
+
+.datatable-bottom .datatable-pagination .datatable-pagination-list .datatable-active button {
+    background: 0 0;
+    background-image: linear-gradient(195deg, #EF5350 0%, #E53935 100%);
+    box-shadow: 0 7px 14px rgba(50,50,93,.1),0 3px 6px rgba(0,0,0,.08);
+    color: #fff;
+    border: none;
+    border-radius: 50%!important
+}
+
+.datatable-bottom .datatable-pagination .datatable-pagination-list .datatable-active button:hover {
+    background-image: linear-gradient(195deg, #EF5350 0%, #E53935 100%);
+}
+
+.datatable-wrapper.no-footer .datatable-container {
+    border-bottom: 0
+}
+
+.datatable-table thead td,.datatable-table thead th,.datatable-table tbody td,.datatable-table tbody th,.datatable-table tfoot td,.datatable-table tfoot th {
+    vertical-align: middle!important
+}
+
+.dataTable-sorter{
+    text-transform: uppercase;
+}
+
+@media(max-width: 575.98px) {
+    .datatable-top>div:last-child {
+        float:left;
+        margin-top: 1rem
+    }
+}
+
+
+</style>
 <div class="container-fluid py-4 min-vh-85">
     <div class="row mt-4">
         <div class="col-12">
+            {% include 'includes/messages.html' %}
             <div class="card">
                 <!-- Card header -->
-                <div class="card-header d-flex justify-content-between">
+                <div class="card-header d-flex justify-content-between" style="padding-left: 25px; padding-right: 25px;">
                     <h5 class="mb-0">Controle de Usuários</h5>
-                    <a href="#"
-                        class="btn bg-gradient-dark btn-sm float-end mb-0">Adicionar Usuário</a>
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#modalCadastroUsuario"
+                        class="btn bg-gradient-dark btn-sm float-end mb-0">+ Usuário</>
                 </div>
-    
+
                 <div class="table-responsive card-body">
-                    <div
-                        class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-height fixed-columns">
-                        <div class="d-flex justify-content-end">
-                            <div class="dataTable-search input-group input-group-sm input-group-outline w-20 px-3"><input class="form-control" placeholder="Pesquisa..."
-                                    type="text"></div>
-                        </div>
-                        <div class="dataTable-container" style="height: 415.633px;">
                             <table class="table table-flush dataTable-table" id="datatable-basic">
                                 <thead class="thead-light">
                                     <tr>
@@ -47,11 +262,11 @@
                                             </a></th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                                             data-sortable="" style="width: 26.9297%;"><a href="#" class="dataTable-sorter">
-                                                Data de Cadastro
+                                                Data Cadastro
                                             </a></th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                                             data-sortable="false" style="width: 13.1656%;">
-                                            Action
+                                            Ação
                                         </th>
                                     </tr>
                                 </thead>
@@ -61,7 +276,7 @@
                                         <td class="text-sm font-weight-normal">
                                             <span class="my-2 text-xs">
                                                 <img src="{{ usuario.usuario.profile_image.url }}"
-                                                    alt="bruce" class="border-radius-lg shadow-sm height-100 w-auto">
+                                                    alt="bruce" class="border-radius-lg shadow-sm" style="width: 110px; height: 110px; object-fit: cover;">
                                             </span>
                                         </td>
                                         <td class="text-sm font-weight-normal">{{ usuario.usuario.first_name }} {{ usuario.usuario.last_name }}</td>
@@ -70,60 +285,115 @@
                                         <td class="text-sm font-weight-normal">{{ usuario.usuario.date_joined|date:'d/m/Y H:i' }}</td>
                                         <td class="text-sm">
                                             <span class="d-flex gap-2">
-                                                <a href="#" class="btn btn-sm btn-primary">Editar</a>
-                                                <a href="#" class="btn btn-sm btn-danger">Excluir</a>
+                                                <a href="#" class="btn btn-sm bg-gradient-secondary">Editar</a>
+                                                <a href="#" class="btn btn-sm bg-gradient-danger">Excluir</a>
                                             </span>
                                         </td>
                                     </tr>
                                     {% endfor %}
-                                    <tr>
-                                        <td class="text-sm font-weight-normal">
-                                            <span class="my-2 text-xs">
-                                                <img src="http://argon-dashboard-pro-laravel.creative-tim.com/avatars/team-2.jpg"
-                                                    alt="bruce" class="border-radius-lg shadow-sm height-100 w-auto">
-                                            </span>
-                                        </td>
-                                        <td class="text-sm font-weight-normal">Creator
-                                            Creator</td>
-                                        <td class="text-sm font-weight-normal">creator@argon.com</td>
-                                        <td class="text-sm font-weight-normal">Creator</td>
-                                        <td class="text-sm font-weight-normal">2024-12-20 18:15:03</td>
-                                        <td class="text-sm">
-                                            <span class="d-flex">
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-sm font-weight-normal">
-                                            <span class="my-2 text-xs">
-                                                <img src="http://argon-dashboard-pro-laravel.creative-tim.com/avatars/team-3.jpg"
-                                                    alt="bruce" class="border-radius-lg shadow-sm height-100 w-auto">
-                                            </span>
-                                        </td>
-                                        <td class="text-sm font-weight-normal">Member
-                                            Member</td>
-                                        <td class="text-sm font-weight-normal">member@argon.com</td>
-                                        <td class="text-sm font-weight-normal">Member</td>
-                                        <td class="text-sm font-weight-normal">2024-12-20 18:15:03</td>
-                                        <td class="text-sm">
-                                            <span class="d-flex">
-                                            </span>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
-                        </div>
-                        <div class="dataTable-bottom">
-                            <div class="dataTable-info">Showing 1 to 3 of 3 entries</div>
-                            <nav class="dataTable-pagination">
-                                <ul class="dataTable-pagination-list"></ul>
-                            </nav>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalCadastroUsuario" tabindex="-1" aria-labelledby="modalCadastroUsuarioLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-lg border-radius-xl shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCadastroUsuarioLabel">Cadastrar Novo Ingrediente</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
+                    aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formCadastroUsuario" method="POST" action="{% url 'cadastrar_user' cnpj=empresa.cnpj|remove_mask %}"
+                    class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <!-- Campo Nome -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3 input-group input-group-outline">
+                                <label for="first_name" class="form-label">Primeiro Nome</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                <div class="invalid-feedback">Digite o primeiro nome.</div>
+                            </div>
+                        </div>
+                        <div class="col-6" style="padding-left: 0;">
+                            <div class="mb-3 input-group input-group-outline">
+                                <label for="last_name" class="form-label">Último Nome</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                <div class="invalid-feedback">Digite o último nome.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Campo Email -->
+                    <div class="mb-3 input-group input-group-outline">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="invalid-feedback">Digite o e-mail corretamente.</div>
+                    </div>
+                    <!-- Campo Papel -->
+                    <div class="mb-3 input-group input-group-outline position-relative">
+                        <i class="fas fa-chevron-down position-absolute end-0 me-3 text-dark text-xs"
+                            style="margin-top: 12px;"></i>
+                        <select class="form-control pe-5" id="papel" name="papel" required>
+                            <option value="" disabled selected>Selecione o papel</option>
+                            <option value="Dono">Dono</option>
+                            <option value="Caixa">Caixa</option>
+                            <option value="Pizzaiolo">Pizzaiolo</option>
+                        </select>
+                        <div class="invalid-feedback">Selecione o papel.</div>
+                    </div>
+                    <!-- Campos de Senha -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3 input-group input-group-outline">
+                                <label for="password" class="form-label">Senha</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="invalid-feedback">Digite a senha.</div>
+                            </div>
+                        </div>
+                        <div class="col-6" style="padding-left: 0;">
+                            <div class="mb-3 input-group input-group-outline">
+                                <label for="confirm_password" class="form-label">Confirmar Senha</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                <div class="invalid-feedback">As senhas não coincidem.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Botão de Submissão -->
+                    <div class="text-center">
+                        <button type="submit" id="submitBtn" class="btn bg-gradient-dark w-100 icon-move-right">Cadastrar <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script>
+        const dataTableBasic = new simpleDatatables.DataTable("#datatable-basic", {
+            searchable: true,
+            labels: {
+            placeholder: "Pesquisa...",
+            searchTitle: "Search within table",
+            pageTitle: "Página {page}",
+            perPage: "itens por página",
+            noRows: "Nenhum item encontrado.",
+            info: "Exibindo {start} até {end} de {rows} total",
+            noResults: "Nenhum item encontrado",
+            },
+            columns: [{
+                select: [0, 5],
+                sortable: false
+            }]
+        });
+</script>
+
 {% include 'includes/footer-emp.html' %}
 {% endblock %}
