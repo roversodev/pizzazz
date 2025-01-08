@@ -1,0 +1,108 @@
+.multisteps-form__progress {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(0,1fr))
+}
+
+.multisteps-form__progress-btn {
+    transition-property: all;
+    transition-duration: .15s;
+    transition-timing-function: linear;
+    transition-delay: 0s;
+    position: relative;
+    padding-top: 20px;
+    color: #dee2e6;
+    text-indent: -9999px;
+    border: none;
+    background-color: transparent;
+    outline: none!important;
+    cursor: pointer
+}
+
+@media(min-width: 500px) {
+    .multisteps-form__progress-btn {
+        text-indent:0
+    }
+}
+
+.multisteps-form__progress-btn:before {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: block;
+    width: 13px;
+    height: 13px;
+    content: "";
+    transform: translateX(-50%);
+    transition: all .15s linear 0s,transform .15s cubic-bezier(.05,1.09,.16,1.4) 0s;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    background-color: #fff;
+    box-sizing: border-box;
+    z-index: 3
+}
+
+.multisteps-form__progress-btn:after {
+    position: absolute;
+    top: 5px;
+    left: calc(-50% - 6.5px);
+    transition-property: all;
+    transition-duration: .15s;
+    transition-timing-function: linear;
+    transition-delay: 0s;
+    display: block;
+    width: 100%;
+    height: 2px;
+    content: "";
+    background-color: currentColor;
+    z-index: 1
+}
+
+.multisteps-form__progress-btn:first-child:after {
+    display: none
+}
+
+.multisteps-form__progress-btn.js-active {
+    color: #E53935
+}
+
+.multisteps-form__progress-btn.js-active span {
+    color: #8392ab
+}
+
+.multisteps-form__progress-btn.js-active:before {
+    transform: translateX(-50%) scale(1.2);
+    background-color: currentColor
+}
+
+.multisteps-form__form {
+    position: relative
+}
+
+.multisteps-form__panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    opacity: 0;
+    visibility: hidden;
+    margin-bottom: 50px;
+}
+
+.multisteps-form__panel.js-active {
+    height: auto;
+    opacity: 1;
+    visibility: visible
+}
+
+.multisteps-form__panel[data-animation=scaleIn] {
+    transform: scale(.9)
+}
+
+.multisteps-form__panel[data-animation=scaleIn].js-active {
+    transition-property: all;
+    transition-duration: .2s;
+    transition-timing-function: linear;
+    transition-delay: 0s;
+    transform: scale(1)
+}

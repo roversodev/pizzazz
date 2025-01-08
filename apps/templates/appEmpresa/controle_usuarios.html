@@ -284,9 +284,8 @@ Github: https://github.com/fiduswriter/Simple-DataTables*/
                                         <td class="text-sm font-weight-normal">{{ usuario.papel }}</td>
                                         <td class="text-sm font-weight-normal">{{ usuario.usuario.date_joined|date:'d/m/Y H:i' }}</td>
                                         <td class="text-sm">
-                                            <span class="d-flex gap-2">
-                                                <a href="#" class="btn btn-sm bg-gradient-secondary">Editar</a>
-                                                <a href="#" class="btn btn-sm bg-gradient-danger">Excluir</a>
+                                            <span class="d-flex align-items-center justify-content-center">
+                                                <a href="#" class="btn btn-sm bg-gradient-danger" data-bs-toggle="modal" data-bs-target="#confirmarDeletarModal" data-id="{{ usuario.usuario.id }}" data-url="{% url 'excluir_user' cnpj=empresa.cnpj|remove_mask user_id=usuario.usuario.id %}">Excluir</a>
                                             </span>
                                         </td>
                                     </tr>
@@ -374,6 +373,45 @@ Github: https://github.com/fiduswriter/Simple-DataTables*/
     </div>
 </div>
 
+<div class="modal fade" id="confirmarDeletarModal" tabindex="-1" aria-labelledby="confirmarDeletarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-lg border-radius-xl shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmarDeletarModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Tem certeza que deseja excluir este usuário? <br>Esta ação não pode ser desfeita.</p>
+            <div class="text-center">
+                <form id="formDeletar" method="POST" action="" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn bg-gradient-danger">Deletar</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Script para configurar o formulário de deletação
+    document.addEventListener("DOMContentLoaded", function() {
+        const deleteLinks = document.querySelectorAll('.btn.btn-sm.bg-gradient-danger');
+        
+        deleteLinks.forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                // Impedir o comportamento padrão do link
+                event.preventDefault();
+                
+                // Pega a URL de deleção e o ID do ingrediente
+                const url = link.getAttribute('data-url');
+                
+                // Atualiza a ação do formulário
+                const formDeletar = document.getElementById('formDeletar');
+                formDeletar.setAttribute('action', url);
+            });
+        });
+    });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 <script>

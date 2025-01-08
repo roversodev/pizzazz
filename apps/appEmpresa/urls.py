@@ -36,11 +36,14 @@ urlpatterns = [
     # Receitas
     path('receitas', views.receitas, name='receitas'),
     path('receitas/cadastrar', views.cadastrar_receita, name='cadastrar_receita'),
+    path('verificar_completo/', views.verificar_completo, name='verificar_completo'),
     path('deletar-ingrediente-receita/<int:ingrediente_id>/', views.deletar_ingrediente_receita, name='deletar_ingrediente_receita'),
 
     # Pedidos
     path('pedidos', views.pedidos, name='pedidos'),
     path('pedidos/detalhes/<int:pedido_id>/', views.detalhes_pedido, name='detalhes_pedido'),
+    path('exportar_pedidos/', views.exportar_pedidos, name='exportar_pedidos'),
+    path('pedidos/criar', views.pedido_manual, name='pedido_manual'),
 
     # Perfil
     path('perfil', views.perfil, name='perfil'),
@@ -53,4 +56,5 @@ urlpatterns = [
     # Controle de Usuários
     path('controle_usuarios', views.controle_usuarios, name='controle_usuarios'),
     path('cadastrar_user', views.cadastrar_user, name='cadastrar_user'),
+    path('excluir_user/<int:user_id>', views.excluir_user, name='excluir_user'),
 ]

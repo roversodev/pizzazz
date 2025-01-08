@@ -1,0 +1,210 @@
+{% extends 'includes/side-nav.html' %}
+{% load static %}
+{% load my_filters %}
+{% block title %}Cadastrar Receitas{% endblock %}
+
+{% block content2 %}
+<link rel="stylesheet" href="{% static 'css/3steps.css' %}">
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h3 class="mt-5">Cadastre a Receita</h3>
+            <h5 class="font-weight-normal">Essa informação irá nos ajudar a ter mais informações do seu negócio.</h5>
+            <div class="multisteps-form mb-5">
+                <!--progress bar-->
+                <div class="row mt-5">
+                    <div class="col-12 col-lg-8 mx-auto my-5">
+                        <div class="multisteps-form__progress">
+                            <button class="multisteps-form__progress-btn js-active" type="button" title="User Info">
+                                <span>Cardápio</span>
+                            </button>
+                            <button class="multisteps-form__progress-btn" type="button" title="Address">
+                                <span>Ingredientes</span>
+                            </button>
+                            <button class="multisteps-form__progress-btn" type="button" title="Order Info">
+                                <span>Quantidade</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!--form panels-->
+                <div class="row">
+                    <div class="col-12 col-lg-8 m-auto">
+                        <form method="post" action="#" class="multisteps-form__form needs-validation" style="min-height: 520px;" novalidate>
+                            {% csrf_token %}
+                            <!--single form panel-->
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white js-active" data-animation="FadeIn">
+                                <div class="row text-center">
+                                    <div class="col-10 mx-auto">
+                                        <h5 class="font-weight-normal">Vamos iniciar com uma informação básica.</h5>
+                                        <p>Deixe sabermos qual o item do cardápio que você vai cadastrar a receita, aqui está a lista de disponiveis.</p>
+                                    </div>
+                                </div>
+                                <div class="multisteps-form__content">
+                                    <div class="row mt-3">
+                                        <div class="col-12 col-sm-4">
+                                            <div class="position-relative">
+                                                <img id="cardapioImage" src="{% static 'assets/img/calabresa.jpg' %}" class="avatar avatar-xxl border-radius-md" style="object-fit: cover;" alt="img-cardapio">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-sm-8 mt-4 mt-sm-0 text-start">
+                                            <div class="mt-lg-4 input-group input-group-outline position-relative w-lg-80">
+                                                <i class="fas fa-chevron-down position-absolute end-0 me-3 text-dark text-xs" style="margin-top: 12px;" aria-hidden="true"></i>
+                                                <select class="form-control pe-5" id="cardapio" name="cardapio" required onchange="updateImage()">
+                                                    <option value="" data-img="{% static 'assets/img/calabresa.jpg' %}" disabled selected>Selecione um item do cardápio...</option>
+                                                    {% for cardapio in cardapios %}
+                                                    <option value="{{ cardapio.id_cardapio }}" data-img="{{ cardapio.imagem.url }}">{{ cardapio.nome }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <!-- Onde a mensagem de aviso será exibida -->
+                                            <div id="mensagem-completo" style="display:none;">
+                                                <div class="col-12 mt-1">
+                                                    <p class="text-warning text-xs">Esta receita já foi cadastrada no cardápio.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="button-row d-flex mt-4">
+                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next" type="button" title="Next">Proxima</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--single form panel-->
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white" data-animation="FadeIn">
+                                <div class="row text-center">
+                                    <div class="col-10 mx-auto">
+                                        <h5 class="font-weight-normal">Quais ingredientes?</h5>
+                                        <p>Nos de mais detalhes. Como é feito esse item do cardápio?
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="multisteps-form__content">
+                                    <div class="row mt-4">
+                                        {% for ingrediente in ingredientes %}
+                                            <div class="col-sm-3 mb-3">
+                                                <!-- Checkbox escondido -->
+                                                <input type="checkbox" class="btn-check" id="checkbox_{{ ingrediente.id_ingrediente }}" name="ingredientes" value="{{ ingrediente.id_ingrediente }}" data-unidade="{{ingrediente.unidade}}">
+                                    
+                                                <!-- Botão estilizado -->
+                                                <label class="btn btn-outline-secondary w-100 py-4 px-4 rounded-3 d-flex align-items-center justify-content-center" style="height: 60px;" for="checkbox_{{ ingrediente.id_ingrediente }}">
+                                                    <span class="text-center">{{ ingrediente.nome }}</span>
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="button-row d-flex mt-4">
+                                        <button class="btn bg-gradient-light mb-0 js-btn-prev" type="button" title="Prev">Anterior</button>
+                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next" type="button" title="Next">Proxima</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--single form panel-->
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white" data-animation="FadeIn">
+                                <div class="row text-center">
+                                    <div class="col-10 mx-auto">
+                                        <h5 class="font-weight-normal">Qual a quantidade?</h5>
+                                        <p>Qual quantidade de cada ingrediente é usado nessa receita?</p>
+                                    </div>
+                                </div>
+                                <div class="multisteps-form__content">
+                                    <div class="row text-start" id="quantidade-ingredientes">
+                                        <p class="text-center text-danger">Selecione os ingredientes para escolher a quantidade.</p>
+                                    </div>
+                                    <div class="row">
+                                        <div class="button-row d-flex mt-4 col-12">
+                                            <button class="btn bg-gradient-light mb-0 js-btn-prev" type="button" title="Prev">Anterior</button>
+                                            <button class="btn bg-gradient-dark ms-auto mb-0" type="submit" title="Send">Enviar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/3steps.js' %}"></script>
+    <script>
+        // Função para atualizar a imagem com base no item selecionado
+        function updateImage() {
+            var selectElement = document.getElementById("cardapio");
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+    
+            // Pega a URL da imagem associada ao item selecionado
+            var imageUrl = selectedOption.getAttribute("data-img");
+    
+            // Atualiza a imagem
+            var imageElement = document.getElementById("cardapioImage");
+            imageElement.src = imageUrl;
+    
+            // Caso nenhum item seja selecionado, você pode limpar a imagem ou definir uma imagem padrão
+            if (imageUrl === "null") {
+                imageElement.src = "{% static 'assets/img/calabresa.jpg' %}"; // Ou defina uma imagem padrão aqui
+            }
+            var cardapioId = document.getElementById('cardapio').value;
+            var mensagemCompleto = document.getElementById('mensagem-completo');
+            
+            // Se o valor do select estiver vazio, não faz nada
+            if (!cardapioId) {
+                return;
+            }
+            
+            // Faz a requisição AJAX para verificar o campo 'completo' do cardápio
+            fetch(`/empresas/{{empresa.cnpj|remove_mask}}/verificar_completo/?cardapio_id=${cardapioId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.completo) {
+                        // Se 'completo' for True, exibe a mensagem
+                        mensagemCompleto.style.display = 'block';
+                    } else {
+                        // Caso contrário, esconde a mensagem
+                        mensagemCompleto.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao verificar cardápio:', error);
+                    mensagemCompleto.style.display = 'none';
+                });
+        }
+    </script>
+    <script>
+        // Função que é chamada sempre que um checkbox de ingrediente é alterado
+        document.addEventListener("DOMContentLoaded", function () {
+            const quantidadeIngredientesContainer = document.getElementById("quantidade-ingredientes");
+    
+            // Função para atualizar os campos de quantidade
+            const updateQuantidadeFields = () => {
+                quantidadeIngredientesContainer.innerHTML = ''; // Limpar os campos anteriores
+    
+                // Buscar todos os ingredientes selecionados
+                const ingredientesSelecionados = document.querySelectorAll('input[name="ingredientes"]:checked');
+    
+                // Para cada ingrediente selecionado, criar um campo de quantidade
+                ingredientesSelecionados.forEach(checkbox => {
+                    const ingredienteId = checkbox.value;
+                    const unidade = checkbox.getAttribute('data-unidade');
+                    const ingredienteNome = checkbox.nextElementSibling.textContent;
+
+                    // Criar o campo de quantidade
+                    const div = document.createElement('div');
+                    div.classList.add('col-sm-4', 'mb-3', 'input-group', 'input-group-outline', 'is-filled');
+                    div.innerHTML = `
+                        <label class="form-label" for="quantidade_${ingredienteId}" style="width: 96.8%">${ingredienteNome} (${unidade})</label>
+                        <input type="number" name="quantidade_${ingredienteId}" id="quantidade_${ingredienteId}" class="form-control"  step="0.01" pattern="^\d+(\.\d{1,2})?$" required>
+                        <div class="invalid-feedback">Digite um numero. Exemplo: 0,15</div>
+                    `;
+                    quantidadeIngredientesContainer.appendChild(div);
+                });
+            };
+    
+            // Adicionar eventos de mudança nos checkboxes
+            const checkboxes = document.querySelectorAll('input[name="ingredientes"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateQuantidadeFields);
+            });
+        });
+    </script>
+</div>
+{% endblock %}

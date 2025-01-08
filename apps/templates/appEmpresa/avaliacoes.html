@@ -48,7 +48,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
-                            <img src="{{ avaliacao.pedido.cliente.profile_image.url|default:'/media/profile_pics/user2.jpg' }}" class="rounded-circle me-3" width="50">
+                            <img src="{{ avaliacao.pedido.cliente.usuario.profile_image.url }}" class="rounded-circle me-3" width="50">
                             <div>
                                 <h6 class="mb-0">{{ avaliacao.pedido.cliente.nome }}</h6>
                                 <small class="text-muted">{{ avaliacao.data_avaliacao|date:"d/m/Y" }}</small>

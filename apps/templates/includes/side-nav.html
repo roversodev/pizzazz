@@ -104,39 +104,6 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if page_title == 'Ingredientes' %}active{% endif %}"
-            href="{% url 'ingredientes' cnpj=empresa.cnpj|remove_mask %}">
-            <div
-              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i
-                class="ph-bold ph-chef-hat top-0 text-dark {% if page_title == 'Ingredientes' %}text-white{% endif %}"></i>
-            </div>
-            <span class="nav-link-text ms-1">Ingredientes</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if page_title == 'Estoque' %}active{% endif %}"
-            href="{% url 'estoque' cnpj=empresa.cnpj|remove_mask %}">
-            <div
-              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i
-                class="ph-bold ph-package top-0 text-dark {% if page_title == 'Estoque' %}text-white{% endif %}"></i>
-            </div>
-            <span class="nav-link-text ms-1">Estoque</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if page_title == 'Movimentações' %}active{% endif %}"
-            href="{% url 'movimentacoes' cnpj=empresa.cnpj|remove_mask %}">
-            <div
-              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i
-                class="ph-bold ph-arrow-square-down-right top-0 text-dark {% if page_title == 'Movimentações' %}text-white{% endif %}"></i>
-            </div>
-            <span class="nav-link-text ms-1">Movimentações</span>
-          </a>
-        </li>
-        <li class="nav-item">
           <a class="nav-link {% if page_title == 'Cardápio' %}active{% endif %}"
             href="{% url 'cardapio' cnpj=empresa.cnpj|remove_mask %}">
             <div
@@ -145,6 +112,17 @@
                 class="ph-bold ph-notepad top-0 text-dark {% if page_title == 'Cardápio' %}text-white{% endif %}"></i>
             </div>
             <span class="nav-link-text ms-1">Cardápio</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Ingredientes' %}active{% endif %}"
+            href="{% url 'ingredientes' cnpj=empresa.cnpj|remove_mask %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i
+                class="ph-bold ph-chef-hat top-0 text-dark {% if page_title == 'Ingredientes' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Ingredientes</span>
           </a>
         </li>
         <li class="nav-item">
@@ -167,6 +145,28 @@
                 class="ph-bold ph-receipt top-0 text-dark {% if page_title == 'Pedidos' %}text-white{% endif %}"></i>
             </div>
             <span class="nav-link-text ms-1">Pedidos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Estoque' %}active{% endif %}"
+            href="{% url 'estoque' cnpj=empresa.cnpj|remove_mask %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i
+                class="ph-bold ph-package top-0 text-dark {% if page_title == 'Estoque' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Estoque</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Movimentações' %}active{% endif %}"
+            href="{% url 'movimentacoes' cnpj=empresa.cnpj|remove_mask %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i
+                class="ph-bold ph-arrow-square-down-right top-0 text-dark {% if page_title == 'Movimentações' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Movimentações</span>
           </a>
         </li>
         <li class="nav-item mt-3">
@@ -227,6 +227,9 @@
       <div class="container-fluid py-1 px-3">
         <h6 class="font-weight-bolder mb-0">{{ page_title }}</h6>
         <div class="ms-md-auto pe-md-3 d-flex align-items-center" id="navbar">
+          {% if request.user.is_superuser %}
+          <h6 class="justify-content-end text-danger font-weight-normal">Você está logado como: Admin</h6>
+          {% endif %}
           <ul class="navbar-nav  justify-content-end">
             <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
               <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">

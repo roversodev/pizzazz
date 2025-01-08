@@ -116,7 +116,7 @@ class EmpresaUsuario(models.Model):
 
 class Cliente(models.Model):
     id_cliente = models.AutoField(primary_key=True)
-    usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
     nome = models.TextField(max_length='100')
     telefone = models.TextField(max_length='16')
     cpf = models.TextField(max_length='14')
@@ -223,6 +223,7 @@ class Pedido(models.Model):
     status = models.CharField(max_length=50, choices=[('pendente', 'Pendente'), ('em_andamento', 'Em Andamento'), ('Concluido', 'Concluido')], default='pendente')
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_pedido = models.IntegerField(unique=True, null=False, blank=False)
+    canal = models.CharField(max_length=50, default='Manual')
 
     def calcular_total(self):
         total = sum(item.preco_total for item in self.itens.all())

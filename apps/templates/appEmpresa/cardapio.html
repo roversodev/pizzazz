@@ -113,7 +113,8 @@
                                                         Item</label>
                                                     <input type="file" class="form-control" id="imagem{{categoria.id}}"
                                                         name="imagem{{categoria.id}}" accept="image/*"
-                                                        onchange="previewImagem(this)">
+                                                        onchange="previewImagem(this)" required>
+                                                    <div class="invalid-feedback">Insira a Imagem.</div>
                                                 </div>
                                                 <div class="mb-3">
                                                     <img id="asd{{categoria.id}}" class="preview-imagem" src=""

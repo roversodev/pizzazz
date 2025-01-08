@@ -1,40 +1,15 @@
 {% if messages %}
-<div class="container mt-3">
-    {% for message in messages %}
-    <div class="alert {{ message.tags }} alert-dismissible fade show text-white" role="alert">
-        <!-- Ícone com base no tipo da mensagem -->
-        {% if 'alert-success' in message.tags %}
-        <i class="fa-regular fa-circle-check"></i>
-        {% elif 'alert-danger' in message.tags %}
-        <i class="fa-regular fa-circle-xmark"></i>
-        {% elif 'alert-warning' in message.tags %}
-        <i class="fas fa-exclamation-triangle"></i>
-        {% elif 'alert-info' in message.tags %}
-        <i class="fas fa-info-circle"></i>
-        {% else %}
-        <i class="fas fa-bell"></i>
-        {% endif %}
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    {% endfor %}
-</div>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const alerts = document.querySelectorAll('.alert');
-        
-        alerts.forEach(alert => {
-            const closeButton = alert.querySelector('.btn-close');
-            
-            setTimeout(() => {
-                if (closeButton) {
-                    closeButton.click();
-                }
-            }, 4000);
-        });
-    });
-</script>
-
+    <script type="text/javascript">
+        {% for message in messages %}
+            {% if 'alert-success' in message.tags %}
+                showSweetAlert("Sucesso", "{{ message }}", "success");
+            {% elif message.tags == 'alert-danger' %}
+                showSweetAlert("Erro", "{{ message }}", "error");
+            {% elif message.tags == 'alert-warning' %}
+                showSweetAlert("Atenção", "{{ message }}", "warning");
+            {% elif message.tags == 'alert-info' %}
+                showSweetAlert("Informação", "{{ message }}", "info");
+            {% endif %}
+        {% endfor %}
+    </script>
 {% endif %}
