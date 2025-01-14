@@ -57,6 +57,7 @@
                                 <p class="mb-0">
                                     Quantidade de Ingredientes: {{ quantidade_ingredientes|get_item:item.id_cardapio }}
                                 </p>
+                                <p class="m-0 p-0">Custo de Produção: R$ {{ item.calcular_custo_producao }}</p>
                                 <p>Receita Cadastrada?
                                     {% if item.completo %}
                                     <span class="badge" style="background: #BCE2BE; color: #329536;">Sim</span>

@@ -1,9 +1,11 @@
+from decimal import Decimal
 from django.db import models
 from django.forms import ValidationError
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.contrib import messages
 
 class CustomUser(AbstractUser):
     is_cliente = models.BooleanField(default=False)
@@ -58,7 +60,7 @@ class Empresa(models.Model):
         
         return Pedido.objects.filter(
             empresa=self,
-            status='Concluido',
+            historico__status='entregue',
             data_pedido__year=now().year
         ).annotate(
             mes=TruncMonth('data_pedido')
@@ -117,16 +119,17 @@ class EmpresaUsuario(models.Model):
 class Cliente(models.Model):
     id_cliente = models.AutoField(primary_key=True)
     usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
+    empresas = models.ManyToManyField(Empresa, related_name='cliente_empresa', blank=True)
     nome = models.TextField(max_length='100')
     telefone = models.TextField(max_length='16')
-    cpf = models.TextField(max_length='14')
+    cpf = models.TextField(max_length='14', unique=True)
     dataN = models.DateField()
     genero = models.TextField(max_length='20', null=True)
     data_criacao = models.DateTimeField(default=now)
     pizzarias_favoritas = models.ManyToManyField(Empresa, related_name='clientes_favoritos', blank=True)
 
     def __str__(self):
-        return self.usuario.username
+        return self.nome
 
     def telefone_formatado(self):
         telefone_numeros = ''.join(filter(str.isdigit, self.telefone))
@@ -147,12 +150,13 @@ class EnderecoCliente(models.Model):
     bairro = models.CharField(max_length=255)
     estado = models.CharField(max_length=255)
     municipio = models.CharField(max_length=255)
-    principal = models.BooleanField(default=False)
+    principal = models.BooleanField(default=True)
     data_criacao = models.DateTimeField(default=now)
 
     LOCAL_CHOICES = [
     ('casa', 'Casa'),
     ('trabalho', 'Trabalho'),
+    ('outros', 'Outros'),
 ]
 
     local = models.CharField(
@@ -164,7 +168,7 @@ class EnderecoCliente(models.Model):
     def save(self, *args, **kwargs):
         if self.local == 'casa':
             if not self.pk and EnderecoCliente.objects.filter(cliente=self.cliente, local='casa').exists():
-                EnderecoCliente.objects.filter(cliente=self.cliente, local='casa').update(principal=False)
+                EnderecoCliente.objects.filter(cliente=self.cliente, local='casa').update(principal=False, local='outros')
         
         elif self.local == 'trabalho':
             if not self.pk and EnderecoCliente.objects.filter(cliente=self.cliente, local='trabalho').exists():
@@ -220,7 +224,6 @@ class Pedido(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     data_pedido = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, choices=[('pendente', 'Pendente'), ('em_andamento', 'Em Andamento'), ('Concluido', 'Concluido')], default='pendente')
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_pedido = models.IntegerField(unique=True, null=False, blank=False)
     canal = models.CharField(max_length=50, default='Manual')
@@ -240,19 +243,31 @@ class Pedido(models.Model):
                 custo_total += preco_unitario * quantidade_usada
         return custo_total
 
-    def atualizar_estoque(self):
-        for item in self.itens.all():
-            ingredientes = IngredienteCardapio.objects.filter(cardapio_item=item.cardapio_item)
-            for ingrediente in ingredientes:
-                quantidade_usada = ingrediente.quantidade * item.quantidade
-                estoque_item = Estoque.objects.get(ingrediente=ingrediente.ingrediente)
-                try:
+    def atualizar_estoque(self, request):
+        try:
+            for item in self.itens.all():
+                ingredientes = IngredienteCardapio.objects.filter(cardapio_item=item.cardapio_item)
+                for ingrediente in ingredientes:
+                    quantidade_usada = ingrediente.quantidade * item.quantidade
+                    estoque_item = Estoque.objects.get(ingrediente=ingrediente.ingrediente, empresa=self.empresa)
+                    
+                    # Verificar o estoque disponível
+                    if estoque_item.quantidade_disponivel < quantidade_usada:
+                        raise ValueError(f"Estoque insuficiente para o ingrediente {ingrediente.ingrediente.nome}. "
+                                        f"Quantidade disponível: {estoque_item.quantidade_disponivel}, "
+                                        f"quantidade necessária: {quantidade_usada}.")
+                    
+                    # Atualizar o estoque
                     estoque_item.atualizar_estoque(quantidade_usada)
-                except ValueError as e:
-                    raise ValueError(f"Erro ao atualizar o estoque para {ingrediente.ingrediente.nome}: {str(e)}")
+
+        except ValueError as e:
+            # Adiciona a mensagem de erro com o texto do erro
+            messages.error(request, str(e))
+            return False
+        return True
 
     def __str__(self):
-        return f"Pedido #{self.numero_pedido} - {self.cliente.usuario.username} - {self.empresa.nome_fantasia}"
+        return f"Pedido #{self.numero_pedido} - {self.cliente.nome} - {self.empresa.nome_fantasia}"
     
     def save(self, *args, **kwargs):
         if not self.numero_pedido:
@@ -293,6 +308,17 @@ class Cardapio(models.Model):
     ativo = models.BooleanField(default=False)
     borda_recheada = models.BooleanField(default=False)
     completo = models.BooleanField(default=False)
+
+    def calcular_custo_producao(self):
+        custo_total = 0
+        ingredientes = IngredienteCardapio.objects.filter(cardapio_item=self)
+        for ingrediente in ingredientes:
+            quantidade_usada = ingrediente.quantidade
+            preco_unitario = ingrediente.ingrediente.preco_unitario
+            custo_total += preco_unitario * quantidade_usada
+
+        # Arredondar para 2 casas decimais
+        return round(custo_total, 2)
 
     def __str__(self):
         return f"{self.nome} - {self.empresa.nome_fantasia}"
@@ -517,9 +543,23 @@ class HistoricoPedido(models.Model):
     data_alteracao = models.DateTimeField(auto_now_add=True)
     alterado_por = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
+
+
+class EnderecoPedido(models.Model):
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='endereco_pedido')
+    cep = models.CharField(max_length=9)
+    endereco = models.CharField(max_length=255)
+    numero = models.IntegerField(null=True)
+    complemento = models.CharField(max_length=255, null=True, blank=True)
+    bairro = models.CharField(max_length=255)
+    estado = models.CharField(max_length=255)
+    municipio = models.CharField(max_length=255)
+
+
+
 # Pagamentos
 class Pagamento(models.Model):
-    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='pagamento')
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     forma_pagamento = models.CharField(max_length=50, choices=[
         ('dinheiro', 'Dinheiro'),

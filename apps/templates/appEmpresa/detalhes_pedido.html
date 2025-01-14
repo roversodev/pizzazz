@@ -4,13 +4,17 @@
 {% block title %}Detalhes do Pedido{% endblock %}
 
 {% block content2 %}
-
 <div class="container-fluid py-4 px-4 min-vh-85">
     <div class="row">
         <!-- Título e informações principais -->
-        <div class="col-12 mb-4">
+        <div class="col-6 mb-4">
             <h2 class="mb-0">Detalhes do Pedido #{{ pedido.numero_pedido }}</h2>
             <p class="text-muted">Realizado em {{ pedido.data_pedido|date:"d/m/Y H:i" }}</p>
+        </div>
+        <div class="col-6">
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn bg-gradient-dark btn-sm" data-bs-toggle="modal" data-bs-target="#modalAlterarStatusPedido">Alterar Status</button>
+            </div>
         </div>
 
         <div class="col-md-6 mb-4 d-flex">
@@ -22,12 +26,18 @@
                     <ul class="list-unstyled mb-0 row gap-4">
                         <li><strong>Canal:</strong> {{ pedido.canal|default:"Manual" }}</li>
                         <li><strong>Status:</strong> 
-                            {% if pedido.status == "Concluido" %}
-                                <span class="badge bg-success">Concluído</span>
-                            {% elif pedido.status == "pendente" %}
-                                <span class="badge bg-danger text-dark">Pendente</span>
-                            {% elif pedido.status == "em_andamento" %}
-                                <span class="badge bg-warning">Em Andamento</span>
+                            {% if pedido.historico.last.status == "entregue" %}
+                                <span class="badge bg-success">Entregue</span>
+                            {% elif pedido.historico.last.status == "pendente" %}
+                                <span class="badge bg-danger text-white">Pendente</span>
+                            {% elif pedido.historico.last.status == "confirmado" %}
+                                <span class="badge bg-info">confirmado</span>
+                            {% elif pedido.historico.last.status == "cancelado" %}
+                                <span class="badge bg-info">cancelado</span>
+                            {% elif pedido.historico.last.status == "preparando" %}
+                                <span class="badge bg-warning">preparando</span>
+                            {% elif pedido.historico.last.status == "saiu_entrega" %}
+                                <span class="badge bg-primary">Saiu para Entrega</span>
                             {% else %}
                                 <span class="badge bg-secondary">Desconhecido</span>
                             {% endif %}
@@ -46,9 +56,9 @@
                 <div class="card-body">
                     <ul class="list-unstyled mb-0">
                         <li><strong>Nome:</strong> {{ pedido.cliente.nome }}</li>
-                        <li><strong>Email:</strong> {{ pedido.cliente.usuario.email }}</li>
+                        <li><strong>Email:</strong> {{ pedido.cliente.usuario.email|default:"Não cadastrado" }}</li>
                         <li><strong>Telefone:</strong> {{ pedido.cliente.telefone|default:"Não informado" }}</li>
-                        <li><strong>Endereço:</strong> {{ clienteE.endereco }}, {{ clienteE.numero }} - {{ clienteE.complemento }} <br>{{ clienteE.cep }} - {{ clienteE.municipio }}</li>
+                        <li><strong>Endereço:</strong> {{ pedido.endereco_pedido.endereco }}, {{ pedido.endereco_pedido.numero }} - {{ pedido.endereco_pedido.complemento }} <br>{{ pedido.endereco_pedido.cep }} - {{ pedido.endereco_pedido.municipio }}</li>
                     </ul>
                 </div>
             </div>
@@ -86,8 +96,137 @@
                 </div>
             </div>
         </div>
+
+
+
+        <!-- Histórico Pedido -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Histórico do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Icon</th>
+                                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Observação</th>
+                                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Horário</th>
+                                  <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Atualizado por</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {% for item in historico_pedido %}
+                                        <tr>
+                                    {% if item.status == "pendente" %}
+                                            <td class="align-middle text-danger opacity-9" style="padding-left: 1.5rem;"><i class="fa-solid fa-clock-rotate-left"></i></td>
+                                            <td class="align-middle text-center">Pendente</td>
+                                    {% elif item.status == "confirmado" %}
+                                            <td class="align-middle text-info opacity-9" style="padding-left: 1.5rem;"><i class="fa-regular fa-circle-check"></i></td>
+                                            <td class="align-middle text-center">Confirmado</td>
+                                    {% elif item.status == "preparando" %}
+                                            <td class="align-middle text-warning opacity-9" style="padding-left: 1.5rem;"><i class="fa-solid fa-kitchen-set"></i></td>
+                                            <td class="align-middle text-center">Preparando</td>
+                                    {% elif item.status == "saiu_entrega" %}
+                                        <td class="align-middle text-primary opacity-9" style="padding-left: 1.5rem;"><i class="fa-solid fa-motorcycle"></i></td>
+                                        <td class="align-middle text-center">Saiu para entrega</td>
+                                    {% elif item.status == "entregue" %}
+                                            <td class="align-middle text-success opacity-9" style="padding-left: 1.5rem;"><i class="fa-solid fa-truck-ramp-box"></i></td>
+                                            <td class="align-middle text-center">Entregue</td>
+                                    {% elif item.status == "cancelado" %}
+                                            <td class="align-middle text-danger opacity-9" style="padding-left: 1.5rem;"><i class="fa-solid fa-ban"></i></td>
+                                            <td class="align-middle text-center">Cancelado</td>
+                                    {% endif %}
+                                            <td class="align-middle text-center">{{ item.observacao }}</td>
+                                            <td class="align-middle text-center">{{ item.data_alteracao|date:"d/m/Y - H:i" }}</td>
+                                            <td class="align-middle text-center">{{ item.alterado_por.first_name }} {{ item.alterado_por.last_name }}</td>
+                                        </tr>
+                                {% endfor %}
+                              </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-{% include 'includes/footer-emp.html' %}
+
+<div class="modal fade" id="modalAlterarStatusPedido" tabindex="-1" aria-labelledby="modalAlterarStatusPedidoLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-lg border-radius-xl shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAlterarStatusPedidoLabel">Alterar Status do Pedido</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
+                    aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'alterar_status' cnpj=empresa.cnpj|remove_mask pedido_numero=pedido.numero_pedido %}"
+                    class="needs-validation" novalidate>
+                    {% csrf_token %}
+                            <label>Status</label>
+                            <select id="status" class="form-control" name="status" required>
+                                <option value="" selected disabled>Selecione</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="preparando">Preparando</option>
+                                <option value="saiu_entrega">Saiu para Entrega</option>
+                                <option value="entregue">Entregue</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                    <!-- Botão de Submissão -->
+                    <div class="text-center">
+                        <button type="submit" id="submitBtn" class="btn bg-gradient-dark w-100 icon-move-right">Alterar <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% include 'includes/footer-emp.html' %}
+</div>
+<script src="{% static 'assets/js/plugins/choices.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    var elemento = document.getElementById('status');
+    var choices = new Choices(elemento, {
+        searchEnabled: true,
+        placeholder: true,
+        searchPlaceholderValue: 'Digite para pesquisar...',
+        // Traduzindo o texto quando não há resultados de pesquisa
+        noResultsText: 'Desculpe, nada encontrado.',
+        // Traduzindo o texto quando não há opções disponíveis
+        noChoicesText: 'Nenhuma opção disponível.',
+        // Traduzindo o texto do item de seleção
+        itemSelectText: 'Clique para selecionar',
+    });
+  });
+</script>
+<script>
+    $(document).ready(function() {
+        // Abrir o select customizado
+        $(".custom-select-trigger").click(function() {
+            $(this).parent().toggleClass("open");
+        });
+
+        // Seleção de status
+        $(".custom-select-option").click(function() {
+            var statusValue = $(this).data("value");
+            var statusText = $(this).text().trim();
+
+            // Atualiza o status no display
+            $("#currentStatusLabel").text(statusText);
+
+            // Atualiza o valor do select oculto
+            $("#statusSelect").val(statusValue);
+
+            // Fechar o select customizado
+            $(".custom-select-wrapper").removeClass("open");
+        });
+    });
+</script>
+{% include 'includes/messages.html' %}
 {% endblock %}

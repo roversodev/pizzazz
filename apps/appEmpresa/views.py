@@ -1,19 +1,21 @@
 from datetime import date, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import json
 import locale
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, Estoque, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pedido, AvaliacaoPedido 
+from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, EnderecoPedido, Estoque, HistoricoPedido, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pagamento, Pedido, AvaliacaoPedido, Sequencia 
 import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.utils.dateparse import parse_date
 from django.contrib.sessions.models import Session
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, OuterRef, Subquery
 from django.db.models.functions import ExtractWeekDay
 from django.views.decorators.csrf import csrf_exempt
+from notifications.signals import notify
+from notifications.models import Notification
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def aplicar_mascara_cnpj(cnpj):
@@ -64,6 +66,40 @@ def resumir_user_agent(user_agent):
     # Resumo final no formato "Sistema Operacional - Navegador"
     return f"{os_info} - {browser_info}"
 
+def criar_notificacao(usuario, mensagem):
+    # Criando a notificação
+    notify.send(
+        usuario,
+        recipient=usuario,
+        verb=mensagem,
+        description=mensagem
+    )
+
+@login_required
+def get_notifications(request, cnpj):
+    # Obter notificações não lidas
+    notifications = Notification.objects.filter(recipient=request.user, unread=True)
+
+    # Formatar para retorno em JSON
+    notifications_data = []
+    for notification in notifications:
+        notifications_data.append({
+            'message': notification.verb,
+            'timestamp': notification.timestamp,
+            'id': notification.id
+        })
+
+    return JsonResponse({'notifications': notifications_data})
+
+
+@login_required
+def mark_notification_as_read(request, notification_id, cnpj):
+    try:
+        notification = Notification.objects.get(id=notification_id, recipient=request.user)
+        notification.mark_as_read()
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notificação não encontrada'})
 
 @login_required
 def dashboard(request, cnpj):
@@ -83,7 +119,7 @@ def dashboard(request, cnpj):
     pedidos_hoje = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).count()
     pedidos_ontem = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today() - timedelta(days=1)).count()
     # Pegar clientes que fizeram seu primeiro pedido hoje
-    clientes_novos = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).count()
+    clientes_novos = Pedido.objects.filter(empresa=empresa,  data_pedido__date=date.today()).values('cliente').distinct().count()
     clientes_atendidos = Pedido.objects.filter(empresa=empresa).values('cliente').distinct().count()
     # Pegar vendas de ontem
     vendas_ontem = Pedido.objects.filter(
@@ -154,7 +190,7 @@ def dashboard(request, cnpj):
 
     
     pedidos_por_dia = (
-        Pedido.objects.filter(empresa=empresa)
+        Pedido.objects.filter(empresa=empresa, historico__status='entregue')
         .annotate(dia_semana=ExtractWeekDay('data_pedido'))
         .values('dia_semana')
         .annotate(total=Count('id'))
@@ -374,7 +410,7 @@ def ingredientes(request, cnpj):
     context = {
         'empresa': empresa,
         'ingredientes': ingredientes,
-        'page_title': 'Ingredientes'
+        'page_title': 'Ingredientes',
     }
 
     return render(request, 'appEmpresa/ingredientes.html', context)
@@ -547,47 +583,72 @@ def cadastrar_movimentacao(request, cnpj):
         ingrediente_id = request.POST.get('ingrediente')
         tipo = request.POST.get('tipo')
         quantidade = Decimal(request.POST.get('quantidade_inicial'))
-        preco_unitario = request.POST.get('preco_unitario')
+        preco_unitario = request.POST.get('preco_unitario', '0.00')  # Pega o preço unitário do formulário
         observacao = request.POST.get('observacao', '')
-        preco_unitario = remover_mascara_preço(preco_unitario)
 
         try:
+            # Tenta remover qualquer formatação inválida do preço
+            preco_unitario = remover_mascara_preço(preco_unitario)  # Certifique-se que essa função remova corretamente 'R$', ',' e outros caracteres
+
+            # Tenta converter para Decimal
+            preco_unitario_decimal = Decimal(preco_unitario)
+
             ingrediente = Ingrediente.objects.get(id_ingrediente=ingrediente_id, empresa=empresa)
             estoque, created = Estoque.objects.get_or_create(empresa=empresa, ingrediente=ingrediente)
 
             with transaction.atomic():
+                # Variável para armazenar o preço anterior do ingrediente antes da alteração
+                preco_ingrediente_anterior = ingrediente.preco_unitario
 
-                # Calcula o novo estoque
+                # Calcula o novo estoque e o preço do ingrediente
                 if tipo == 'entrada':
+                    # Atualiza o estoque com a nova quantidade
                     estoque.quantidade_disponivel += quantidade
-                    # Registra o preço unitário se fornecido
-                    #if preco_unitario:
-                        #estoque.preco_medio = calcular_preco_medio(estoque, quantidade, float(preco_unitario))
+
+                    # Se o ingrediente já possui estoque, recalcula o preço médio ponderado
+                    if estoque.quantidade_disponivel > 0:
+                        # Calculando o preço médio ponderado corretamente
+                        preco_medio = ((estoque.quantidade_disponivel - quantidade) * ingrediente.preco_unitario + quantidade * preco_unitario_decimal) / estoque.quantidade_disponivel
+
+                        # Atualiza o preço do ingrediente com o novo preço médio calculado
+                        ingrediente.preco_unitario = preco_medio
+                        ingrediente.save()
+
+                        # Verifica se o preço do ingrediente foi alterado e envia uma notificação
+                        if ingrediente.preco_unitario != preco_ingrediente_anterior:
+                            # TROCAR PARA MANDAR UMA NOTIFICAÇÃO NO BANCO DE DADOS
+                            criar_notificacao(request.user, f"O preço do ingrediente {ingrediente.nome} foi atualizado de R${preco_ingrediente_anterior:.2f} para R${ingrediente.preco_unitario:.2f}.")
+
+
                 elif tipo == 'saida':
                     if quantidade > estoque.quantidade_disponivel:
                         messages.error(request, 'Quantidade insuficiente no estoque!')
-                        return redirect('estoque_view')
+                        return redirect('estoque', cnpj=cnpj)
                     estoque.quantidade_disponivel -= quantidade
+                    estoque.save()
 
-                # Salva a movimentação
+                # Registra a movimentação de estoque
                 MovimentacaoEstoque.objects.create(
                     empresa=empresa,
                     ingrediente=ingrediente,
                     tipo=tipo,
                     quantidade=quantidade,
-                    preco_unitario=float(preco_unitario) if preco_unitario else None,
+                    preco_unitario=float(preco_unitario_decimal) if preco_unitario_decimal else None,
                     observacao=observacao,
                     atendente=request.user,
                 )
 
                 # Salva as alterações no estoque
                 estoque.save()
-                messages.success(request, 'Movimentação registrada com sucesso!')
 
+                messages.success(request, 'Movimentação registrada com sucesso!')
+        except InvalidOperation:
+            messages.error(request, 'O preço unitário informado é inválido. Verifique o valor e tente novamente.')
         except Exception as e:
-            messages.error(request, 'Erro no cadastro, verifique os dados e tente novamente.')
+            messages.error(request, f'Erro no cadastro, verifique os dados e tente novamente. Erro: {str(e)}')
 
     return redirect('estoque', cnpj=cnpj)
+
 
 
 
@@ -709,7 +770,7 @@ def adicionar_categoria(request, cnpj):
                     empresa=empresa
                 )
 
-                messages.success(request, f'Categoria "{categoria.nome}" criada com sucesso!')
+                messages.success(request, f'Categoria {categoria.nome} criada com sucesso!')
                 return redirect('cardapio', cnpj=cnpj)
         
         except Exception as e:
@@ -747,7 +808,7 @@ def deletar_categoria(request, cnpj, item_id):
     item = get_object_or_404(Categoria, id=item_id)
 
     item.delete()
-    messages.success(request, f'Categoria "{item.nome}" deletada com sucesso!')
+    messages.success(request, f'Categoria {item.nome} deletada com sucesso!')
     return redirect('cardapio', cnpj=cnpj)
 
 
@@ -790,7 +851,7 @@ def adicionar_item(request, cnpj, categoria_id):
                 empresa=empresa
             )
 
-                messages.success(request, f'Item "{novo_item.nome}" adicionado ao cardápio com sucesso!')
+                messages.success(request, f'Item {novo_item.nome} adicionado ao cardápio com sucesso!')
                 return redirect('cardapio', cnpj=cnpj)
         
         except Exception as e:
@@ -1016,7 +1077,19 @@ def pedidos(request, cnpj):
         pedidos = pedidos.filter(numero_pedido__icontains=numero_pedido)
     
     if status:
-        pedidos = pedidos.filter(status=status)
+        # Subquery para pegar o último status de cada pedido
+        last_status = HistoricoPedido.objects.filter(
+            pedido=OuterRef('pk')  # Referencia ao pedido atual
+        ).order_by('-data_alteracao')  # Ordena pela data de alteração (mais recente primeiro)
+        
+        # Pega o status da última alteração
+        last_status = last_status.values('status')[:1]
+        
+        # Filtra os pedidos com o último status correspondente
+        pedidos = pedidos.filter(
+            historico__status=status,
+            historico__status__in=Subquery(last_status)
+        )
     
     if periodo:
         datas = periodo.split(' até ')
@@ -1043,6 +1116,7 @@ def pedidos(request, cnpj):
 
 
 import openpyxl
+@login_required
 def exportar_pedidos(request, cnpj):
 
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
@@ -1078,6 +1152,7 @@ def exportar_pedidos(request, cnpj):
 
 
 
+@login_required
 def pedido_manual(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
@@ -1088,8 +1163,136 @@ def pedido_manual(request, cnpj):
             usu = EmpresaUsuario.objects.get(usuario=request.user)
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
-        
-    cardapios = Cardapio.objects.filter(empresa=empresa)
+    
+    if request.method == 'POST':
+        try:
+            # 1. Captura dos dados do cliente
+            nome_cliente = request.POST.get('cliente')
+            cliente = get_object_or_404(Cliente, id_cliente=nome_cliente)
+
+            # 2. Captura dos dados de endereço
+            cep = request.POST.get('txtCep')
+            endereco = request.POST.get('endereco')
+            numero = request.POST.get('numero')
+            complemento = request.POST.get('complemento', '')
+            bairro = request.POST.get('bairro')
+            estado = request.POST.get('estado')
+            municipio = request.POST.get('municipio')
+
+            forma_pag = request.POST.get('forma_pagamento')
+            pedido_itens_json = request.POST.get('pedidoItens')
+
+            # Converte o JSON para uma lista de dicionários
+            itens_pedido = json.loads(pedido_itens_json)
+            
+            # Variáveis para cálculo do total do pedido
+            total_pedido = 0
+
+            # 3. Verificar o estoque antes de criar o pedido
+            for item in itens_pedido:
+                cardapio_item = get_object_or_404(Cardapio, id_cardapio=item['id'], empresa=empresa)
+                preco_unitario = item['preco']
+                quantidade = item['quantidade']
+                preco_total = preco_unitario * quantidade
+                total_pedido += preco_total
+
+                # Verificar o estoque do item antes de criar o pedido
+                ingredientes = IngredienteCardapio.objects.filter(cardapio_item=cardapio_item)
+                for ingrediente in ingredientes:
+                    quantidade_usada = ingrediente.quantidade * quantidade
+                    estoque_item = Estoque.objects.get(ingrediente=ingrediente.ingrediente, empresa=empresa)
+
+                    # Verificar o estoque disponível
+                    if estoque_item.quantidade_disponivel < quantidade_usada:
+                        messages.error(request, f"Estoque insuficiente para o ingrediente {ingrediente.ingrediente.nome}. "
+                                                f"Quantidade disponível: {estoque_item.quantidade_disponivel}, "
+                                                f"quantidade necessária: {quantidade_usada}.")
+                        return redirect('pedido_manual', cnpj=cnpj)
+
+            # 4. Se o estoque for suficiente, criar o pedido
+            with transaction.atomic():
+                numero_pedido = Sequencia.obter_novo_valor()
+                pedido = Pedido.objects.create(
+                    cliente=cliente,
+                    empresa=empresa,
+                    numero_pedido=numero_pedido,
+                    canal='Manual'
+                )
+
+                # Criando o endereço do pedido
+                endereco_pedido = EnderecoPedido.objects.create(
+                    cep=cep,
+                    endereco=endereco,
+                    numero=numero,
+                    complemento=complemento,
+                    bairro=bairro,
+                    estado=estado,
+                    municipio=municipio,
+                    pedido=pedido
+                )
+
+                endereco_cliente = EnderecoCliente.objects.filter(cliente=cliente, principal=True).first()
+                if not endereco_cliente:
+                    endereco_cliente = EnderecoCliente.objects.create(
+                        cliente=cliente,
+                        cep=cep,
+                        endereco=endereco,
+                        numero=numero,
+                        complemento=complemento,
+                        bairro=bairro,
+                        estado=estado,
+                        municipio=municipio,
+                        principal=True,
+                        local='casa',
+                    )
+
+                # Criando o histórico do pedido
+                historico = HistoricoPedido.objects.create(
+                    status='confirmado',
+                    observacao='Pedido criado',
+                    alterado_por=request.user,
+                    pedido=pedido
+                )
+
+                # Processando os itens do pedido
+                for item in itens_pedido:
+                    cardapio_item = get_object_or_404(Cardapio, id_cardapio=item['id'], empresa=empresa)
+                    preco_unitario = item['preco']
+                    quantidade = item['quantidade']
+                    preco_total = preco_unitario * quantidade
+
+                    # Criando o ItemPedido
+                    ItemPedido.objects.create(
+                        pedido=pedido,
+                        cardapio_item=cardapio_item,
+                        quantidade=quantidade,
+                        preco_unitario=preco_unitario,
+                        preco_total=preco_total
+                    )
+
+                pedido.calcular_total()
+
+                # Criando o pagamento
+                pag = Pagamento.objects.create(
+                    pedido=pedido,
+                    valor=pedido.total,
+                    forma_pagamento=forma_pag,
+                    status='aprovado'
+                )
+
+                # Atualizar o estoque
+                pedido.atualizar_estoque(request)
+
+                # 5. Redirecionar para o resumo ou página de sucesso
+                messages.success(request, f"Pedido #{pedido.numero_pedido} criado com sucesso!")
+                return redirect('pedidos', cnpj=cnpj)
+
+        except Exception as e:
+            # Caso haja um erro, mostrar mensagem de erro
+            messages.error(request, "Ocorreu um erro ao processar o pedido. Por favor, verifique os dados e tente novamente.")
+            return redirect('pedidos', cnpj=cnpj)
+
+    cardapios = Cardapio.objects.filter(empresa=empresa, ativo=True, categoria__ativo=True)
     
     context = {
         'page_title': 'Pedidos',
@@ -1098,6 +1301,73 @@ def pedido_manual(request, cnpj):
     }
 
     return render(request, 'appEmpresa/pedido_manual.html', context)
+
+
+
+
+def buscar_cliente(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    query = request.GET.get('q', '')
+    if query:
+        clientes = Cliente.objects.filter(nome__icontains=query) | Cliente.objects.filter(cpf__icontains=query)
+        clientes_data = [{"id": cliente.id_cliente, "nome": cliente.nome, "telefone": cliente.telefone, "cpf": cliente.cpf} for cliente in clientes]
+        return JsonResponse({"clientes": clientes_data})
+    return JsonResponse({"clientes": []})
+
+
+
+
+def cadastro_cliente_manual(request, cnpj):
+    if request.method == 'POST':
+        cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+        empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+        nome = request.POST.get('nome')
+        cpf = request.POST.get('cpf')
+        telefone = request.POST.get('telefone')
+        dataN = request.POST.get('dataN')
+        genero = request.POST.get('genero')
+
+        dia, mes, ano = dataN.split('/')
+        data_iso = f"{ano}-{mes}-{dia}"
+
+        # Aqui você pode fazer as validações necessárias
+        try:
+            cliente = Cliente.objects.create(
+                nome=nome,
+                cpf=cpf,
+                telefone=telefone,
+                dataN=data_iso,
+                genero=genero
+            )
+            cliente.empresas.add(empresa)
+            cliente.save()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+
+
+
+def buscar_endereco(request, cnpj, cliente_id):
+    try:
+        cliente = Cliente.objects.get(id_cliente=cliente_id)
+        endereco = cliente.enderecos.filter(local='casa').first()
+        return JsonResponse({
+            'endereco': {
+                'cep': endereco.cep,
+                'logradouro': endereco.endereco,
+                'numero': endereco.numero,
+                'bairro': endereco.bairro,
+                'estado': endereco.estado,
+                'municipio': endereco.municipio,
+                'complemento': endereco.complemento,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'error': 'Erro ao buscar o endereço'}, status=404)
+
 
 
 
@@ -1115,16 +1385,57 @@ def detalhes_pedido(request, cnpj, pedido_id):
             return redirect('dashboard', cnpj=cnpj_usuario)
         
     pedido = get_object_or_404(Pedido, numero_pedido=pedido_id, empresa=empresa)
-    clienteE = get_object_or_404(EnderecoCliente, cliente=pedido.cliente)
-
+    historico_pedido = pedido.historico.all()
     context = {
         'page_title': "Pedidos",
         'empresa': empresa,
         'pedido': pedido,
-        'clienteE': clienteE,
+        'historico_pedido': historico_pedido
     }
 
     return render(request, 'appEmpresa/detalhes_pedido.html', context)
+
+
+
+
+def alterar_status(request, cnpj, pedido_numero):
+    if request.method == 'POST':
+         try:
+            pedido = Pedido.objects.get(numero_pedido=pedido_numero)
+            status = request.POST.get('status')
+            obs = request.POST.get('observacao')
+
+            if status == '':
+                messages.error(request, f'Ocorreu um erro ao tentar alterar o status do pedido #{pedido.numero_pedido}, verifique as informações e tente novamente.')
+                return redirect(detalhes_pedido, cnpj=cnpj, pedido_id=pedido.numero_pedido)
+
+            if not request.POST.get('observacao'):
+                if status == 'pendente':
+                    obs = 'Pedido criado'
+                if status == 'confirmado':
+                    obs = 'Pedido confirmado pela Pizzaria'
+                if status == 'preparando':
+                    obs = 'Pedido em preparação'
+                if status == 'saiu_entrega':
+                    obs = 'Pedido saiu para a entrega'
+                if status == 'entregue':
+                    obs = 'Pedido entregue'
+
+
+            historico = HistoricoPedido.objects.create(
+                 status=status,
+                 observacao=obs,
+                 pedido=pedido,
+                 alterado_por=request.user,
+             )
+
+            messages.success(request, f'Status do pedido #{pedido.numero_pedido} alterado!')
+            return redirect(detalhes_pedido, cnpj=cnpj, pedido_id=pedido.numero_pedido)
+         except Exception as e:
+             messages.error(request, f'Ocorreu um erro ao tentar alterar o status do pedido #{pedido.numero_pedido}, verifique as informações e tente novamente.')
+             return redirect(detalhes_pedido, cnpj=cnpj, pedido_id=pedido.numero_pedido)
+
+
 
 
 

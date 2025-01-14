@@ -4,507 +4,269 @@
 {% block title %}Criar Pedido{% endblock %}
 
 {% block content2 %}
-<!-- Incluir o CSS do Choices.js -->
-<link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" />
-
-<!-- Incluir o JS do Choices.js -->
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 <style>
-    .choices {
-    position: relative;
-    margin-bottom: 24px;
-    font-size: 16px
-}
-
-.choices:focus {
-    outline: none
-}
-
-.choices:last-child {
-    margin-bottom: 0
-}
-
-.choices.is-disabled .choices__inner,.choices.is-disabled .choices__input {
-    background-color: #eaeaea;
-    cursor: not-allowed;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    user-select: none
-}
-
-.choices.is-disabled .choices__item {
-    cursor: not-allowed
-}
-
-.choices [hidden] {
-    display: none!important
-}
-
-.choices[data-type*=select-one] {
-    cursor: pointer
-}
-
-.choices[data-type*=select-one] .choices__inner {
-    padding-bottom: 7.5px
-}
-
-.choices[data-type*=select-one] .choices__input {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    background-color: #fff;
-    margin: 0
-}
-
-.choices[data-type*=select-one] .choices__button {
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEiIGhlaWdodD0iMjEiIHZpZXdCb3g9IjAgMCAyMSAyMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSIjMDAwIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0yLjU5Mi4wNDRsMTguMzY0IDE4LjM2NC0yLjU0OCAyLjU0OEwuMDQ0IDIuNTkyeiIvPjxwYXRoIGQ9Ik0wIDE4LjM2NEwxOC4zNjQgMGwyLjU0OCAyLjU0OEwyLjU0OCAyMC45MTJ6Ii8+PC9nPjwvc3ZnPg==);
-    padding: 0;
-    background-size: 8px;
-    position: absolute;
-    top: 50%;
-    right: 0;
-    margin-top: -10px;
-    margin-right: 25px;
-    height: 20px;
-    width: 20px;
-    border-radius: 10em;
-    opacity: .5
-}
-
-.choices[data-type*=select-one] .choices__button:hover,.choices[data-type*=select-one] .choices__button:focus {
-    opacity: 1
-}
-
-.choices[data-type*=select-one] .choices__button:focus {
-    box-shadow: 0 0 0 2px #00bcd4
-}
-
-.choices[data-type*=select-one] .choices__item[data-value=""] .choices__button {
-    display: none
-}
-
-.choices[data-type*=select-one]:after {
-    content: "\f107";
-    font: normal normal normal 14px/1 FontAwesome;
-    position: absolute;
-    right: 13.5px;
-    top: 14px;
-    pointer-events: none;
-    transition: .3s ease
-}
-
-.choices[data-type*=select-one].is-open:after {
-    transform: rotate(180deg)
-}
-
-.choices[data-type*=select-one][dir=rtl]:after {
-    left: 11.5px;
-    right: auto
-}
-
-.choices[data-type*=select-one][dir=rtl] .choices__button {
-    right: auto;
-    left: 0;
-    margin-left: 25px;
-    margin-right: 0
-}
-
-.choices[data-type*=select-multiple] .choices__inner,.choices[data-type*=text] .choices__inner {
-    cursor: text
-}
-
-.choices[data-type*=select-multiple] .choices__button,.choices[data-type*=text] .choices__button {
-    position: relative;
-    display: inline-block;
-    margin-top: 0;
-    margin-right: -6px;
-    margin-bottom: 0;
-    margin-left: 8px;
-    padding-left: 17px;
-    border-left: 1px solid rgba(255,255,255,.3);
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEiIGhlaWdodD0iMjEiIHZpZXdCb3g9IjAgMCAyMSAyMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSIjRkZGIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0yLjU5Mi4wNDRsMTguMzY0IDE4LjM2NC0yLjU0OCAyLjU0OEwuMDQ0IDIuNTkyeiIvPjxwYXRoIGQ9Ik0wIDE4LjM2NEwxOC4zNjQgMGwyLjU0OCAyLjU0OEwyLjU0OCAyMC45MTJ6Ii8+PC9nPjwvc3ZnPg==);
-    background-size: 8px;
-    width: 8px;
-    line-height: 1;
-    opacity: .75;
-    border-radius: 0;
-    transition: all .2s ease-in-out
-}
-
-.choices[data-type*=select-multiple] .choices__button:hover,.choices[data-type*=select-multiple] .choices__button:focus,.choices[data-type*=text] .choices__button:hover,.choices[data-type*=text] .choices__button:focus {
-    opacity: 1
-}
-
-.choices__inner {
-    display: flex;
-    align-items: center;
-    vertical-align: top;
-    width: 100%;
-    background-color: #fff;
-    padding: .5rem .75rem;
-    border: 1px solid #d2d6da;
-    border-radius: .5rem;
-    font-size: 14px;
-    min-height: 40px;
-    overflow: hidden
-}
-
-.is-focused .choices__inner,.is-open .choices__inner {
-    border-color: #b7b7b7
-}
-
-.is-open .choices__inner {
-    border-radius: 2.5px 2.5px 0 0
-}
-
-.is-flipped.is-open .choices__inner {
-    border-radius: 0 0 2.5px 2.5px
-}
-
-.choices__list {
-    margin: 0;
-    padding-left: 0;
-    list-style: none
-}
-
-.choices__list--single {
-    display: inline-block;
-    width: 100%
-}
-
-[dir=rtl] .choices__list--single {
-    padding-right: 4px;
-    padding-left: 16px
-}
-
-.choices__list--single .choices__item {
-    width: 100%
-}
-
-.choices__list--multiple {
-    display: inline
-}
-
-.choices__list--multiple .choices__item {
-    display: inline-block;
-    vertical-align: middle;
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    margin-right: 3.75px;
-    margin-bottom: 3.75px;
-    background-color: #212529;
-    border: 1px solid #212529;
-    color: #fff;
-    word-break: break-all;
-    box-sizing: border-box
-}
-
-.choices__list--multiple .choices__item[data-deletable] {
-    padding-right: 5px
-}
-
-[dir=rtl] .choices__list--multiple .choices__item {
-    margin-right: 0;
-    margin-left: 3.75px
-}
-
-.choices__list--multiple .choices__item.is-highlighted {
-    background-color: #00a5bb;
-    border: 1px solid #008fa1
-}
-
-.is-disabled .choices__list--multiple .choices__item {
-    background-color: #aaa;
-    border: 1px solid #919191
-}
-
-.choices__list--dropdown {
-    visibility: hidden;
-    z-index: 1;
-    position: absolute;
-    width: 100%;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    top: 100%;
-    margin-top: -1px;
-    border-bottom-left-radius: 2.5px;
-    border-bottom-right-radius: 2.5px;
-    word-break: break-all;
-    will-change: visibility
-}
-
-.choices__list--dropdown.is-active {
-    visibility: visible
-}
-
-.is-open .choices__list--dropdown {
-    border-color: #b7b7b7
-}
-
-.is-flipped .choices__list--dropdown {
-    top: auto;
-    bottom: 200%;
-    margin-top: 0;
-    margin-bottom: -1px;
-    border-radius: .5rem
-}
-
-.choices__list--dropdown .choices__list {
-    position: relative;
-    max-height: 300px;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    will-change: scroll-position
-}
-
-.choices__list--dropdown .choices__item {
-    position: relative;
-    padding: .3rem 1rem;
-    font-size: .875rem;
-    border-radius: .5rem;
-    transition: background-color .3s ease,color .3s ease
-}
-
-[dir=rtl] .choices__list--dropdown .choices__item {
-    text-align: right
-}
-
-@media(min-width: 640px) {
-    .choices__list--dropdown .choices__item--selectable {
-        padding-right:100px
+    /*!Simple-DataTables
+Github: https://github.com/fiduswriter/Simple-DataTables*/
+    .datatable-wrapper.no-header .datatable-container {
+        border-top: 1px solid #d9d9d9
     }
 
-    .choices__list--dropdown .choices__item--selectable:after {
-        content: attr(data-select-text);
-        font-size: 12px;
-        opacity: 0;
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        transition: opacity .3s ease
+    .datatable-wrapper.no-footer .datatable-container {
+        border-bottom: 1px solid #d9d9d9
     }
 
-    [dir=rtl] .choices__list--dropdown .choices__item--selectable {
-        text-align: right;
-        padding-left: 100px;
-        padding-right: 10px
+    .datatable-top {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
     }
 
-    [dir=rtl] .choices__list--dropdown .choices__item--selectable:after {
-        right: auto;
-        left: 10px
+    .datatable-top::after {
+        display: none;
     }
-}
 
-.choices__list--dropdown .choices__item--selectable.is-highlighted {
-    background-color: #f2f2f2
-}
+    .datatable-selector {
+        padding: 6px
+    }
 
-.choices__list--dropdown .choices__item--selectable.is-highlighted:after {
-    opacity: .5
-}
+    .datatable-input {
+        padding: 6px 12px
+    }
 
-.choices__item {
-    cursor: default
-}
+    .datatable-info {
+        margin: 7px 0
+    }
 
-.choices__item--selectable {
-    cursor: pointer
-}
+    .datatable-pagination ul {
+        margin: 0;
+        padding-left: 0
+    }
 
-.choices__item--disabled {
-    cursor: not-allowed;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    user-select: none;
-    opacity: .5
-}
+    .datatable-pagination li {
+        list-style: none;
+        float: left
+    }
 
-.choices__heading {
-    font-weight: 600;
-    font-size: 12px;
-    padding: 10px;
-    border-bottom: 1px solid #f7f7f7;
-    color: gray
-}
+    .datatable-pagination a {
+        border: 1px solid transparent;
+        float: left;
+        margin-left: 2px;
+        padding: 6px 12px;
+        position: relative;
+        text-decoration: none;
+        color: #333
+    }
 
-.choices__button {
-    text-indent: -9999px;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: 0;
-    background-color: transparent;
-    background-repeat: no-repeat;
-    background-position: center;
-    cursor: pointer
-}
+    .datatable-pagination a:hover {
+        background-color: #d9d9d9
+    }
 
-.choices__button:focus {
-    outline: none
-}
+    .datatable-pagination .active a,
+    .datatable-pagination .active a:focus,
+    .datatable-pagination .active a:hover {
+        background-color: #d9d9d9;
+        cursor: default
+    }
 
-.choices__input {
-    display: inline-block;
-    vertical-align: baseline;
-    background-color: #fff;
-    font-size: 14px;
-    margin-bottom: 5px;
-    border: 0;
-    border-radius: 0;
-    max-width: 100%;
-    padding: 4px 0 4px 2px
-}
+    .datatable-pagination .ellipsis a,
+    .datatable-pagination .disabled a,
+    .datatable-pagination .disabled a:focus,
+    .datatable-pagination .disabled a:hover {
+        cursor: not-allowed
+    }
 
-.choices__input:focus {
-    outline: 0
-}
+    .datatable-pagination .disabled a,
+    .datatable-pagination .disabled a:focus,
+    .datatable-pagination .disabled a:hover {
+        cursor: not-allowed;
+        opacity: .4
+    }
 
-[dir=rtl] .choices__input {
-    padding-right: 2px;
-    padding-left: 0
-}
+    .datatable-pagination .pager a {
+        font-weight: 700
+    }
 
-.choices__placeholder {
-    opacity: .5
-}
+    .datatable-table {
+        max-width: 100%;
+        width: 100%;
+        border-spacing: 0;
+        border-collapse: separate
+    }
 
-.is-open .choices__inner {
-    border-radius: .5rem
-}
+    .datatable-table>tbody>tr>td,
+    .datatable-table>tbody>tr>th,
+    .datatable-table>tfoot>tr>td,
+    .datatable-table>tfoot>tr>th,
+    .datatable-table>thead>tr>td,
+    .datatable-table>thead>tr>th {
+        vertical-align: top;
+        padding: 8px 10px
+    }
 
-.choices__list--dropdown {
-    display: block;
-    opacity: 0;
-    top: 19px;
-    transform-origin: 50% 0;
-    pointer-events: none;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: transform,box-shadow;
-    border: none;
-    border-radius: .5rem;
-    box-shadow: 0 8px 26px -4px rgba(20,20,20,.15),0 8px 9px -5px rgba(20,20,20,.06);
-    transform: perspective(999px) rotateX(-10deg) translateZ(0) translate3d(0px,37px,0px)!important;
-    padding: 1rem .5rem;
-    transition: visibility .25s,opacity .25s,transform .25s
-}
+    .datatable-table>thead>tr>th {
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom: 1px solid #d9d9d9
+    }
 
-.choices__list--dropdown.is-active {
-    transform: perspective(999px) rotateX(0deg) translateZ(0) translate3d(0,37px,5px)!important;
-    opacity: 1;
-    display: block;
-    pointer-events: auto
-}
+    .datatable-table>tfoot>tr>th {
+        vertical-align: bottom;
+        text-align: left;
+        border-top: 1px solid #d9d9d9
+    }
 
-.choices__list--dropdown.is-active:before {
-    top: -20px
-}
+    .datatable-table th {
+        vertical-align: bottom;
+        text-align: left
+    }
 
-.choices__list--dropdown:before {
-    font-family: fontawesome;
-    content: "\f0d8";
-    position: absolute;
-    top: 0;
-    left: 28px;
-    right: auto;
-    font-size: 22px;
-    color: #fff;
-    transition: top .35s ease
-}
+    .datatable-table th a {
+        text-decoration: none;
+        color: inherit
+    }
 
-.choices[data-type*=select-one] .choices__input {
-    border-bottom-color: #f8f9fa
-}
 
-.choices__list--dropdown .choices__item--selectable.is-highlighted {
-    background: #e9ecef;
-    color: #344767
-}
+    .dataTables-empty {
+        text-align: center
+    }
 
-.is-focused .choices__inner,.is-open .choices__inner {
-    box-shadow: 0 3px 9px transparent,3px 4px 8px rgba(94,114,228,.1);
-    border-color: #fb6340
-}
 
-.choices-primary {
-    background-color: #fb6340
-}
+    /*!Simple-DataTables
+Github: https://github.com/fiduswriter/Simple-DataTables*/
+    .datatable-wrapper .datatable-top .datatable-dropdown {
+        float: left
+    }
 
-.choices-secondary {
-    background-color: #8392ab
-}
+    .datatable-wrapper .datatable-top .datatable-dropdown label {
+        margin-bottom: 0;
+        margin-left: 0;
+        color: #8392ab;
+        font-weight: 400
+    }
 
-.choices-success {
-    background-color: #2dce89
-}
+    .datatable-wrapper .datatable-top .datatable-dropdown label .datatable-selector {
+        border-color: #e9ecef;
+        border-radius: .25rem
+    }
 
-.choices-info {
-    background-color: #11cdef
-}
+    .datatable-wrapper .datatable-top .datatable-search input {
+        font-size: .875rem;
+        color: #495057;
+        border: 1px solid #e9ecef;
+        border-radius: .5rem
+    }
 
-.choices-warning {
-    background-color: #fb6340
-}
+    .datatable-wrapper .datatable-top .datatable-search input:focus-visible {
+        outline: none
+    }
 
-.choices-danger {
-    background-color: #f5365c
-}
+    .datatable-wrapper .datatable-container .table thead tr th {
+        padding: .75rem 1.5rem;
+        opacity: .7;
+        font-weight: bolder;
+        color: #8392ab;
+        text-transform: uppercase;
+        font-size: .65rem
+    }
 
-.choices-light {
-    background-color: #e9ecef
-}
+    .datatable-wrapper .datatable-container .table tbody tr td {
+        padding: .75rem 1.5rem
+    }
 
-.choices-dark {
-    background-color: #212529
-}
+    .datatable-wrapper .datatable-bottom {
+        padding: 1.5rem;
+        padding-top: 0
+    }
 
-.choices-white {
-    background-color: #fff
-}
+    .datatable-wrapper .datatable-bottom .datatable-info {
+        color: #8392ab;
+        font-size: .875rem
+    }
 
-#completed-tasks label {
-    text-decoration: line-through;
-    color: #888
-}
+    .datatable-bottom .datatable-pagination .datatable-pagination-list li button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8392ab;
+        padding: 0;
+        margin: 0 3px;
+        border: 1px solid #dee2e6;
+        border-radius: 50% !important;
+        width: 36px;
+        height: 36px;
+        font-size: .875rem;
+        margin-left: 0
+    }
 
-ul li input[type=text] {
-    display: none
-}
+    .datatable-bottom .datatable-pagination .datatable-pagination-list li button:hover {
+        background: #e9ecef
+    }
 
-ul li.editMode input[type=text] {
-    display: block
-}
+    .datatable-bottom .datatable-pagination .datatable-pagination-list .datatable-active button {
+        background: 0 0;
+        background-image: linear-gradient(195deg, #EF5350 0%, #E53935 100%);
+        box-shadow: 0 7px 14px rgba(50, 50, 93, .1), 0 3px 6px rgba(0, 0, 0, .08);
+        color: #fff;
+        border: none;
+        border-radius: 50% !important
+    }
 
-ul li.editMode label {
-    display: none
-}
+    .datatable-bottom .datatable-pagination .datatable-pagination-list .datatable-active button:hover {
+        background-image: linear-gradient(195deg, #EF5350 0%, #E53935 100%);
+    }
+
+    .datatable-wrapper.no-footer .datatable-container {
+        border-bottom: 0
+    }
+
+    .datatable-table thead td,
+    .datatable-table thead th,
+    .datatable-table tbody td,
+    .datatable-table tbody th,
+    .datatable-table tfoot td,
+    .datatable-table tfoot th {
+        vertical-align: middle !important
+    }
+
+    .dataTable-sorter {
+        text-transform: uppercase;
+    }
+
+    @media(max-width: 575.98px) {
+        .datatable-top>div:last-child {
+            float: left;
+            margin-top: 1rem
+        }
+    }
 </style>
 <link rel="stylesheet" href="{% static 'css/3steps.css' %}">
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12 text-center">
-            <h3 class="mt-5">Faça um Pedido Manual</h3>
-            <h5 class="font-weight-normal">Preencha as informações abaixo para registrar um pedido manual em nosso sistema.</h5>
+            <h3>Faça um Pedido Manual</h3>
+            <h5 class="font-weight-normal">Preencha as informações abaixo para registrar um pedido manual em nosso
+                sistema.</h5>
             <div class="multisteps-form mb-5">
                 <!--progress bar-->
                 <div class="row mt-5">
                     <div class="col-12 col-lg-8 mx-auto my-5">
                         <div class="multisteps-form__progress">
-                            <button class="multisteps-form__progress-btn js-active" type="button" title="User Info">
-                                <span>Cardápio</span>
-                            </button>
-                            <button class="multisteps-form__progress-btn" type="button" title="Address">
+                            <button class="multisteps-form__progress-btn js-active" type="button" title="Cliente">
                                 <span>Cliente</span>
                             </button>
-                            <button class="multisteps-form__progress-btn" type="button" title="Order Info">
+                            <button class="multisteps-form__progress-btn" type="button" title="Endereço">
+                                <span>Endereço</span>
+                            </button>
+                            <button class="multisteps-form__progress-btn" type="button" title="Cardápio">
+                                <span>Cardápio</span>
+                            </button>
+                            <button class="multisteps-form__progress-btn" type="button" title="Resumo">
                                 <span>Resumo</span>
+                            </button>
+                            <button class="multisteps-form__progress-btn" type="button" title="Pagamento">
+                                <span>Pagamento</span>
                             </button>
                         </div>
                     </div>
@@ -512,133 +274,249 @@ ul li.editMode label {
                 <!--form panels-->
                 <div class="row">
                     <div class="col-12 col-lg-8 m-auto">
-                        <form method="post" action="#" class="multisteps-form__form needs-validation" style="min-height: 520px;" novalidate>
+                        <form method="post" action="{% url 'pedido_manual' cnpj=empresa.cnpj|remove_mask %}" class="multisteps-form__form needs-validation"
+                            style="min-height: 580px;" novalidate>
                             {% csrf_token %}
                             <!--single form panel-->
-                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white js-active" data-animation="FadeIn">
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white"
+                                data-animation="FadeIn">
                                 <div class="row text-center">
                                     <div class="col-10 mx-auto">
-                                        <h5 class="font-weight-normal">Vamos começar com as informações básicas do pedido.</h5>
-                                        <p>Nos informe qual pizza do nosso cardápio você deseja pedir. Abaixo está a lista de opções disponíveis.</p>
-                                    </div>
-                                </div>
-                                <div class="multisteps-form__content">
-                                    <div class="row mt-3">
-                                        <div class="col-12 col-sm-8 mt-4 mt-sm-0 text-start">
-                                            <!-- Início do Pedido Dinâmico -->
-                                            <h5>Adicione itens ao seu pedido:</h5>
-                                
-                                            <!-- Dropdown para escolher a pizza -->
-                                            <div class="input-group input-group-outline position-relative w-lg-80 mb-3">
-                                                <select class="form-control" id="pizzaSelect" name="pizza">
-                                                    <option value="" disabled selected>Escolha uma pizza...</option>
-                                                    {% for cardapio in cardapios %}
-                                                        <option value="{{ cardapio.id_cardapio }}" data-img="{{ cardapio.imagem.url }}">{{ cardapio.nome }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                
-                                            <!-- Campo de quantidade -->
-                                            <div class="input-group input-group-outline position-relative w-lg-80 mb-3">
-                                                <input type="number" class="form-control" id="quantidade" name="quantidade" min="1" placeholder="Quantidade" value="1">
-                                            </div>
-                                
-                                            <!-- Botão para adicionar item ao pedido -->
-                                            <button class="btn bg-gradient-dark" type="button" id="addItemButton">Adicionar ao Pedido</button>
-                                
-                                            <!-- Lista de itens adicionados ao pedido -->
-                                            <h5 class="mt-4">Itens no Pedido:</h5>
-                                            <ul id="pedidoList" class="list-group">
-                                                <!-- Itens serão adicionados aqui -->
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="button-row d-flex mt-4">
-                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next" type="button" title="Next">Próximo</button>
-                                    </div>
-                                </div>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-    const addItemButton = document.getElementById('addItemButton');
-    const pizzaSelect = document.getElementById('pizzaSelect');
-    const quantidadeInput = document.getElementById('quantidade');
-    const pedidoList = document.getElementById('pedidoList');
-
-    addItemButton.addEventListener('click', function () {
-        const pizzaId = pizzaSelect.value;
-        const pizzaName = pizzaSelect.options[pizzaSelect.selectedIndex].text;
-        const quantidade = quantidadeInput.value;
-
-        if (pizzaId && quantidade > 0) {
-            // Adicionar o item à lista do pedido
-            const itemList = document.createElement('li');
-            itemList.classList.add('list-group-item');
-            itemList.innerHTML = `${pizzaName} - Quantidade: ${quantidade} <button class="btn btn-sm btn-danger float-end remove-item" type="button">Remover</button>`;
-
-            // Adicionar o item à lista visual
-            pedidoList.appendChild(itemList);
-
-            // Limpar os campos para novo item
-            pizzaSelect.value = "";
-            quantidadeInput.value = 1;
-        } else {
-            alert('Por favor, selecione uma pizza e informe a quantidade.');
-        }
-    });
-
-    // Evento de remover item da lista de pedidos
-    pedidoList.addEventListener('click', function (e) {
-        if (e.target && e.target.classList.contains('remove-item')) {
-            const item = e.target.closest('li');
-            item.remove();
-        }
-    });
-});
-
-                            </script>                                
-                                
-                                
-                            </div>
-                            <!--single form panel-->
-                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white" data-animation="FadeIn">
-                                <div class="row text-center">
-                                    <div class="col-10 mx-auto">
-                                        <h5 class="font-weight-normal">Quais ingredientes?</h5>
-                                        <p>Nos de mais detalhes. Como é feito esse item do cardápio?
-                                        </p>
+                                        <h5 class="font-weight-normal">Vamos começar. Qual é o cliente?</h5>
+                                        <p>Nos de mais detalhes. É um cliente cadastrado ou novo?</p>
                                     </div>
                                 </div>
                                 <div class="multisteps-form__content">
                                     <div class="row mt-4">
-                                        {% for ingrediente in ingredientes %}
-                                            <div class="col-sm-3 mb-3">
-                                                <!-- Checkbox escondido -->
-                                                <input type="checkbox" class="btn-check" id="checkbox_{{ ingrediente.id_ingrediente }}" name="ingredientes" value="{{ ingrediente.id_ingrediente }}" data-unidade="{{ingrediente.unidade}}">
-                                    
-                                                <!-- Botão estilizado -->
-                                                <label class="btn btn-outline-secondary w-100 py-4 px-4 rounded-3 d-flex align-items-center justify-content-center" style="height: 60px;" for="checkbox_{{ ingrediente.id_ingrediente }}">
-                                                    <span class="text-center">{{ ingrediente.nome }}</span>
-                                                </label>
+                                         <!-- Input para buscar cliente -->
+                                        <div class="col-12">
+                                            <div class="input-group input-group-outline mb-3">
+                                                <label for="cliente_input" class="form-label">Digite CPF do cliente:</label>
+                                                <input type="text" id="cliente_input" class="form-control" oninput="buscarCliente()" />
                                             </div>
-                                        {% endfor %}
+                                        </div>
+                                        <div class="col-12">
+                                            <div id="clientes_encontrados" class="mt-2"></div>
+                                        </div>
                                     </div>
                                     <div class="button-row d-flex mt-4">
-                                        <button class="btn bg-gradient-light mb-0 js-btn-prev" type="button" title="Prev">Anterior</button>
-                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next" type="button" title="Next">Proxima</button>
+
+                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next icon-move-right" type="button"
+                                            title="Next">Próximo <i class="fas fa-arrow-right text-xs ms-1"></i></button>
                                     </div>
                                 </div>
                             </div>
                             <!--single form panel-->
-                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white" data-animation="FadeIn">
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white"
+                                data-animation="FadeIn">
                                 <div class="row text-center">
                                     <div class="col-10 mx-auto">
-                                        <h5 class="font-weight-normal">Qual a quantidade?</h5>
-                                        <p>Qual quantidade de cada ingrediente é usado nessa receita?</p>
+                                        <h5 class="font-weight-normal">Qual o endereço?</h5>
+                                        <p>Se o cliente tiver endereço cadastrado ele aparecerá aqui.</p>
+                                    </div>
+                                </div>
+                                <div class="multisteps-form__content">
+                                    <div class="row text-start">
+                                       <!-- Campo de CEP -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="txtCep" style="width: 96.8%">CEP</label>
+                                            <input type="text" class="form-control" id="txtCep" name="txtCep" required
+                                                minlength="9" onchange="buscaCep()">
+                                            <div class="invalid-feedback">Digite o CEP corretamente.</div>
+                                        </div>
+
+                                        <!-- Campo de Endereço -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="endereco" style="width: 96.8%">Endereço</label>
+                                            <input type="text" class="form-control" id="endereco" name="endereco"
+                                                aria-label="endereco" required autocomplete="off">
+                                            <div class="invalid-feedback">Digite o endereço completo.</div>
+                                        </div>
+
+                                        <!-- Campo de Número -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="numero" style="width: 96.8%">Número</label>
+                                            <input type="text" class="form-control" id="numero" name="numero"
+                                                aria-label="numero" required autocomplete="off">
+                                            <div class="invalid-feedback">Digite o número do endereço.</div>
+                                        </div>
+
+                                        <!-- Campo de Complemento -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="complemento" style="width: 96.8%">Complemento</label>
+                                            <input type="text" class="form-control" id="complemento" name="complemento"
+                                                aria-label="complemento" autocomplete="off">
+                                        </div>
+
+                                        <!-- Campo de Bairro -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="bairro" style="width: 96.8%">Bairro</label>
+                                            <input type="text" class="form-control" id="bairro" name="bairro"
+                                                aria-label="bairro" required autocomplete="off">
+                                            <div class="invalid-feedback">Digite o bairro do endereço.</div>
+                                        </div>
+
+                                        <!-- Campo de Estado -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="estado" style="width: 96.8%">Estado</label>
+                                            <input type="text" class="form-control" id="estado" name="estado"
+                                                aria-label="estado" required autocomplete="off">
+                                            <div class="invalid-feedback">Digite o estado do endereço.</div>
+                                        </div>
+
+                                        <!-- Campo de Município -->
+                                        <div class="mb-3 input-group input-group-outline">
+                                            <label class="form-label" for="municipio" style="width: 96.8%">Município</label>
+                                            <input type="text" class="form-control" id="municipio" name="municipio"
+                                                aria-label="municipio" required autocomplete="off">
+                                            <div class="invalid-feedback">Digite o município do endereço.</div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="button-row d-flex mt-4 col-12">
+                                            <button class="btn bg-gradient-light mb-0 js-btn-prev icon-move-left" type="button"
+                                            title="Prev"><i class="fas fa-arrow-left text-xs ms-1"></i> Anterior</button>
+                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next icon-move-right" type="button"
+                                            title="Next">Proxima <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--single form panel-->
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white js-active"
+                                data-animation="FadeIn">
+                                <div class="row text-center">
+                                    <div class="col-10 mx-auto">
+                                        <h5 class="font-weight-normal">Quais itens entrarão nesse pedido?</h5>
+                                        <p>Nos informe quais itens do nosso cardápio você deseja pedir. Abaixo está a
+                                            lista de opções disponíveis.</p>
+                                    </div>
+                                </div>
+                                <div class="multisteps-form__content">
+                                    <div class="table-responsive card-body">
+                                        <table class="table table-flush dataTable-table" id="cardapio-table">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                                        data-sortable="false" style="width: 22.1422%;">
+                                                        Imagem
+                                                    </th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                                        data-sortable="" style="width: 24.3864%;"><a href="#"
+                                                            class="dataTable-sorter">
+                                                            Nome
+                                                        </a></th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                                        data-sortable="" style="width: 27.8274%;"><a href="#"
+                                                            class="dataTable-sorter">
+                                                            Preço
+                                                        </a></th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                                        data-sortable="false" style="width: 15.5594%;">Quantidade</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                                        data-sortable="false" style="width: 26.9297%;">Adicionar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for cardapio in cardapios %}
+                                                <tr>
+                                                    <td class="text-sm font-weight-normal">
+                                                        <span class="my-2 text-xs">
+                                                            <img src="{{ cardapio.imagem.url }}" alt="bruce"
+                                                                class="border-radius-lg shadow-sm avatar"
+                                                                style="object-fit: cover;">
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-sm text-start font-weight-normal">{{ cardapio.nome }}</td>
+                                                    <td class="text-sm text-start font-weight-normal">R$ {{ cardapio.preco }}</td>
+                                                    <td class="text-sm text-start font-weight-normal">
+                                                        <div class="input-group input-group-outline">
+                                                            <input type="number" id="qnt{{cardapio.id_cardapio}}" name="qnt{{cardapio.id_cardapio}}" class="form-control" min="0" step="1">
+                                                        </div>
+                                                    </td>
+                                                    <td class="align-middle text-center text-xxl">
+                                                        <p class="mb-0">
+                                                            <a href="javascript:void(0);" class="text-danger" onclick="onAdicionarItem({{ cardapio.id_cardapio }}, '{{ cardapio.nome }}', '{{ cardapio.preco }}', '{{ cardapio.imagem.url }}')">
+                                                                <i class="ph-bold ph-caret-right" style="font-size: large;"></i>
+                                                            </a>
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="button-row d-flex mt-4">
+                                        <button class="btn bg-gradient-light mb-0 js-btn-prev icon-move-left" type="button"
+                                            title="Prev"><i class="fas fa-arrow-left text-xs ms-1"></i> Anterior</button>
+                                        <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next icon-move-right" type="button"
+                                            title="Next">Proxima <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--single form panel-->
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white"
+                                data-animation="FadeIn">
+                                <div class="row text-center">
+                                    <div class="col-10 mx-auto">
+                                        <h5 class="font-weight-normal">Resumo do Pedido</h5>
+                                        <p>Confira se todos os dados estão corretos</p>
                                     </div>
                                 </div>
                                 <div class="multisteps-form__content">
                                     <div class="row text-start" id="quantidade-ingredientes">
-                                        <p class="text-center text-danger">Selecione os ingredientes para escolher a quantidade.</p>
+                        
+                                    </div>
+                                    <input type="hidden" id="pedidoItens" name="pedidoItens" value="">
+                                    <div class="row">
+                                        <div class="button-row d-flex mt-4 col-12">
+                                            <button class="btn bg-gradient-light mb-0 js-btn-prev" type="button"
+                                                title="Prev">Anterior</button>
+                                            <button class="btn bg-gradient-dark ms-auto mb-0 js-btn-next icon-move-right" type="button"
+                                                title="Next">Proxima <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--single form panel-->
+                            <div class="card multisteps-form__panel p-3 border-radius-xl bg-white"
+                                data-animation="FadeIn">
+                                <div class="row text-center">
+                                    <div class="col-10 mx-auto">
+                                        <h5 class="font-weight-normal">Qual a forma de pagamento?</h5>
+                                        <p>Selecione a forma de pagamento que o cliente escolheu!</p>
+                                    </div>
+                                </div>
+                                <div class="multisteps-form__content">
+                                    <div class="row mt-4">
+                                        <div class="col-sm-3 ms-auto">
+                                            <input type="radio" class="btn-check" id="btncheck_dinheiro" name="forma_pagamento" value="dinheiro">
+                                            <label class="btn btn-lg btn-outline-secondary border-2 px-6 py-5" for="btncheck_dinheiro">
+                                                <i class="fa-solid fa-money-bills"></i>
+                                            </label>
+                                            <h6>Dinheiro</h6>
+                                        </div>
+                                        <div class="col-sm-3 ms-auto">
+                                            <input type="radio" class="btn-check" id="btncheck_cartao_credito" name="forma_pagamento" value="cartao_credito">
+                                            <label class="btn btn-lg btn-outline-secondary border-2 px-6 py-5" for="btncheck_cartao_credito">
+                                                <i class="fa-regular fa-credit-card"></i>
+                                            </label>
+                                            <h6>Cartão de Crédito</h6>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="radio" class="btn-check" id="btncheck_cartao_debito" name="forma_pagamento" value="cartao_debito">
+                                            <label class="btn btn-lg btn-outline-secondary border-2 px-6 py-5" for="btncheck_cartao_debito">
+                                                <i class="fa-regular fa-credit-card"></i>
+                                            </label>
+                                            <h6>Cartão de Débito</h6>
+                                        </div>
+                                        <div class="col-sm-3 me-auto">
+                                            <input type="radio" class="btn-check" id="btncheck_pix" name="forma_pagamento" value="pix">
+                                            <label class="btn btn-lg btn-outline-secondary border-2 px-6 py-5" for="btncheck_pix">
+                                                <i class="fa-brands fa-pix"></i>
+                                            </label>
+                                            <h6>PIX</h6>
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="button-row d-flex mt-4 col-12">
@@ -647,6 +525,8 @@ ul li.editMode label {
                                         </div>
                                     </div>
                                 </div>
+                                
+                                
                             </div>
                         </form>
                     </div>
@@ -655,5 +535,364 @@ ul li.editMode label {
         </div>
     </div>
 </div>
+{% include 'includes/messages.html' %}
+
+
 <script src="{% static 'js/3steps.js' %}"></script>
+<script src="{% static 'js/buscacep.js' %}"></script>
+<script>
+    const dataTableCardapio = new simpleDatatables.DataTable("#cardapio-table", {
+        searchable: true,
+        labels: {
+            placeholder: "Pesquisa...",
+            searchTitle: "Search within table",
+            pageTitle: "Página {page}",
+            perPage: "itens por página",
+            noRows: "Nenhum item encontrado.",
+            info: "Exibindo {start} até {end} de {rows} total",
+            noResults: "Nenhum item encontrado",
+        },
+        perPage: 2,
+        perPageSelect: false,
+    });
+    console.log(dataTableCardapio.data);
+
+    // Array para armazenar os itens do pedido
+    let pedidoItens = [];
+
+    $(document).ready(function () {
+        $('#txtCep').mask('00000-000');
+        $('#cliente_input').mask('000.000.000-00');
+    });
+
+    function buscarCliente() {
+        let clienteInput = document.getElementById("cliente_input").value;
+        let clientesEncontrados = document.getElementById("clientes_encontrados");
+
+        // Limpar resultados anteriores
+        clientesEncontrados.innerHTML = '';
+
+        // Chamada AJAX para buscar clientes
+        if (clienteInput.length >= 14) {
+            fetch(`/empresas/{{empresa.cnpj|remove_mask}}/buscar_cliente/?q=${clienteInput}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.clientes && data.clientes.length > 0) {
+                        data.clientes.forEach(cliente => {
+                            let divCliente = document.createElement("div");
+                            divCliente.classList.add("cliente-item");
+                            divCliente.innerHTML = `
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="${cliente.id}" id="cliente" name="cliente" required>
+                                    <label class="custom-control-label" for="cliente">${cliente.nome} - ${cliente.cpf} - ${cliente.telefone}</label>
+                                </div>
+                            `;
+                            clientesEncontrados.appendChild(divCliente);
+
+                            // Adicionando evento para capturar o checkbox selecionado
+                            document.getElementById(`cliente`).addEventListener('change', function() {
+                                if (this.checked) {
+                                    let clienteId = `${cliente.id}`;
+                                    fetchEnderecoCliente(clienteId);
+                                } else {
+                                    // Limpar os inputs caso o checkbox seja desmarcado
+                                    limparEndereco();
+                                }
+                            });
+                        });
+                    } else {
+                        clientesEncontrados.innerHTML = `Nenhum cliente encontrado. <br>
+                        <button type="button" class="btn bg-gradient-dark btn-sm" data-bs-toggle="modal" data-bs-target="#modalCadastroIngrediente">Cadastrar</button>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar clientes:', error);
+                    clientesEncontrados.innerHTML = 'Ocorreu um erro ao buscar os clientes.';
+                });
+        }
+    }
+
+    function fetchEnderecoCliente(clienteId) {
+        fetch(`/empresas/{{empresa.cnpj|remove_mask}}/buscar_endereco_cliente/${clienteId}`)
+            .then(response => response.json()) // Assumindo que a resposta seja JSON
+            .then(data => {
+                if (data && data.endereco) {
+                    // Preencher os campos do formulário com os dados de endereço, se os campos existirem
+                    const endereco = data.endereco;
+
+                    const camposEndereco = [
+                        { id: "txtCep", value: endereco.cep },
+                        { id: "endereco", value: endereco.logradouro },
+                        { id: "numero", value: endereco.numero },
+                        { id: "bairro", value: endereco.bairro },
+                        { id: "estado", value: endereco.estado },
+                        { id: "municipio", value: endereco.municipio },
+                        { id: "complemento", value: endereco.complemento }
+                    ];
+
+                    camposEndereco.forEach(({ id, value }) => {
+                        const campo = document.getElementById(id);
+                        const divContainer = campo ? campo.closest('.input-group') : null;  // Procurando o .input-group mais próximo
+
+                        if (campo) {
+                            campo.value = value || '';  // Preenche o campo, se ele existir
+
+                            // Se o campo tiver valor, adiciona a classe is-filled na div
+                            if (campo.value.trim() !== '') {
+                                if (divContainer && !divContainer.classList.contains('is-filled')) {
+                                    divContainer.classList.add('is-filled');
+                                }
+                            } else {
+                                // Caso contrário, remove a classe is-filled
+                                if (divContainer && divContainer.classList.contains('is-filled')) {
+                                    divContainer.classList.remove('is-filled');
+                                }
+                            }
+                        } else {
+                            console.warn(`Elemento com id "${id}" não encontrado no DOM.`);
+                        }
+                    });
+                } else {
+                    // Caso o endereço não seja encontrado, limpar os campos
+                    limparEndereco();
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar endereço:', error);
+                limparEndereco();  // Limpar os campos caso haja erro na requisição
+            });
+    }
+
+    function limparEndereco() {
+        const camposEndereco = ["txtCep", "endereco", "numero", "estado", "municipio", "complemento", "bairro"];
+        
+        camposEndereco.forEach(id => {
+            const campo = document.getElementById(id);
+            const divContainer = campo ? campo.closest('.input-group') : null;  // Procurando a div com a classe .input-group
+
+            if (campo) {
+                campo.value = '';  // Limpa o campo
+
+                // Se o campo estiver vazio, remove a classe is-filled
+                if (divContainer && divContainer.classList.contains('is-filled')) {
+                    divContainer.classList.remove('is-filled');
+                }
+            } else {
+                console.warn(`Elemento com id "${id}" não encontrado no DOM.`);
+            }
+        });
+    }
+
+    // Função para adicionar item ao pedido
+    function adicionarItem(id, nome, preco, imagem) {
+        // Obter a quantidade selecionada
+        const quantidade = document.getElementById('qnt' + id).value;
+
+        // Verificar se a quantidade é maior que zero
+        if (quantidade > 0) {
+            // Verificar se o item já está no pedido
+            let itemExistente = pedidoItens.find(item => item.id === id);
+
+            if (itemExistente) {
+                // Se o item já estiver no pedido, apenas atualizamos a quantidade
+                itemExistente.quantidade += parseInt(quantidade);
+            } else {
+                // Caso contrário, adicionamos um novo item ao pedido
+                showSweetAlert("Sucesso", `${nome} adicionado(a) ao pedido! Quantidade: ${quantidade}`, "success")
+                pedidoItens.push({
+                    id: id,
+                    nome: nome,
+                    preco: parseFloat(preco),
+                    quantidade: parseInt(quantidade),
+                    imagem: imagem
+                });
+            }
+
+            // Atualizar o resumo do pedido
+            atualizarResumo();
+        } else {
+            showSweetAlert("Erro", "Selecione uma quantidade correta.", "error")
+        }
+    }
+
+    // Função para atualizar o resumo do pedido
+function atualizarResumo() {
+    // Limpar a lista de itens no resumo
+    const resumoElement = document.getElementById('quantidade-ingredientes');
+    resumoElement.innerHTML = '';
+
+    // Variável para armazenar o total do pedido
+    let totalPedido = 0;
+
+    // Exibir os itens no resumo
+    pedidoItens.forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('mb-3', 'd-flex', 'align-items-center', 'justify-content-between');
+        div.innerHTML = `
+            <div class="d-flex align-items-center">
+                <img src="${item.imagem}" alt="${item.nome}" class="img-fluid avatar border-radius-lg shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                <strong class="ms-3">${item.nome}</strong> 
+                <span class="ms-3">R$ ${item.preco.toFixed(2)} x</span>
+                <div class="input-group input-group-sm input-group-outline w-15">
+                    <input type="number" value="${item.quantidade}" min="1" class="quantidade-item form-control ms-2" data-id="${item.id}" id="ipc${item.id}" name="ipc${item.id}">
+                </div>
+                <span class="ms-3">= R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
+            </div>
+            <button class="btn btn-sm btn-danger ms-3" onclick="removerItem(${item.id})">Remover</button>
+        `;
+        
+        // Adiciona o preço total do item ao total do pedido
+        totalPedido += item.preco * item.quantidade;
+
+        resumoElement.appendChild(div);
+    });
+
+    // Exibe o total do pedido no final do resumo
+    const divTotal = document.createElement('div');
+    divTotal.classList.add('mb-3', 'd-flex', 'align-items-center', 'justify-content-between');
+    divTotal.innerHTML = `
+        <strong>Total:</strong>
+        <span>R$ ${totalPedido.toFixed(2)}</span>
+    `;
+    resumoElement.appendChild(divTotal);
+}
+
+
+    // Função para remover um item do pedido
+    function removerItem(id) {
+        // Filtrar os itens do pedido para remover o item com o id fornecido
+        pedidoItens = pedidoItens.filter(item => item.id !== id);
+        
+        // Atualizar o resumo após a remoção
+        atualizarResumo();
+    }
+
+    // Função que será chamada ao clicar no ícone de adicionar item
+    function onAdicionarItem(id, nome, preco, imagem) {
+        adicionarItem(id, nome, preco, imagem);
+    }
+
+    // Função para adicionar os itens ao campo oculto antes do envio
+    function adicionarItensNoFormulario() {
+        const pedidoItensInput = document.getElementById('pedidoItens');
+        pedidoItensInput.value = JSON.stringify(pedidoItens);
+    }
+
+    // Adicionar um evento para chamar a função antes do envio do formulário
+    document.querySelector('form').addEventListener('submit', function (e) {
+        adicionarItensNoFormulario();
+    });
+
+    // Atualizar o resumo quando a quantidade for alterada
+document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('quantidade-item')) {
+        const id = e.target.dataset.id;
+        const novaQuantidade = parseInt(e.target.value);
+
+        // Verificar se a nova quantidade é válida (maior que 0)
+        if (novaQuantidade > 0) {
+            // Atualizar a quantidade do item no pedido
+            let itemExistente = pedidoItens.find(item => item.id == id);
+            if (itemExistente) {
+                itemExistente.quantidade = novaQuantidade;  // Atualiza a quantidade do item
+            }
+
+            // Atualizar o resumo
+            atualizarResumo();
+            adicionarItensNoFormulario();
+        } else {
+            // Se a quantidade for menor ou igual a 0, resetar o valor para 1 (ou outro valor padrão)
+            e.target.value = 1;
+        }
+    }
+});
+</script>
+<!-- Modal -->
+<div class="modal fade" id="modalCadastroIngrediente" tabindex="-1" aria-labelledby="modalCadastroIngredienteLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-lg border-radius-xl shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCadastroIngredienteLabel">Cadastrar Novo Cliente</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
+                    aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formCadastroCliente" method="post" action="{% url 'cadastro_cliente_manual' cnpj=empresa.cnpj|remove_mask %}"
+                    class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3 input-group input-group-outline">
+                        <label for="nome" class="form-label">Nome</label>
+                        <input class="form-control" id="nome" name="nome" required/>
+                        <div class="invalid-feedback">Preencha o nome.</div>
+                    </div>
+                    <div class="mb-3 input-group input-group-outline">
+                        <label class="form-label" for="cpf">CPF</label>
+                        <input type="text" class="form-control" id="cpf" name="cpf" aria-label="cpf"
+                            minlength="14" required>
+                        <div class="invalid-feedback">Digite o cpf corretamente.</div>
+                    </div>
+                    <div class="mb-3 input-group input-group-outline">
+                        <label for="telefone" class="form-label">Celular</label>
+                        <input type="text" class="form-control" id="telefone" name="telefone"
+                            aria-label="telefone" required minlength="15">
+                        <div class="invalid-feedback">Digite seu telefone celular corretamente.</div>
+                    </div>
+                    <div class="mb-3 input-group input-group-outline">
+                        <label class="form-label" for="dataN">Data de Nascimento</label>
+                        <input type="text" class="form-control" id="dataN" name="dataN"
+                            aria-label="dataN" required minlength="10">
+                        <div class="invalid-feedback">Digite a data de nascimento corretamente.</div>
+                    </div>
+                    <div class="mb-3 input-group input-group-outline">
+                        <select class="form-control" id="genero" name="genero" aria-label="genero" required>
+                            <option value="" disabled selected>Selecione seu gênero</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                        <div class="invalid-feedback">Selecione o gênero.</div>
+                    </div>
+                    <script>
+                         $(document).ready(function () {
+                            $('#cpf').mask('000.000.000-00');
+                            $('#telefone').mask('(00) 00000-0000');
+                            $('#dataN').mask('00/00/0000');
+
+                            // Enviar formulário via AJAX
+                            $('#formCadastroCliente').on('submit', function (e) {
+                                e.preventDefault(); // Impede o envio tradicional
+
+                                var formData = $(this).serialize(); // Serializa os dados do formulário
+
+                                $.ajax({
+                                    url: "{% url 'cadastro_cliente_manual' cnpj=empresa.cnpj|remove_mask %}", // A URL que irá processar os dados
+                                    type: "POST",
+                                    data: formData,
+                                    success: function (response) {
+                                        if (response.success) {
+                                            showSweetAlert("Sucesso", "Cliente cadastrado com sucesso!", "success");
+                                            $('#modalCadastroIngrediente').modal('hide');
+                                            $('#formCadastroCliente')[0].reset();
+                                        } else {
+                                            showSweetAlert("Erro", "Erro ao cadastrar cliente. Verifique os dados e tente novamente.", "error");
+                                        }
+                                    },
+                                    error: function () {
+                                        showSweetAlert("Erro", "Erro de comunicação com o servidor.", "error");
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                    <!-- Botão de Submissão -->
+                    <div class="text-center">
+                        <button type="submit" id="submitBtn" class="btn bg-gradient-dark w-100 icon-move-right">Cadastrar <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

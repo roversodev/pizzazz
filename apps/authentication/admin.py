@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     CustomUser, Cliente, Empresa, EnderecoCliente, EnderecoEmpresa,
-    EmpresaUsuario, Pedido, AvaliacaoPedido, Categoria, Cardapio,
+    EmpresaUsuario, EnderecoPedido, HistoricoPedido, Pedido, AvaliacaoPedido, Categoria, Cardapio,
     ItemPedido, Ingrediente, Estoque, MovimentacaoEstoque, IngredienteCardapio,
     Carrinho, ItemCarrinho, Sequencia
 )
@@ -71,11 +71,27 @@ admin.site.register(EmpresaUsuario, EmpresaUsuarioAdmin)
 
 # Registra o Pedido com o modelo de administração
 class PedidoAdmin(admin.ModelAdmin):
-    list_display = ('numero_pedido', 'cliente', 'empresa', 'status', 'total', 'data_pedido',)
-    search_fields = ('cliente__usuario__email', 'empresa__nome_fantasia', 'numero_pedido')
-    list_filter = ('status', 'data_pedido')
+    list_display = ('numero_pedido', 'cliente', 'empresa', 'total', 'data_pedido',)
+    search_fields = ('cliente__cpf', 'empresa__nome_fantasia', 'numero_pedido')
+    list_filter = ('historico__status', 'data_pedido')
 
 admin.site.register(Pedido, PedidoAdmin)
+
+# Registra o Pedido com o modelo de administração
+class EnderecoPedidoAdmin(admin.ModelAdmin):
+    list_display = ('cep', 'endereco')
+    search_fields = ('pedido__cliente__cpf', 'pedido__empresa__nome_fantasia', 'pedido__empresa__cnpj', 'pedido__numero_pedido')
+    list_filter = ('pedido__historico__status', 'pedido__data_pedido')
+
+admin.site.register(EnderecoPedido, EnderecoPedidoAdmin)
+
+# Registra o HistoricoPedido com o modelo de administração
+class HistoricoPedidoAdmin(admin.ModelAdmin):
+
+    search_fields = ('pedido__cliente__cpf', 'pedido__empresa__nome_fantasia', 'pedido__empresa__cnpj', 'pedido__numero_pedido')
+    list_filter = ('status', 'data_alteracao')
+
+admin.site.register(HistoricoPedido, HistoricoPedidoAdmin)
 
 
 # Registra a AvaliacaoPedido com o modelo de administração
@@ -109,7 +125,7 @@ admin.site.register(Cardapio, CardapioAdmin)
 class ItemPedidoAdmin(admin.ModelAdmin):
     list_display = ('id_itempedido', 'cardapio_item', 'quantidade', 'preco_unitario', 'preco_total')
     search_fields = ('pedido__cliente__usuario__email', 'cardapio_item__nome')
-    list_filter = ('pedido__status',)
+    list_filter = ('pedido__historico__status',)
 
 admin.site.register(ItemPedido, ItemPedidoAdmin)
 

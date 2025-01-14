@@ -62,13 +62,17 @@ def cadastrar_parceiros(request):
             data_abertura = request.POST.get('dataA')
             email = request.POST.get('email')
             password = request.POST.get('password')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
 
             with transaction.atomic():
                 user = CustomUser.objects.create_user(
                     email=email,
                     password=password,
                     is_empresa=True,
-                    username=email
+                    username=email,
+                    last_name=last_name,
+                    first_name=first_name,
                 )
                 user.save()
 

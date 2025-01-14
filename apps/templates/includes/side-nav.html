@@ -376,8 +376,74 @@
     </nav>
 
     <!-- End Navbar -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <!-- Toasts serão adicionados dinamicamente aqui -->
+  </div>
     {% block content2 %} {% endblock %}
   </main>
+  
+  <script>
+    function fetchNotifications() {
+        // Fetch para buscar as notificações
+        fetch("{% url 'get_notifications' cnpj=empresa.cnpj|remove_mask %}")
+            .then(response => response.json())  // Converte a resposta em JSON
+            .then(data => {
+                if (data.notifications.length > 0) {
+                    data.notifications.forEach(function(notification) {
+                        // Criando o Toast dinâmico
+                        var toastElement = document.createElement('div');
+                        toastElement.classList.add('toast');
+                        toastElement.classList.add('align-items-center');
+                        toastElement.classList.add('text-bg-info');
+                        toastElement.classList.add('border-0');
+                        toastElement.setAttribute('role', 'alert');
+                        toastElement.setAttribute('aria-live', 'assertive');
+                        toastElement.setAttribute('aria-atomic', 'true');
+
+                        toastElement.innerHTML = `
+                            <div class="toast fade p-2 bg-white show" role="alert" aria-live="assertive" id="successToast" aria-atomic="true">
+                              <div class="toast-header border-0">
+                                <i class="material-symbols-rounded text-success me-2">
+                              check
+                            </i>
+                                <span class="me-auto font-weight-bold">PizzazzZ</span>
+                                <small class="text-body">${notification.timestamp}</small>
+                              </div>
+                              <hr class="horizontal dark m-0">
+                              <div class="toast-body text-dark">
+                                ${notification.message}
+                              </div>
+                            </div>
+                        `;
+
+                        // Adicionando o toast à área de toasts
+                        document.querySelector('.toast-container').append(toastElement);
+
+                        // Inicializando e exibindo o Toast
+                        var toast = new bootstrap.Toast(toastElement);
+                        toast.show();
+
+                        // Marcar a notificação como lida
+                        if (notification.id) {
+                            fetch(`/empresas/empresa.cnpj|remove_mask/mark_notification_as_read/${notification.id}`, {
+                                method: "GET"
+                            })
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao buscar notificações:", error);
+            });
+    }
+
+    // Chamando a função para buscar as notificações a cada 5 segundos
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchNotifications();
+        setInterval(fetchNotifications, 5000);  // Atualiza as notificações a cada 5 segundos
+    });
+</script>
+
   <script>
     // Alternar classe ao clicar no botão
     document.getElementById('iconNavbarSidenav').addEventListener('click', function (event) {

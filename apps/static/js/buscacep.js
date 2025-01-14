@@ -10,7 +10,7 @@ function buscaCep() {
             if (req.status == 200) {
                 let endereco = JSON.parse(req.response);
                 if (endereco.erro) {
-                    alert("CEP não encontrado!");
+                    showSweetAlert("Erro", "CEP não encontrado!", "question");
                 } else {
                     // Preenche os campos com os dados do CEP
                     document.getElementById("endereco").value = endereco.logradouro || "";
@@ -25,12 +25,13 @@ function buscaCep() {
                     setFieldAsFilled("municipio");
                 }
             } else {
-                alert("Erro ao fazer a requisição");
+                showSweetAlert("Erro", "Erro ao fazer a requisição", "error");
+                
             }
         };
 
         req.onerror = function () {
-            alert("Erro de rede, não foi possível acessar o serviço ViaCEP.");
+            showSweetAlert("Erro", "Erro de rede, não foi possível acessar o serviço ViaCEP.", "error");
         };
     }
 }
