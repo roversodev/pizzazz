@@ -1,22 +1,24 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}404{% endblock %}
+{% block title %}500{% endblock %}
 
 {% block content %}
+{% load static %}
 
-
-
-<div class="page-header align-items-start min-vh-100" style="background-image: url('https://images.unsplash.com/photo-1596368708356-6e1e1025ee72?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=1950&amp;q=80');" loading="lazy">
-    <span class="mask bg-gradient-dark opacity-6"></span>
-    <div class="container my-auto">
-      <div class="row">
-        <div class="col-lg-12 m-auto text-center">
-          <h1 class="display-1 text-bolder text-white">Erro 500</h1>
-          <h2 class="text-white">Alguma coisa deu errado!</h2>
-          <p class="lead text-white">Sugerimos ir para o inicio até que resolvemos esse problema.</p>
-          <button onclick="window.history.back()" class="btn btn-white mt-4">Ir para o Inicio</button>
+<link rel="stylesheet" href="{% static '/assets/css/core.css' %}">
+  <main class="main-content  mt-0">
+    <div class="page-header align-items-start min-vh-100" style="background-image: url('https://images.unsplash.com/photo-1596368708356-6e1e1025ee72?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=1950&amp;q=80');">
+      <span class="mask bg-gradient-dark opacity-6"></span>
+      <div class="container my-auto">
+        <div class="row">
+          <div class="col-lg-12 m-auto text-center">
+            <h1 class="display-1 text-bolder text-white">Erro 500</h1>
+            <h2 class="text-white">Alguma coisa deu errado</h2>
+            <p class="lead text-white">Sugerimos ir para o inicio até que resolvemos esse problema.</p>
+            <button type="button" onclick="window.history.back()" class="btn btn-outline-white mt-4">Ir para o inicio</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 {% endblock %}

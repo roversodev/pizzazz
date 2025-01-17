@@ -40,8 +40,7 @@
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="{{ ASSETS_ROOT }}/js/plugins/flatpickr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.2/dist/vanilla-tilt.min.js"></script>
+    <script src="{% static 'assets/js/plugins/tilt.min.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
@@ -103,49 +102,14 @@
 </head>
 
 <body class="lexend" cz-shortcut-listen="true">
-    <!--
-    <div id="loader" class="position-fixed top-0 start-0 w-100 vh-100 bg-white d-flex align-items-center justify-content-center poppins hidden" style="z-index: 999999999999 !important;">
-        <div class="text-center">
 
-            <div class="spinner-border text-danger mb-3" role="status" style="width: 4rem; height: 4rem;"></div>
-
-            <h3 class="text-danger fw-bold" style="font-family: 'Poppins', sans-serif;">PizzazzZ</h3>
-
-            <p class="text-secondary" style="font-size: 0.9rem;" id="loader-phrase">Preparando sua pizza quentinha...</p>
-        </div>
-    </div>
-    -->
     
-
-
     {% block content %} {% endblock %}
 
 
 
     {% include 'includes/scripts.html' %}
-    <!-- <script>
-        window.onload = function () {
-        const frases = [
-        "Preparando sua pizza quentinha...",
-        "Sua fome está quase resolvida!",
-        "A pizza está no forno, fique tranquilo!",
-        "A massa está sendo esticada...",
-        "Os ingredientes fresquinhos estão sendo preparados!",
-        "Colocando bastante queijo derretido na sua pizza!",
-        "O aroma da sua pizza já está no ar!"
-    ];
 
-    // Seleciona uma frase aleatória
-    const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
-
-    // Exibe a frase no loader
-    const loaderPhrase = document.getElementById('loader-phrase');
-    loaderPhrase.textContent = fraseAleatoria;
-
-        const loader = document.getElementById('loader');
-        loader.classList.add('hidden');
-    };
-    </script>  -->
     {% block javascripts %}{% endblock javascripts %}
     
 </body>

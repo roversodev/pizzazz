@@ -1,3 +1,4 @@
+from datetime import timezone
 from decimal import Decimal
 from django.db import models
 from django.forms import ValidationError
@@ -22,7 +23,17 @@ class CustomUser(AbstractUser):
         except:
             return False
 
+class PasswordResetVerification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)  # Código de verificação de 6 dígitos
+    expiration_time = models.DateTimeField()  # Hora em que o código expira
 
+    def is_expired(self):
+        """ Verifica se o código já expirou """
+        return now() > self.expiration_time
+
+    def __str__(self):
+        return f"Verification code for {self.user.username} - Expiring at {self.expiration_time}"
 
 class Empresa(models.Model):
     id_empresa = models.AutoField(primary_key=True)

@@ -4,21 +4,22 @@ from . import views
 
 urlpatterns = [
     path('get_notifications/', views.get_notifications, name='get_notifications'),
+    path('get_notifications_all/', views.get_notifications_all, name='get_notifications_all'),
     path('mark_notification_as_read/<int:notification_id>', views.mark_notification_as_read, name='mark_notification_as_read'),
     # Dashboard
-    path('dashboard', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 
     # Ingredientes
-    path('ingredientes', views.ingredientes, name='ingredientes'),
+    path('ingredientes/', views.ingredientes, name='ingredientes'),
     path('ingredientes/cadastrar', views.adicionar_ingredientes, name='adicionar_ingredientes'),
     path('ingredientes/<int:ingrediente_id>/editar/', views.editar_ingrediente, name='editar_ingrediente'),
     path('ingredientes/<int:ingrediente_id>/excluir/', views.deletar_ingrediente, name='deletar_ingrediente'),
 
     # Estoque
-    path('estoque', views.estoque, name='estoque'),
+    path('estoque/', views.estoque, name='estoque'),
 
     # Movimentações
-    path('movimentacoes', views.movimentacoes, name='movimentacoes'),
+    path('movimentacoes/', views.movimentacoes, name='movimentacoes'),
     path('movimentacao_grafico', views.movimentacao_grafico, name='movimentacao_grafico'),
     path('cadastrar_movimentacao', views.cadastrar_movimentacao, name='cadastrar_movimentacao'),
 

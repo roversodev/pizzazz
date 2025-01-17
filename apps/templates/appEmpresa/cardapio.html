@@ -417,87 +417,30 @@
 
 
 <!-- Modal de Deletar -->
-<div class="modal fade text-center" id="confirmarDeletarModal" tabindex="-1"
-    aria-labelledby="confirmarDeletarModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmarDeletarModal" tabindex="-1" aria-labelledby="confirmarDeletarModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-lg border-radius-xl shadow">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmarDeletarModalLabel">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
-                    aria-label="Close">&times;</button>
+            <div class="row p-4 pb-0">
+                <h5 class="text-gradient text-dark text-xxl mb-0" id="confirmarDeletarModalLabel">Deletar Item</h5>
+                <p class="">Tem certeza que deseja excluir este item?</p>
             </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir? <br>Esta ação não pode ser desfeita.</p>
-
-                <div class="text-center">
+            <div class="modal-body text-center mt-0 pt-0">
+                <!-- GIF Centralizado -->
+                <div class="mb-3">
+                    <img src="{% static 'warning-gif.gif' %}" alt="Deletar GIF" class="img-fluid border-radius-lg" style="width: 450px; height: 450px; object-fit: cover;">
+                </div>
+                <div class="d-flex justify-content-between p-2 pb-0">
+                    <button type="button" class="btn btn-white" style="border: 1px solid #e9e9e9;" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                     <form id="formDeletar" method="POST" action="" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn bg-gradient-danger">Deletar</button>
+                        <button type="submit" class="btn bg-gradient-danger">Deletar Item</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-    // Script para configurar o formulário de deletação
-    document.addEventListener("DOMContentLoaded", function () {
-        const deleteLinks = document.querySelectorAll('.dele-link');
-
-        deleteLinks.forEach(function (link) {
-            link.addEventListener('click', function (event) {
-                // Impedir o comportamento padrão do link
-                event.preventDefault();
-
-                // Pega a URL de deleção e o ID do ingrediente
-                const url = link.getAttribute('data-url');
-
-                // Atualiza a ação do formulário
-                const formDeletar = document.getElementById('formDeletar');
-                formDeletar.setAttribute('action', url);
-            });
-        });
-    });
-</script>
-
-
-<script>
-    document.querySelectorAll('.item-ativo-vende').forEach(function (checkbox) {
-        checkbox.addEventListener('change', function () {
-            let itemId = this.getAttribute('data-item-id');
-            fetch(`/empresas/{{empresa.cnpj|remove_mask}}/cardapio/item/${itemId}/toggle-ativo`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        console.log('Status alterado com sucesso!');
-                    }
-                });
-        });
-    });
-</script>
-
-<script>
-    document.querySelectorAll('.categoria-ativo').forEach(function (checkbox) {
-        checkbox.addEventListener('change', function () {
-            let itemId = this.getAttribute('data-item-id');
-            fetch(`/empresas/{{empresa.cnpj|remove_mask}}/cardapio/categoria/${itemId}/toggle-ativo`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        console.log('Status alterado com sucesso!');
-                    }
-                });
-        });
-    });
-</script>
+<script src="{% static 'js/cardapio.js' %}"></script>
 {% include 'includes/footer-emp.html' %}
 
 {% endblock %}

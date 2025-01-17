@@ -13,7 +13,9 @@
         </div>
         <div class="col-6">
             <div class="d-flex justify-content-end">
+                {% if not pedido.historico.last.status == "entregue" or pedido.historico.last.status == "cancelado" %}
                 <button type="button" class="btn bg-gradient-dark btn-sm" data-bs-toggle="modal" data-bs-target="#modalAlterarStatusPedido">Alterar Status</button>
+                {% endif %}
             </div>
         </div>
 
@@ -65,8 +67,8 @@
         </div>
 
         <!-- Itens do Pedido -->
-        <div class="col-12">
-            <div class="card shadow-sm">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card shadow-sm" style="min-height: 270px;">
                 <div class="card-header bg-gradient-dark text-white">
                     <h5 class="mb-0 text-white">Itens do Pedido</h5>
                 </div>
@@ -92,6 +94,52 @@
                         {% empty %}
                             <li class="list-group-item text-muted text-center">Nenhum item encontrado.</li>
                         {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex">
+            <div class="card shadow-sm w-100">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Informações de Pagamento</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>
+                                {% if pedido.pagamento.forma_pagamento == 'cartao_debito' or pedido.pagamento.forma_pagamento == 'cartao_credito' %}
+                                    <i class="fa-regular fa-credit-card"></i>
+                                {% elif pedido.pagamento.forma_pagamento == 'pix' %}
+                                    <i class="fa-brands fa-pix"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-money-bills"></i>
+                                {% endif %}
+                            </strong>
+                            <span>{{ pedido.pagamento.get_forma_pagamento_display }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fa-solid fa-coins"></i></strong> 
+                            <span class="text-success fw-bold">R$ {{ pedido.pagamento.valor|floatformat:2 }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            {% if pedido.pagamento.status == 'aprovado' %}
+                                <span class="badge bg-success">{{ pedido.pagamento.status }}</span>
+                            {% elif pedido.pagamento.status == 'pendente' %}
+                                <span class="badge bg-warning text-dark">{{ pedido.pagamento.status }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ pedido.pagamento.status }}</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <span class="text-secondary">{{ pedido.pagamento.data_pagamento|date:"d/m/Y H:i" }}</span>
+                        </li>
+                        {% if pedido.pagamento.codigo_transacao %}
+                        <li class="list-group-item">
+                            <strong>Transação:</strong> 
+                            <span class="text-muted">{{ pedido.pagamento.codigo_transacao }}</span>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -177,6 +225,9 @@
                                 <option value="entregue">Entregue</option>
                                 <option value="cancelado">Cancelado</option>
                             </select>
+                            <div class="mb-3 input-group input-group-outline">
+                                <textarea name="observacao" class="form-control" id="observacao" placeholder="Digite aqui se deseja cadastrar alguma observação específica..." rows="4"></textarea>
+                            </div>
                     <!-- Botão de Submissão -->
                     <div class="text-center">
                         <button type="submit" id="submitBtn" class="btn bg-gradient-dark w-100 icon-move-right">Alterar <i class="fas fa-arrow-right text-xs ms-1"></i></button>
@@ -204,29 +255,6 @@
         itemSelectText: 'Clique para selecionar',
     });
   });
-</script>
-<script>
-    $(document).ready(function() {
-        // Abrir o select customizado
-        $(".custom-select-trigger").click(function() {
-            $(this).parent().toggleClass("open");
-        });
-
-        // Seleção de status
-        $(".custom-select-option").click(function() {
-            var statusValue = $(this).data("value");
-            var statusText = $(this).text().trim();
-
-            // Atualiza o status no display
-            $("#currentStatusLabel").text(statusText);
-
-            // Atualiza o valor do select oculto
-            $("#statusSelect").val(statusValue);
-
-            // Fechar o select customizado
-            $(".custom-select-wrapper").removeClass("open");
-        });
-    });
 </script>
 {% include 'includes/messages.html' %}
 {% endblock %}

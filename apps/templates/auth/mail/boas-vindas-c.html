@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bem-Vindo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+      /* Estilo idêntico ao do parceiro, adaptado para clientes */
+      body {
+        font-family: 'Lexend', sans-serif;
+        line-height: 1.6;
+        color: #333333;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .email-header {
+        background-color: #E53935;
+        text-align: center;
+        padding: 20px;
+        color: #ffffff;
+      }
+      .email-header img {
+        max-width: 150px;
+        margin-bottom: 10px;
+      }
+      .email-header h1 {
+        font-size: 24px;
+        margin: 0;
+        font-weight: 600;
+      }
+      .email-body {
+        padding: 20px;
+      }
+      .email-body h2 {
+        color: #E53935;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .email-body p {
+        margin: 10px 0;
+        font-size: 16px;
+      }
+      .action-button {
+        display: inline-block;
+        background-color: #E53935;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 16px;
+        margin: 20px 0;
+        transition: background-color 0.3s ease;
+      }
+      .action-button:hover {
+        background-color: #d32f2f;
+      }
+      .email-footer {
+        background-color: #f5f5f5;
+        text-align: center;
+        padding: 15px;
+        font-size: 14px;
+        color: #666666;
+      }
+      .email-footer a {
+        color: #E53935;
+        text-decoration: none;
+      }
+      .email-footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Cabeçalho -->
+      <div class="email-header">
+        <h1>Bem-Vindo ao PizzazzZ!</h1>
+      </div>
+
+      <!-- Corpo -->
+      <div class="email-body">
+        <h2>Olá, {{ nome }}!</h2>
+        <p>Estamos muito felizes por tê-lo como cliente.</p>
+        <p>Com o <strong>PizzazzZ</strong>, você terá acesso a uma experiência incrível, permitindo que você:</p>
+        <ul>
+          <li>Peça suas pizzas favoritas com poucos cliques</li>
+          <li>Receba notificações em tempo real sobre o status do pedido</li>
+          <li>Desfrute de promoções exclusivas</li>
+        </ul>
+        <p>Pronto para começar? Explore as pizzarias disponíveis clicando no botão abaixo:</p>
+        <a href="https://app.pizzazzz.com.br/" class="action-button">Descubra Pizzarias</a>
+        <p>Se precisar de ajuda ou tiver dúvidas, nossa equipe está à disposição.</p>
+        <p>Obrigado por escolher o <strong>PizzazzZ</strong>. Aproveite sua experiência!</p>
+      </div>
+
+      <!-- Rodapé -->
+      <div class="email-footer">
+        <p>Precisa de ajuda? Entre em contato conosco em <a href="mailto:suporte@pizzazzz.com.br">suporte@pizzazzz.com.br</a></p>
+        <p>Equipe PizzazzZ © 2025</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -4,7 +4,6 @@
 {% block title %}Estoque{% endblock %}
 
 {% block content2 %}
-
 <div class="container-fluid py-4 min-vh-85">
     <div class="row">
         <div class="col-lg-12">
@@ -15,12 +14,12 @@
                         <h6>Itens no Estoque</h6>
                     <button type="button" class="btn bg-gradient-dark btn-sm" data-bs-toggle="modal"
                     data-bs-target="#modalCadastroEstoque">
-                    Nova Movimentação
+                    + Movimentação
                 </button>
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-items-center mb-0">
+                    <table class="table align-items-center mb-0" id="table-basic">
                         <thead>
                             <tr>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">
@@ -135,7 +134,21 @@
         </div>
     </div>
 </div>
+<script src="{% static 'assets/js/plugins/simple-datatables.min.js' %}" type="text/javascript"></script>
 <script>
+    const dataTableBasic = new simpleDatatables.DataTable("#table-basic", {
+        searchable: true,
+        labels: {
+        placeholder: "Pesquisa...",
+        searchTitle: "Search within table",
+        pageTitle: "Página {page}",
+        perPage: "itens por página",
+        noRows: "Nenhum item encontrado.",
+        info: "Exibindo {start} até {end} de {rows} total",
+        noResults: "Nenhum item encontrado",
+        },
+    });
+
     document.addEventListener("DOMContentLoaded", function () {
         const campoPreco = document.getElementById("preco_unitario");
         const im = new Inputmask("numeric", {
@@ -149,8 +162,7 @@
         });
         im.mask(campoPreco);
     });
-</script>
-<script>
+
     const tipoSelect = document.getElementById("tipo");
     const precoUnitarioContainer = document.getElementById("precoUnitarioContainer");
     // Função para alternar visibilidade do campo Preço Unitário

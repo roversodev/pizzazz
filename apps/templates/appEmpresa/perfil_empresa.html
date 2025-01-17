@@ -84,7 +84,7 @@
                     <div class="row justify-content-center align-items-center">
                         <div class="col-sm-auto col-4">
                             <div class="avatar avatar-xl position-relative" style="width: 100px; height: 100px;">
-                                <img src="{{ empresa.perfil_empresa.url }}" alt="bruce"
+                                <img src="{{ empresa.perfil_empresa.url|default:"/static/assets/img/Pizza-6.jpg" }}" alt="bruce"
                                     class="w-100 h-100 border-radius-lg shadow-sm" style="object-fit: cover;">
                             </div>
                         </div>
@@ -194,7 +194,7 @@
                             <div class="col-md-4 col-12 text-center">
                                 <p class="fw-bold">Logo</p>
                                 <div class="position-relative">
-                                    <img src="{{ empresa.logo.url }}" alt="Logo" class="img-fluid border-radius-lg shadow-sm move-on-hover w-100" style="height: 150px; object-fit: contain;">
+                                    <img src="{{ empresa.logo.url|default:"/static/assets/img/Pizza-6.jpg" }}" alt="Logo" class="img-fluid border-radius-lg shadow-sm move-on-hover w-100" style="height: 150px; object-fit: contain;">
                                     <button class="btn btn-sm btn-dark position-absolute bottom-0 end-0 m-2 shadow" data-bs-toggle="modal" data-bs-target="#editarLogo">Editar</button>
                                 </div>
                             </div>
@@ -202,7 +202,7 @@
                             <div class="col-md-4 col-12 text-center">
                                 <p class="fw-bold">Perfil</p>
                                 <div class="position-relative">
-                                    <img src="{{ empresa.perfil_empresa.url }}" alt="Perfil" class="img-fluid border-radius-lg shadow-sm move-on-hover w-100" style="height: 150px; object-fit: cover;">
+                                    <img src="{{ empresa.perfil_empresa.url|default:"/static/assets/img/Pizza-6.jpg" }}" alt="Perfil" class="img-fluid border-radius-lg shadow-sm move-on-hover w-100" style="height: 150px; object-fit: cover;">
                                     <button class="btn btn-sm btn-dark position-absolute bottom-0 end-0 m-2 shadow" data-bs-toggle="modal" data-bs-target="#editarPerfil">Editar</button>
                                 </div>
                             </div>
@@ -210,7 +210,7 @@
                             <div class="col-md-4 col-12 text-center">
                                 <p class="fw-bold">Banner</p>
                                 <div class="position-relative">
-                                    <img src="{{ empresa.banner.url }}" alt="Banner" class="img-fluid border-radius-lg shadow-sm move-on-hover w-100" style="height: 150px; object-fit: cover;">
+                                    <img src="{{ empresa.banner.url|default:"/static/assets/img/Pizza-6.jpg" }}" alt="Banner" class="img-fluid border-radius-lg shadow-sm move-on-hover w-100" style="height: 150px; object-fit: cover;">
                                     <button class="btn btn-sm btn-dark position-absolute bottom-0 end-0 m-2 shadow" data-bs-toggle="modal" data-bs-target="#editarBanner">Editar</button>
                                 </div>
                             </div>

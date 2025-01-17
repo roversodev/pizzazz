@@ -166,8 +166,8 @@
     </div>
 </div>
 {% include 'includes/messages.html' %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+<script src="{% static 'assets/js/plugins/flatpickr.min.js' %}"></script>
+<script src="{% static 'assets/js/plugins/flatpickr-pt.js' %}"></script>
 <script>
     flatpickr('.datepicker', { locale: "pt", mode: "range", dateFormat: "d/m/Y" });
     const selectElement = document.getElementById('status');

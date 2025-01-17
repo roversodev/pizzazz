@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin-django/', admin.site.urls),
     # LANDING PAGES
     path("", include("apps.lp.urls")),
     # AUTH LOGIN/REGISTRAR - PARCEIROS E CLIENTES

@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Login Parceiros{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% load static %}
 
@@ -22,7 +22,7 @@
               <img src="{{ASSETS_ROOT}}/img/logo-black.png" alt="Logo" class="mb-6"
                 style="max-width: 150px; margin-left: -5px;">
               <h3 class="font-weight-bolder text-danger text-gradient">Bem-vindo de volta</h3>
-              <p class="mb-0">Entre seu e-mail e senha para logar</p>
+              <p class="mb-0">Esqueceu sua senha? <a class="text-secondary font-weight-bold" href="{% url 'request_reset_password' %}">Clique aqui</a>.</p>
             </div>
             <div class="card-body mt-2">
               <form role="form" method="post" class="needs-validation" novalidate>

@@ -1,11 +1,9 @@
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
-import json
-import locale
+import json, locale, re
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, EnderecoPedido, Estoque, HistoricoPedido, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pagamento, Pedido, AvaliacaoPedido, Sequencia 
-import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
@@ -16,6 +14,7 @@ from django.db.models.functions import ExtractWeekDay
 from django.views.decorators.csrf import csrf_exempt
 from notifications.signals import notify
 from notifications.models import Notification
+from django.utils import timezone
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def aplicar_mascara_cnpj(cnpj):
@@ -67,12 +66,13 @@ def resumir_user_agent(user_agent):
     return f"{os_info} - {browser_info}"
 
 def criar_notificacao(usuario, mensagem):
+    adm = CustomUser.objects.get(id=1)
     # Criando a notificação
     notify.send(
-        usuario,
+        actor=None,
         recipient=usuario,
         verb=mensagem,
-        description=mensagem
+        sender=adm,
     )
 
 @login_required
@@ -83,14 +83,41 @@ def get_notifications(request, cnpj):
     # Formatar para retorno em JSON
     notifications_data = []
     for notification in notifications:
+        # Garantir que o timestamp esteja no fuso horário local
+        local_timestamp = timezone.localtime(notification.timestamp)
+
+        # Formatando o timestamp no formato PT-BR
+        formatted_timestamp = local_timestamp.strftime('%a, %d %b %Y %H:%M:%S')
+
         notifications_data.append({
             'message': notification.verb,
-            'timestamp': notification.timestamp,
+            'timestamp': formatted_timestamp,
             'id': notification.id
         })
 
     return JsonResponse({'notifications': notifications_data})
 
+@login_required
+def get_notifications_all(request, cnpj):
+    # Obter notificações não lidas
+    notifications = Notification.objects.filter(recipient=request.user)
+
+    # Formatar para retorno em JSON
+    notifications_data = []
+    for notification in notifications:
+        # Garantir que o timestamp esteja no fuso horário local
+        local_timestamp = timezone.localtime(notification.timestamp)
+
+        # Formatando o timestamp no formato PT-BR
+        formatted_timestamp = local_timestamp.strftime('%d %b %Y %H:%M')
+
+        notifications_data.append({
+            'message': notification.verb,
+            'timestamp': formatted_timestamp,
+            'id': notification.id
+        })
+
+    return JsonResponse({'notifications': notifications_data})
 
 @login_required
 def mark_notification_as_read(request, notification_id, cnpj):
@@ -890,7 +917,7 @@ def deletar_item(request, cnpj, item_id):
     item = get_object_or_404(Cardapio, id_cardapio=item_id)
 
     item.delete()
-    messages.success(request, f'Item "{item.nome}" deletado com sucesso!')
+    messages.success(request, f'Item {item.nome} deletado com sucesso!')
     return redirect('cardapio', cnpj=cnpj)
 
 
@@ -1283,13 +1310,17 @@ def pedido_manual(request, cnpj):
                 # Atualizar o estoque
                 pedido.atualizar_estoque(request)
 
+                users_empresa = CustomUser.objects.filter(empresa_usuario__empresa=empresa)
+                for usuario in users_empresa:
+                    criar_notificacao(usuario, f'Novo pedido gerado! #{pedido.numero_pedido}')
+
                 # 5. Redirecionar para o resumo ou página de sucesso
                 messages.success(request, f"Pedido #{pedido.numero_pedido} criado com sucesso!")
                 return redirect('pedidos', cnpj=cnpj)
 
         except Exception as e:
             # Caso haja um erro, mostrar mensagem de erro
-            messages.error(request, "Ocorreu um erro ao processar o pedido. Por favor, verifique os dados e tente novamente.")
+            messages.error(request, f"Ocorreu um erro ao processar o pedido. Por favor, verifique os dados e tente novamente. {e}")
             return redirect('pedidos', cnpj=cnpj)
 
     cardapios = Cardapio.objects.filter(empresa=empresa, ativo=True, categoria__ativo=True)
@@ -1386,11 +1417,12 @@ def detalhes_pedido(request, cnpj, pedido_id):
         
     pedido = get_object_or_404(Pedido, numero_pedido=pedido_id, empresa=empresa)
     historico_pedido = pedido.historico.all()
+
     context = {
         'page_title': "Pedidos",
         'empresa': empresa,
         'pedido': pedido,
-        'historico_pedido': historico_pedido
+        'historico_pedido': historico_pedido,
     }
 
     return render(request, 'appEmpresa/detalhes_pedido.html', context)
