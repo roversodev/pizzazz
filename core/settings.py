@@ -255,19 +255,19 @@ MESSAGE_TAGS = {
 }
 
 
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'samx01.sabrasilhosting.com.br'
-#EMAIL_PORT = 587
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = 'no-reply@pizzazzz.com.br'
-#EMAIL_HOST_PASSWORD = 'Vum954kn#'
-#DEFAULT_FROM_EMAIL = 'no-reply@pizzazzz.com.br'
-
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'samx01.sabrasilhosting.com.br'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'roversodev@gmail.com'
-EMAIL_HOST_PASSWORD = 'zpwf aavr olkx mteg'
-DEFAULT_FROM_EMAIL = 'roversodev@gmail.com'
+EMAIL_HOST_USER = 'no-reply@pizzazzz.com.br'
+EMAIL_HOST_PASSWORD = 'Vum954kn#'
+DEFAULT_FROM_EMAIL = 'no-reply@pizzazzz.com.br'
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'roversodev@gmail.com'
+# EMAIL_HOST_PASSWORD = 'zpwf aavr olkx mteg'
+# DEFAULT_FROM_EMAIL = 'roversodev@gmail.com'

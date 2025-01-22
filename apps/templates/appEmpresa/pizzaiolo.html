@@ -1,0 +1,286 @@
+{% extends 'layouts/base.html' %}
+
+{% load my_filters %}
+
+{% load static %}
+
+{% block stylesheets %}
+
+{% endblock %}
+
+{% block title %}Pizzaiolo{% endblock %}
+
+{% block content %}
+<style>
+    .order-status {
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+        padding: 20px;
+        border-color: #E53935 !important;
+    }
+
+    .order-card {
+        transition: transform 0.2s;
+    }
+
+    .order-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-title {
+        font-weight: bold;
+        font-size: x-large;
+    }
+
+    .order-action button {
+        font-size: 0.9rem;
+    }
+
+    .status-header {
+        color: #E53935;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+</style>
+<div class="container-fluid py-4 bg-gray-100">
+    <div class="row">
+        <div class="d-flex justify-content-center aling-itens-center pb-3">
+            <img src="{{empresa.logo.url}}" alt="" class="img-fluid" style="width: 15%;">
+        </div>
+        <!-- Pendentes -->
+        <div class="col-md-4">
+            <h5 class="status-header">Pendentes</h5>
+            <div id="pendingOrders" class="order-status"></div>
+        </div>
+        <!-- Em Preparo -->
+        <div class="col-md-4">
+            <h5 class="status-header">Em Preparo</h5>
+            <div id="preparingOrders" class="order-status"></div>
+        </div>
+        <!-- Concluídos -->
+        <div class="col-md-4">
+            <h5 class="status-header">Concluídos</h5>
+            <div id="completedOrders" class="order-status"></div>
+        </div>
+    </div>
+</div>
+
+<div class="fixed-plugin">
+    <a href="{% url 'logout' %}" class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+        <i class="ph-bold ph-sign-out"></i>
+      </a>
+</div>
+
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-lg border-radius-xl shadow">
+            <div class="row p-4 pb-0">
+                <h5 class="text-gradient text-dark text-xxl mb-0" id="modalTitle">Título da Ação</h5>
+                <p id="modalMessage">Tem certeza que deseja realizar esta ação?</p>
+            </div>
+            <div class="modal-body text-center mt-0 pt-0">
+                <!-- Imagem Centralizada -->
+                <div class="mb-3">
+                    <img id="modalImage" src="{% static 'default-image.gif' %}" alt="Imagem de Confirmação"
+                        class="img-fluid border-radius-lg" style="width: 450px; height: 450px; object-fit: cover;">
+                </div>
+                <div class="d-flex justify-content-between p-2 pb-0">
+                    <button type="button" class="btn btn-white" style="border: 1px solid #e9e9e9;"
+                        data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+                    <button type="button" class="btn bg-gradient-dark" id="modalConfirmButton">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal de Receita -->
+<div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="recipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="d-flex justify-content-between p-3">
+                <h5 class="modal-title" id="recipeModalLabel">Receita dos Itens</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
+                    aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="recipeContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let orders = [];
+    let selectedOrderId = null;
+    let selectedAction = null;
+
+    // Exibe o modal de confirmação
+    function showConfirmModal({ title, message, image, onConfirm }) {
+        // Atualiza o título, mensagem e imagem do modal
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = message;
+        document.getElementById('modalImage').src = image;
+
+        // Define a ação ao clicar no botão de confirmação
+        const confirmButton = document.getElementById('modalConfirmButton');
+        confirmButton.onclick = () => {
+            if (onConfirm && typeof onConfirm === 'function') {
+                onConfirm(); // Executa a função passada como parâmetro
+            }
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('confirmActionModal'));
+            modalInstance.hide();
+        };
+
+        // Abre o modal
+        const modalInstance = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+        modalInstance.show();
+    }
+
+    // Exibe o modal com a receita dos itens do pedido
+    function showRecipeModal(orderId) {
+        const recipeModal = new bootstrap.Modal(document.getElementById('recipeModal'));
+        const recipeContent = document.getElementById('recipeContent');
+
+        // Busca os dados da receita
+        fetch(`/empresas/{{empresa.cnpj|remove_mask}}/api/pedido/${orderId}/receita/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Erro ao buscar receita');
+                return response.json();
+            })
+            .then(data => {
+                recipeContent.innerHTML = data.map(item => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5><strong>${item.nome}</strong></h5>
+                        <ul>
+                            ${item.ingredientes.map(ing => `
+                                <li class="text-lg text-dark">${ing.quantidade} ${ing.unidade} de ${ing.nome}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+                recipeModal.show();
+            })
+            .catch(error => {
+                recipeContent.innerHTML = '<p class="text-danger">Erro ao carregar a receita.</p>';
+                recipeModal.show();
+                console.error(error);
+            });
+    }
+
+    // Atualiza o status do pedido
+    async function updateOrderStatus(orderId, newStatus) {
+        try {
+            const response = await fetch(`/empresas/{{empresa.cnpj|remove_mask}}/api/pedidos/${orderId}/status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (!response.ok) throw new Error('Erro ao atualizar pedido');
+            fetchOrders();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Busca pedidos no backend
+    async function fetchOrders() {
+        try {
+            const response = await fetch('/empresas/{{empresa.cnpj|remove_mask}}/api/pedidos/');
+            if (!response.ok) throw new Error('Erro ao buscar pedidos');
+            orders = await response.json();
+            renderOrders();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Renderiza os pedidos
+    function renderOrders() {
+        const pendingOrders = document.getElementById('pendingOrders');
+        const preparingOrders = document.getElementById('preparingOrders');
+        const completedOrders = document.getElementById('completedOrders');
+
+        pendingOrders.innerHTML = '';
+        preparingOrders.innerHTML = '';
+        completedOrders.innerHTML = '';
+
+        orders.forEach(order => {
+            const card = `
+            <div class="card order-card mb-3">
+                <div class="card-body">
+                    <h6 class="order-title">#${order.numero_pedido}</h6>
+                    <ul>
+                ${order.itens.map(item => `<li class="text-lg text-dark">${item}</li>`).join('')}
+            </ul>
+                    <div class="order-action">
+                        ${order.status === 'confirmado' ? `
+                            <button class="btn btn-outline-success btn-sm" onclick="showConfirmModal({
+                            title: 'Iniciar Preparo',
+                            message: 'Tem certeza que deseja iniciar o preparo deste pedido?',
+                            image: '/static/pizza.gif',
+                            onConfirm: () => {
+                                updateOrderStatus(${order.id}, 'preparando');
+                            }
+                        });">Iniciar Preparo</button>
+                        ` : order.status === 'preparando' ? `
+                            <button class="btn btn-outline-info btn-sm" onclick="showRecipeModal(${order.id})">Ver Receita</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="showConfirmModal({
+                            title: 'Mandar para Entrega',
+                            message: 'Tem certeza que deseja enviar este pedido?',
+                            image: '/static/moto.gif',
+                            onConfirm: () => {
+                                updateOrderStatus(${order.id}, 'saiu_entrega');
+                            }
+                        });">Saiu para Entrega</button>
+                        ` : `
+                            <span class="badge bg-success">Saiu para Entrega</span>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+
+            if (order.status === 'confirmado') pendingOrders.innerHTML += card;
+            else if (order.status === 'preparando') preparingOrders.innerHTML += card;
+            else if (order.status === 'saiu_entrega') completedOrders.innerHTML += card;
+        });
+    }
+    // Atualiza status do pedido
+    async function updateOrderStatus(orderId, newStatus) {
+        try {
+            const response = await fetch(`/empresas/{{empresa.cnpj|remove_mask}}/api/pedidos/${orderId}/status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (!response.ok) throw new Error('Erro ao atualizar pedido');
+            const updatedOrder = await response.json();
+            fetchOrders();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    setInterval(fetchOrders, 5000);
+    fetchOrders();
+</script>
+
+{% endblock %}

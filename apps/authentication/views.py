@@ -73,6 +73,9 @@ def login(request):
                     recipient_list=[email],
                     html_message=html_content
                     )
+                
+                if emp.papel == 'Pizzaiolo':
+                    return redirect('pizzaiolo', cnpj=cnpj)
 
                 return redirect('dashboard', cnpj=cnpj)
             
@@ -472,7 +475,7 @@ def reset_password(request, user_id, verification_code):
         return render(request, 'auth/reset-password.html', context)
 
     except PasswordResetVerification.DoesNotExist:
-        messages.error(request, 'Código de verificação inválido.')
+        messages.error(request, 'Código de verificação inválido ou expirado.')
         return redirect('verificar_codigo', user_id=user_id)
 
     except Exception as e:

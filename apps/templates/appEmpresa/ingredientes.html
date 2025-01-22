@@ -54,7 +54,7 @@
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content rounded-lg border-radius-xl shadow">
                                                 <div class="row p-4 pb-0 text-start">
-                                                    <h5 class="text-gradient text-dark text-xxl mb-0" id="confirmarDeletarModalLabel">Deletar Ingrediente</h5>
+                                                    <h5 class="text-xxl mb-0" id="confirmarDeletarModalLabel">Deletar Ingrediente</h5>
                                                     <p class="">Tem certeza que deseja excluir este ingrediente?</p>
                                                 </div>
                                                 <div class="modal-body text-center mt-0 pt-0">
@@ -63,7 +63,7 @@
                                                         <img src="{% static 'warning-gif.gif' %}" alt="Deletar GIF" class="img-fluid border-radius-lg" style="width: 450px; height: 450px; object-fit: cover;">
                                                     </div>
                                                     <div class="d-flex justify-content-between p-2 pb-0">
-                                                        <button type="button" class="btn btn-white" style="border: 1px solid #e9e9e9;" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+                                                        <button type="button" class="btn text-dark" style="border: 1px solid #e9e9e9;" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                                                         <form id="formDeletar" method="POST" action="" style="display: inline;">
                                                             {% csrf_token %}
                                                             <button type="submit" class="btn bg-gradient-danger">Deletar Ingrediente</button>

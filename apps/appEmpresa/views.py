@@ -15,6 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from notifications.signals import notify
 from notifications.models import Notification
 from django.utils import timezone
+
+from apps.authentication.views import logout
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def aplicar_mascara_cnpj(cnpj):
@@ -128,6 +130,13 @@ def mark_notification_as_read(request, notification_id, cnpj):
     except Notification.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Notificação não encontrada'})
 
+def calcular_lucro(pedido):
+    custo_total = 0
+    for item in pedido.itens.all():
+        custo_total += item.cardapio_item.calcular_custo_producao() * item.quantidade
+    lucro = pedido.total - custo_total
+    return lucro
+
 @login_required
 def dashboard(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
@@ -139,35 +148,64 @@ def dashboard(request, cnpj):
             usu = EmpresaUsuario.objects.get(usuario=request.user)
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
-        
 
-    pedidos_total = Pedido.objects.filter(empresa=empresa).count()
-    vendas_hoje = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).aggregate(total=Sum('total'))['total'] or 0
-    pedidos_hoje = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today()).count()
-    pedidos_ontem = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today() - timedelta(days=1)).count()
+    data_atual = timezone.now()
+
+    # Filtro de pedidos entregues
+    pedidos_entregues = Pedido.objects.filter(empresa=empresa, historico__status='entregue')
+
+    pedidos_total = pedidos_entregues.count()
+    vendas_total = pedidos_entregues.aggregate(total=Sum('total'))['total'] or 0
+
+    # Vendas do mês atual (mês e ano atuais)
+    vendas_mes_atual = pedidos_entregues.filter(
+        data_pedido__year=data_atual.year,
+        data_pedido__month=data_atual.month
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    # Mês anterior: calculando o mês e o ano anteriores
+    if data_atual.month == 1:
+        mes_passado = 12  # Dezembro do ano passado
+        ano_passado = data_atual.year - 1
+    else:
+        mes_passado = data_atual.month - 1  # Mês anterior
+        ano_passado = data_atual.year
+
+    # Vendas do mês passado (ano e mês anteriores)
+    vendas_mes_passado = pedidos_entregues.filter(
+        data_pedido__year=ano_passado,
+        data_pedido__month=mes_passado
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    vendas_hoje = pedidos_entregues.filter(empresa=empresa, data_pedido__date=date.today()).aggregate(total=Sum('total'))['total'] or 0
+    pedidos_hoje = pedidos_entregues.filter(empresa=empresa, data_pedido__date=date.today()).count()
+
+    pedidos_ontem = pedidos_entregues.filter(
+        empresa=empresa, 
+        data_pedido__date=date.today() - timedelta(days=1)
+    ).count()
+
     # Pegar clientes que fizeram seu primeiro pedido hoje
-    clientes_novos = Pedido.objects.filter(empresa=empresa,  data_pedido__date=date.today()).values('cliente').distinct().count()
-    clientes_atendidos = Pedido.objects.filter(empresa=empresa).values('cliente').distinct().count()
+    clientes_novos = pedidos_entregues.filter(empresa=empresa, data_pedido__date=date.today()).values('cliente').distinct().count()
+    clientes_atendidos = pedidos_entregues.values('cliente').distinct().count()
+
     # Pegar vendas de ontem
-    vendas_ontem = Pedido.objects.filter(
+    vendas_ontem = pedidos_entregues.filter(
         empresa=empresa, 
         data_pedido__date=date.today() - timedelta(days=1)
     ).aggregate(total=Sum('total'))['total'] or 0
 
-    clientes_ontem = Pedido.objects.filter(empresa=empresa, data_pedido__date=date.today() - timedelta(days=1)).count()
-
-    # Pegar vendas de ontem
-    vendas_ontem = Pedido.objects.filter(
+    clientes_ontem = pedidos_entregues.filter(
         empresa=empresa, 
         data_pedido__date=date.today() - timedelta(days=1)
-    ).aggregate(total=Sum('total'))['total'] or 0
+    ).count()
 
     if pedidos_ontem > 0:
         variacao_percentual_pedidos = ((pedidos_hoje - pedidos_ontem) / pedidos_ontem) * 100
     else:
         variacao_percentual_pedidos = 100 if pedidos_hoje > 0 else 0
 
-    # Calcular a variação percentual
+    # Calcular a variação percentual das vendas
     if vendas_ontem > 0:
         variacao_percentual = ((vendas_hoje - vendas_ontem) / vendas_ontem) * 100
     else:
@@ -178,14 +216,11 @@ def dashboard(request, cnpj):
     else:
         variacao_percentual_clientes = 100 if clientes_novos > 0 else 0
 
-
-    itens_vendidos = ItemPedido.objects.filter(pedido__empresa=empresa, pedido__data_pedido__date=date.today()).count()
-    itens_vendidos_ontem = ItemPedido.objects.filter(pedido__empresa=empresa, pedido__data_pedido__date=date.today() - timedelta(days=1)).count()
-
-    if itens_vendidos_ontem > 0:
-        variacao_percentual_itens = ((itens_vendidos - itens_vendidos_ontem) / itens_vendidos_ontem) * 100
+    # Cálculo da variação percentual de vendas entre os meses
+    if vendas_mes_passado > 0:
+        variacao_percentual_vendas_mes = ((vendas_mes_atual - vendas_mes_passado) / vendas_mes_passado) * 100
     else:
-        variacao_percentual_itens = 100 if itens_vendidos > 0 else 0
+        variacao_percentual_vendas_mes = 100 if vendas_mes_atual > 0 else 0
 
     # Cálculo das avaliações
     avaliacoes_positivas = AvaliacaoPedido.objects.filter(
@@ -214,15 +249,8 @@ def dashboard(request, cnpj):
         porcentagem_neutras = 0
         porcentagem_negativas = 0
 
-
-    
-    pedidos_por_dia = (
-        Pedido.objects.filter(empresa=empresa, historico__status='entregue')
-        .annotate(dia_semana=ExtractWeekDay('data_pedido'))
-        .values('dia_semana')
-        .annotate(total=Count('id'))
-        .order_by('dia_semana')
-    )
+    # Pedidos por dia da semana (entregues)
+    pedidos_por_dia = pedidos_entregues.annotate(dia_semana=ExtractWeekDay('data_pedido')).values('dia_semana').annotate(total=Count('id')).order_by('dia_semana')
     
     dados_pedidos = [0] * 7
     for pedido in pedidos_por_dia:
@@ -237,15 +265,32 @@ def dashboard(request, cnpj):
         meses.append(venda['mes'].strftime('%b'))
         valores.append(float(venda['total']))
 
-
-    vendas_anual = Pedido.objects.filter(empresa=empresa, data_pedido__year=date.today().year).aggregate(total=Sum('total'))['total'] or 0
-    vendas_anual_anterior = Pedido.objects.filter(empresa=empresa, data_pedido__year=date.today().year - 1).aggregate(total=Sum('total'))['total'] or 0
+    vendas_anual = pedidos_entregues.filter(empresa=empresa, data_pedido__year=date.today().year).aggregate(total=Sum('total'))['total'] or 0
+    vendas_anual_anterior = pedidos_entregues.filter(empresa=empresa, data_pedido__year=date.today().year - 1).aggregate(total=Sum('total'))['total'] or 0
 
     if vendas_anual_anterior > 0:
         variacao_percentual_vendas = ((vendas_anual - vendas_anual_anterior) / vendas_anual_anterior) * 100
     else:
         variacao_percentual_vendas = 100 if vendas_anual > 0 else 0
 
+
+    
+    # Calcular lucro do mês atual
+    lucro_mes_atual = sum(calcular_lucro(pedido) for pedido in pedidos_entregues.filter(
+        data_pedido__year=data_atual.year,
+        data_pedido__month=data_atual.month
+    ))
+
+    # Calcular lucro do mês passado
+    lucro_mes_passado = sum(calcular_lucro(pedido) for pedido in pedidos_entregues.filter(
+        data_pedido__year=ano_passado,
+        data_pedido__month=mes_passado
+    ))
+
+    if lucro_mes_passado > 0:
+        variacao_percentual_lucro = ((lucro_mes_atual - lucro_mes_passado) / lucro_mes_passado) * 100
+    else:
+        variacao_percentual_lucro = 100 if lucro_mes_atual > 0 else 0
 
     context = {
         'page_title': 'Dashboard',
@@ -256,8 +301,6 @@ def dashboard(request, cnpj):
         'variacao_percentual_pedidos': variacao_percentual_pedidos,
         'clientes_novos': clientes_novos,
         'variacao_percentual_clientes': variacao_percentual_clientes,
-        'itens_vendidos': itens_vendidos,
-        'variacao_percentual_itens': variacao_percentual_itens,
         'clientes_atendidos': clientes_atendidos,
         'pedidos_total': pedidos_total,
         'avaliacoes_positivas': round(porcentagem_positivas, 1),
@@ -268,9 +311,13 @@ def dashboard(request, cnpj):
         'vendas_mensais': json.dumps(valores),
         'estatisticas': empresa.get_estatisticas_gerais(),
         'variacao_percentual_vendas': variacao_percentual_vendas,
+        'vendas_total': vendas_total,
+        'variacao_percentual_vendas_mes': variacao_percentual_vendas_mes,
+        'vendas_mes_atual': vendas_mes_atual,
+        'lucro_mes_atual': lucro_mes_atual,
+        'variacao_percentual_lucro': variacao_percentual_lucro,
     }
     return render(request, 'appEmpresa/dashboard.html', context)
-
 
 @login_required
 def avaliacoes(request, cnpj):
@@ -1141,7 +1188,6 @@ def pedidos(request, cnpj):
 
 
 
-
 import openpyxl
 @login_required
 def exportar_pedidos(request, cnpj):
@@ -1160,19 +1206,21 @@ def exportar_pedidos(request, cnpj):
 
     # Preenchendo os dados dos pedidos
     for pedido in pedidos:
+        historico = pedido.historico.order_by('-data_alteracao').first()  # Pega o mais recente
+        status = historico.status if historico else 'Sem Status'  # Caso não tenha histórico, atribui 'Sem Status'
         row = [
             pedido.data_pedido.strftime('%d/%m/%Y'),
             pedido.data_pedido.strftime('%H:%M'),
             "Manual",
             pedido.numero_pedido,
-            pedido.get_status_display(),
+            status,
             f"R$ {pedido.total:.2f}",
         ]
         ws.append(row)
 
     # Gerar o arquivo Excel
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=pedidos.xlsx'
+    response['Content-Disposition'] = f'attachment; filename={empresa.nome_fantasia}-pedidos.xlsx'
     wb.save(response)
     return response
 
@@ -1507,6 +1555,15 @@ def perfil(request, cnpj):
                 'localizacao': localizacao,
                 'device_id': device_id,
             })
+
+    # Se o botão de deslogar for pressionado
+    if request.method == 'POST' and 'deslogar_todas_sessoes' in request.POST:
+        for session in Session.objects.all():
+            data = session.get_decoded()
+            if data.get('_auth_user_id') == str(request.user.id):
+                session.delete()  # Deleta a sessão
+        logout(request)  # Desloga o usuário da sessão atual
+        return redirect('login')  # Redireciona para a página de login, ou onde desejar
     
     context = {
         'page_title': 'Perfil',
@@ -1572,3 +1629,96 @@ def perfil_empresa(request, cnpj):
     }
 
     return render(request, 'appEmpresa/perfil_empresa.html', context)
+
+
+
+def pizzaiolo(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+
+    if not request.user.is_superuser:
+        empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+    
+    context = {
+        'page_title': "Pizzaiolo",
+        'empresa': empresa,
+    }
+
+    return render(request, 'appEmpresa/pizzaiolo.html', context)
+
+
+@csrf_exempt
+def listar_pedidos(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+    pedidos = Pedido.objects.filter(empresa=empresa)
+    pedidos_data = []
+
+    for pedido in pedidos:
+        status_atual = pedido.historico.latest('data_alteracao').status if pedido.historico.exists() else 'pendente'
+        pedidos_data.append({
+            'id': pedido.id,
+            'cliente': pedido.cliente.nome,
+            'empresa': pedido.empresa.nome_fantasia,
+            'total': pedido.total,
+            'numero_pedido': pedido.numero_pedido,
+            'status': status_atual,
+            'itens': [
+                f"{item.quantidade}x {item.cardapio_item.nome}" for item in pedido.itens.all()
+            ]
+        })
+
+    return JsonResponse(pedidos_data, safe=False)
+
+
+@csrf_exempt
+def atualizar_status_pedido(request, cnpj, pedido_id):
+    if request.method == 'POST':
+        pedido = Pedido.objects.get(id=pedido_id)
+        data = json.loads(request.body)
+        novo_status = data.get('status')
+        usuario = request.user if request.user.is_authenticated else None
+
+        if novo_status == 'preparando':
+                    obs = 'Pedido em preparação'
+        if novo_status == 'saiu_entrega':
+                    obs = 'Pedido saiu para a entrega'
+        if novo_status == 'entregue':
+                    obs = 'Pedido entregue'
+
+        # Atualizar o histórico
+        HistoricoPedido.objects.create(
+            pedido=pedido,
+            status=novo_status,
+            observacao=obs,
+            alterado_por=usuario
+        )
+
+        return JsonResponse({'id': pedido.id, 'status': novo_status}, status=200)
+
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+
+def receita_pedido(request, cnpj,pedido_id):
+    pedido = Pedido.objects.get(id=pedido_id)
+    itens_receita = []
+
+    for item in pedido.itens.all():
+        ingredientes = IngredienteCardapio.objects.filter(cardapio_item=item.cardapio_item)
+        itens_receita.append({
+            'nome': item.cardapio_item.nome,
+            'ingredientes': [
+                {
+                    'nome': ing.ingrediente.nome,
+                    'quantidade': ing.quantidade,
+                    'unidade': ing.ingrediente.unidade
+                } for ing in ingredientes
+            ]
+        })
+
+    return JsonResponse(itens_receita, safe=False)

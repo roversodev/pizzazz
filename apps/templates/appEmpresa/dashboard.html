@@ -44,11 +44,11 @@
                 <div class="row">
                   <div class="col-8">
                     <div class="numbers">
-                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Pedidos Hoje</p>
+                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Lucro Mês</p>
                       <h5 class="font-weight-bolder mb-0">
-                        {{ pedidos_hoje }}
-                        <span class="{% if variacao_percentual_pedidos >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
-                          {% if variacao_percentual_pedidos >= 0 %}+{% endif %}{{ variacao_percentual_pedidos|floatformat:1 }}%
+                        R$ {{ lucro_mes_atual }}
+                        <span class="{% if variacao_percentual_lucro >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
+                          {% if variacao_percentual_lucro >= 0 %}+{% endif %}{{ variacao_percentual_lucro|floatformat:1 }}%
                         </span>
                       </h5>
                     </div>
@@ -90,11 +90,11 @@
                 <div class="row">
                   <div class="col-8">
                     <div class="numbers">
-                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Itens Vendidos Hoje</p>
+                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Vendas Mês</p>
                       <h5 class="font-weight-bolder mb-0">
-                        {{ itens_vendidos }}
-                        <span class="{% if variacao_percentual_itens >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
-                          {% if variacao_percentual_itens >= 0 %}+{% endif %}{{ variacao_percentual_itens|floatformat:1 }}%
+                        R$ {{ vendas_mes_atual|floatformat:2 }}
+                        <span class="{% if variacao_percentual_vendas_mes >= 0 %}text-success{% else %}text-danger{% endif %} text-sm font-weight-bolder">
+                          {% if variacao_percentual_vendas_mes >= 0 %}+{% endif %}{{ variacao_percentual_vendas_mes|floatformat:1 }}%
                         </span>
                       </h5>
                     </div>
@@ -196,13 +196,13 @@
                   <h3 class="text-dark font-weight-bold mb-0">Visão Geral dos Pedidos</h3>
                   <p class="mb-0 mb-4">Acompanhe o alcance do seu negócio</p>
                   <h5 class="font-weight-bolder mb-0">
-                    {{ pedidos_total }}
+                    R$ {{ vendas_total|floatformat:2 }}
                   </h5>
-                  <p class="mb-2">Pedidos Total</p>
+                  <p class="mb-2">Vendas Total</p>
                   <h5 class="font-weight-bolder mb-0">
                     {{ clientes_atendidos }}
                   </h5>
-                  <p class="mb-0">Clientes atendidos</p>
+                  <p class="mb-0">Clientes Total</p>
                 </div>
               </div>
               <div class="col-2 text-end">

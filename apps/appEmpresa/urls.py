@@ -65,4 +65,11 @@ urlpatterns = [
     path('controle_usuarios', views.controle_usuarios, name='controle_usuarios'),
     path('cadastrar_user', views.cadastrar_user, name='cadastrar_user'),
     path('excluir_user/<int:user_id>', views.excluir_user, name='excluir_user'),
+
+    # Pizzaiolo
+    path('pizzaiolo/', views.pizzaiolo, name='pizzaiolo'),
+    path('api/pedidos/', views.listar_pedidos, name='listar_pedidos'),
+    path('api/pedidos/<int:pedido_id>/status/', views.atualizar_status_pedido, name='atualizar_status_pedido'),
+    path('api/pedido/<int:pedido_id>/receita/', views.receita_pedido, name='receita_pedido'),
+
 ]

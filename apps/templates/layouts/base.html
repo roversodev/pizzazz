@@ -45,58 +45,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
 
-    <!-- Specific Page CSS goes HERE  -->
-    <style>
-        .form-check-input:checked {
-            background: linear-gradient(195deg, #27272a 0%, #18181b 100%) !important;
-            border-color: #18181b !important;
-        }
-    </style>
-    <style>
-        @font-face {
-            font-family: 'Rebond';
-            src: url('/static/fonts/Rebond/Rebond-Regular.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        .rebond {
-            font-family: 'Rebond', sans-serif;
-        }
-
-        .mont {
-            font-family: 'Montserat', sans-serif;
-        }
-
-        .inter {
-            font-family: 'Inter', sans-serif;
-        }
-
-        .poppins {
-            font-family: 'Poppins', sans-serif;
-        }
-        .lexend {
-            font-family: 'Lexend', sans-serif;
-        }
-        .michroma{
-            font-family: 'Michroma', sans-serif;
-        }
-        #loader {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2));
-    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
-    }
-
-    #loader.hidden {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* Aumentando o z-index do SweetAlert2 */
-    .swal2-container {
-        z-index: 9999999 !important;  /* Aumente o valor conforme necessário */
-    }
-
-    </style>
     {% block stylesheets %}{% endblock stylesheets %}
 
 </head>
