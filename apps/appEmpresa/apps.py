@@ -6,4 +6,6 @@ class AppempresaConfig(AppConfig):
     name = 'apps.appEmpresa'
 
     def ready(self):
+        from .scheduler import start_scheduler
+        start_scheduler()
         import apps.authentication.signals

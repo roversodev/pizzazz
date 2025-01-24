@@ -8,36 +8,6 @@
     const savedTheme = localStorage.getItem("theme");
     const checkbox = document.getElementById("dark-version");
 
-    // Função para atualizar as classes de botão com base no tema
-    function atualizarClasses() {
-        const elementosBgGradientDark = document.querySelectorAll('.bg-gradient-dark');
-        const elementosBtnDark = document.querySelectorAll('.btn-dark');
-        
-        if (document.body.classList.contains("dark-version")) {
-            // Modo escuro: troque para btn-white
-            elementosBgGradientDark.forEach(element => {
-                element.classList.remove('bg-gradient-dark');
-                element.classList.add('btn-white');
-            });
-
-            elementosBtnDark.forEach(element => {
-                element.classList.remove('btn-dark');
-                element.classList.add('btn-white');
-            });
-        } else {
-            // Modo claro: retorne para bg-gradient-dark e btn-dark
-            elementosBgGradientDark.forEach(element => {
-                element.classList.remove('btn-white');
-                element.classList.add('bg-gradient-dark');
-            });
-
-            elementosBtnDark.forEach(element => {
-                element.classList.remove('btn-white');
-                element.classList.add('btn-dark');
-            });
-        }
-    }
-
     // Definir o tema inicial ao carregar a página
     if (savedTheme === "dark") {
         document.body.classList.add("dark-version");
@@ -46,9 +16,6 @@
         document.body.classList.remove("dark-version");
         checkbox.checked = false; // Desmarcar o checkbox
     }
-
-    // Atualizar as classes logo após a verificação do tema
-    atualizarClasses();
 
     // Adicionar um listener para alternar o tema
     checkbox.addEventListener("change", function() {
@@ -59,9 +26,6 @@
             document.body.classList.remove("dark-version");
             localStorage.setItem("theme", "light");
         }
-        
-        // Atualizar as classes sempre que o tema mudar
-        atualizarClasses();
     });
 }
 

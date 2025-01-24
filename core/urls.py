@@ -12,6 +12,8 @@ urlpatterns = [
     path("", include("apps.authentication.urls")),
     # ADMIN DA EMPRESA
     path("empresas/<str:cnpj>/", include("apps.appEmpresa.urls")),
+    # ADMIN PIZZAZZZ
+    path("admin/", include("apps.admin.urls")),
 ]
 
 if settings.DEBUG:

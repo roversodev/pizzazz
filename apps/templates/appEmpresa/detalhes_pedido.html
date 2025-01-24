@@ -59,8 +59,8 @@
                     <ul class="list-unstyled mb-0">
                         <li><strong>Nome:</strong> {{ pedido.cliente.nome }}</li>
                         <li><strong>Email:</strong> {{ pedido.cliente.usuario.email|default:"Não cadastrado" }}</li>
-                        <li><strong>Telefone:</strong> {{ pedido.cliente.telefone|default:"Não informado" }}</li>
-                        <li><strong>Endereço:</strong> {{ pedido.endereco_pedido.endereco }}, {{ pedido.endereco_pedido.numero }} - {{ pedido.endereco_pedido.complemento }} <br>{{ pedido.endereco_pedido.cep }} - {{ pedido.endereco_pedido.municipio }}</li>
+                        <li><strong>Telefone:</strong> {{ pedido.cliente.telefone|default:"Não informado" }} {% if pedido.cliente.telefone %} <a href="{{ pedido.cliente.link_whatsapp }}" class="text-success"><i class="fa-brands fa-whatsapp"></i></a>{% endif %}</li>
+                        <li><strong>Endereço:</strong> {{ pedido.endereco_cliente.endereco }}, {{ pedido.endereco_cliente.numero }} - {{ pedido.endereco_cliente.complemento }} <br>{{ pedido.endereco_cliente.cep }} - {{ pedido.endereco_cliente.municipio }}</li>
                     </ul>
                 </div>
             </div>

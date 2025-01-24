@@ -13,6 +13,13 @@ class CustomUser(AbstractUser):
     is_empresa = models.BooleanField(default=False)
     profile_image = models.ImageField(upload_to='profile_pics/', default='profile_pics/user2.jpg')
     is_first_login = models.BooleanField(default=True)
+    is_adm = models.BooleanField(default=False)
+    ativo = models.BooleanField(default=True)
+    papel_adm = models.CharField(max_length=50, choices=[
+        ('Master', 'Master'),
+        ('Atendente', 'Atendente'),
+        ('Gerente', 'Gerente'),
+    ], null=True, blank=True)
 
     def __str__(self):
         return self.username
@@ -51,12 +58,16 @@ class Empresa(models.Model):
     preco_frete = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=None)
     pedido_minimo = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=None)
     perfil_empresa = models.ImageField(upload_to='profile_pics/', default='profile_pics/user2.jpg')
+    ativo = models.BooleanField(default=True)
 
     # Itens em destaque
     itens_destaque = models.ManyToManyField('Cardapio', related_name='em_destaque', blank=True)
 
     def __str__(self):
         return self.nome_fantasia
+    
+    def contar_pedidos(self):
+        return self.pedido_set.count()
 
     def is_dono(self):
         try:
@@ -106,6 +117,22 @@ class Empresa(models.Model):
 
 
 
+class RelatorioFinanceiro(models.Model):
+    ano = models.IntegerField()
+    mes = models.IntegerField()
+    vendas_mes_atual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    lucro_mes_atual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vendas_mes_passado = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    lucro_mes_passado = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    variacao_percentual_lucro = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Relatório {self.mes}/{self.ano}'
+
+
+
 class EmpresaUsuario(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     usuario = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='empresa_usuario', null=False, blank=False)
@@ -114,6 +141,7 @@ class EmpresaUsuario(models.Model):
         ('Caixa', 'Caixa'),
         ('Pizzaiolo', 'Pizzaiolo'),
     ])
+    ativo = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.usuario.username} - {self.papel}'
@@ -238,6 +266,8 @@ class Pedido(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_pedido = models.IntegerField(unique=True, null=False, blank=False)
     canal = models.CharField(max_length=50, default='Manual')
+    endereco_cliente = models.ForeignKey(EnderecoCliente, on_delete=models.PROTECT)
+    
 
     def calcular_total(self):
         total = sum(item.preco_total for item in self.itens.all())

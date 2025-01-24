@@ -1,0 +1,353 @@
+{% extends 'layouts/base.html' %}
+
+{% load my_filters %}
+
+{% load static %}
+
+{% block stylesheets %}
+<style>
+  #loaderOverlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    #loaderOverlay.show {
+        opacity: 1;
+        display: flex;
+    }
+  .input-group.input-group-outline.is-focused .form-label+.form-control,
+  .input-group.input-group-outline.is-filled .form-label+.form-control {
+    border-color: #D2D6DA !important;
+    border-top-color: transparent !important;
+    box-shadow: inset 1px 0 #D2D6DA, inset -1px 0 #D2D6DA, inset 0 -1px #D2D6DA;
+  }
+
+  .input-group.input-group-outline.is-focused .form-label:before,
+  .input-group.input-group-outline.is-focused .form-label:after,
+  .input-group.input-group-outline.is-filled .form-label:before,
+  .input-group.input-group-outline.is-filled .form-label:after {
+    border-top-color: #D2D6DA;
+    box-shadow: inset 0 1px #D2D6DA;
+  }
+
+  .input-group.input-group-outline.is-focused .form-label,
+  .input-group.input-group-outline.is-filled .form-label {
+    color: #333;
+  }
+
+  .nav-link-text {
+    color: #27272A;
+  }
+
+  body {
+    background: #F5F5F5;
+  }
+
+  .active {
+    background: #fff !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1) !important;
+  }
+
+  .active div:nth-child(1) {
+    background-image: linear-gradient(195deg, #EF5350 0%, #E53935 100%) !important;
+  }
+
+  .custom-bg {
+    background: transparent !important;
+  }
+
+  .modal-backdrop {
+      z-index: 99999 !important;
+  }
+
+  .modal {
+      z-index: 999999;
+      word-wrap: break-word;
+      white-space: normal;
+  }
+
+  .modal-content{
+    border: none;
+  }
+
+  .page-item.active{
+    background: transparent !important; box-shadow: none !important;
+}
+.flatpickr-calendar .flatpickr-day.today, .flatpickr-calendar .flatpickr-day.selected, .flatpickr-calendar .flatpickr-day.startRange, .flatpickr-calendar .flatpickr-day.endRange{
+    background: #f44335 !important;
+}
+
+  @media (max-width: 1200px) {
+    .custom-bg {
+      background-color: white !important;
+    }
+
+    .dark-version .custom-bg {
+      background-color: #27272A !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="g-sidenav-show" id="controlSide">
+  <aside
+    class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 custom-bg"
+    id="sidenav-main">
+    <div class="sidenav-header p-3">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
+        aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href="{% url 'adminD' %}">
+        <img src="{{ASSETS_ROOT}}/img/logo-black-icon.png" class="navbar-brand-img h-100" alt="main_logo">
+        <span class="ms-1 font-weight-bold">Admin PizzazzZ</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Dashboard' %}active{% endif %}"
+            href="{% url 'adminD' %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+              <i
+                class="ph-bold ph-house-line top-0 text-dark {% if page_title == 'Dashboard' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Empresas' %}active{% endif %}"
+            href="{% url 'admin_empresas' %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+              <i
+                class="ph-bold ph-building-office top-0 text-dark {% if page_title == 'Empresas' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Empresas</span>
+          </a>
+        </li>
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Conta</h6>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Perfil' %}active{% endif %}"
+            href="{% url 'perfil_admin' %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+              <i
+                class="ph-bold ph-user top-0 text-dark {% if page_title == 'Perfil' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Perfil</span>
+          </a>
+        </li>
+        {% if request.user.papel_adm == 'Master' %}
+        <li class="nav-item">
+            <a class="nav-link {% if page_title == 'Controle de Usuários' %}active{% endif %}"
+              href="{% url 'controle_usuarios_admin' %}">
+              <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+                <i class="ph-bold ph-user-circle top-0 text-dark {% if page_title == 'Controle de Usuários' %}text-white{% endif %}"></i>
+              </div>
+              <span class="nav-link-text ms-1">Controle de Usuários</span>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+    <div class="sidenav-footer">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link " href="{% url 'logout' %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+              <i class="ph-bold ph-sign-out top-0 text-dark sair"></i>
+            </div>
+            <span class="nav-link-text ms-1">Sair</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+      navbar-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        <h6 class="font-weight-bolder mb-0">{{ page_title }}</h6>
+        <div class="ms-md-auto pe-md-3 d-flex align-items-center" id="navbar">
+          <ul class="navbar-nav  justify-content-end">
+            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">
+                <div class="sidenav-toggler-inner">
+                  <i class="sidenav-toggler-line"></i>
+                  <i class="sidenav-toggler-line"></i>
+                  <i class="sidenav-toggler-line"></i>
+                </div>
+              </a>
+            </li>        
+            <li class="nav-item dropdown px-3 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="config">
+                <i class="fa fa-cog cursor-pointer"></i>
+              </a>
+              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" style="width: 300px;" aria-labelledby="dropdownConfig">
+              </ul>
+            </li>
+            <li class="nav-item dropdown pe-2 d-flex align-items-center">
+              <a href="javascript:;" class="nav-link text-body p-0" id="dropdownMenuButton" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="fa fa-bell cursor-pointer"></i>
+              </a>
+              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" style="width: 300px;" aria-labelledby="dropdownMenuButton" id="notificationDropdown">
+              </ul>
+            </li>
+            <!--
+                <li class="nav-item dropdown d-flex align-items-center">
+                  <a href="javascript:;" class="avatar avatar-xs rounded-circle" id="perfil" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                              <img src="/media/{{empresa.perfil_empresa}}" style="object-fit: cover; height: 100%; width: 100%;" alt="perfil">
+                  </a>
+                  <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="perfil">
+                    <li class="mb-2">
+                      <a class="dropdown-item border-radius-md" href="javascript:;">
+                        <div class="d-flex py-1">
+                          <div class="d-flex flex-column justify-content-center">
+                            <h6 class="text-sm font-weight-normal mb-1">
+                              <span class="font-weight-bold">Novo pedido</span> from Laur
+                            </h6>
+                            <p class="text-xs text-secondary mb-0 ">
+                              <i class="fa fa-clock me-1"></i>
+                              13 minutes ago
+                            </p>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                  -->
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- End Navbar -->
+    <div class="fixed-plugin">
+      <div class="card shadow-lg">
+        <div class="card-header pb-0 pt-3  bg-transparent ">
+          <div class="float-start">
+            <h5 class="mt-3 mb-0">Configurador de Aparencia.</h5>
+            <p>Veja suas opções.</p>
+          </div>
+          <div class="float-end mt-4">
+            <button class="btn btn-link p-0 fixed-plugin-close-button text-dark">
+              <i class="fa fa-close"></i>
+            </button>
+          </div>
+          <!-- End Toggle Button -->
+        </div>
+        <hr class="horizontal my-1 dark">
+        <div class="card-body pt-sm-3 pt-0">
+          <div class="d-flex justify-content-between">
+            <div class="mt-2">
+              <h6 class="mb-0">Claro/Escuro</h6>
+            </div>
+            <div class="form-switch is-filled">
+              <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <!-- Toasts serão adicionados dinamicamente aqui -->
+  </div>
+  <div id="loaderOverlay" class="d-none align-items-center justify-content-center bg-gray-100">
+    <div class="spinner-border text-gradient text-danger" role="status" style="width: 3rem; height: 3rem;"></div>
+    <p class="mt-3 text-gradient text-danger fw-bold">Carregando...</p>
+</div>
+    {% block content2 %} {% endblock %}
+  </main>
+
+
+<script>
+  // Funções para mostrar e ocultar o loader
+function showLoader() {
+    const loader = document.getElementById('loaderOverlay');
+    loader.classList.add('show');
+    loader.classList.remove('d-none');
+}
+
+function hideLoader() {
+    const loader = document.getElementById('loaderOverlay');
+    loader.classList.remove('show');
+    setTimeout(() => loader.classList.add('d-none'), 300); // Garante que a transição termine antes de ocultar
+}
+
+showLoader();
+
+// Exemplo de uso: Simula uma operação com loader
+window.addEventListener('load', () => {
+    hideLoader();
+});
+</script>
+
+
+  <script>
+    // Alternar classe ao clicar no botão
+    document.getElementById('iconNavbarSidenav').addEventListener('click', function (event) {
+      const controlSide = document.getElementById('controlSide');
+      controlSide.classList.toggle('g-sidenav-pinned');
+      event.stopPropagation(); // Evita que o clique no botão feche a sidebar
+    });
+
+    // Fechar sidebar ao clicar fora dela
+    document.addEventListener('click', function (event) {
+      const sidebar = document.getElementById('sidenav-main');
+      const button = document.getElementById('iconNavbarSidenav');
+      const controlSide = document.getElementById('controlSide');
+
+      // Verificar se o clique não foi na sidebar nem no botão
+      if (!sidebar.contains(event.target) && !button.contains(event.target)) {
+        controlSide.classList.remove('g-sidenav-pinned');
+      }
+    });
+  </script>
+
+<script>
+  $(document).ready(function() {
+    // Ao clicar na UL do dropdown, exibe a div.fixed-plugin
+    $("#config").click(function(e) {
+      e.stopPropagation(); // Evita que o clique no dropdown feche a div imediatamente
+      $(".fixed-plugin").addClass("show"); // Adiciona a classe 'show'
+    });
+
+    // Ao clicar fora da fixed-plugin ou no botão de fechar, fecha a div
+    $(document).click(function(e) {
+      if (!$(e.target).closest(".fixed-plugin").length && !$(e.target).closest("#config").length) {
+        $(".fixed-plugin").removeClass("show"); // Remove a classe 'show'
+      }
+    });
+
+    // Ao clicar no botão de fechar (X), fecha a div.fixed-plugin
+    $(".fixed-plugin-close-button").click(function() {
+      $(".fixed-plugin").removeClass("show");
+    });
+  });
+</script>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="{% static 'js/validar-form.js' %}"></script>
+<script src="{% static 'assets/js/plugins/input-mask.min.js' %}"></script>
+{% endblock %}

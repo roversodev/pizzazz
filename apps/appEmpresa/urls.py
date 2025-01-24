@@ -71,5 +71,8 @@ urlpatterns = [
     path('api/pedidos/', views.listar_pedidos, name='listar_pedidos'),
     path('api/pedidos/<int:pedido_id>/status/', views.atualizar_status_pedido, name='atualizar_status_pedido'),
     path('api/pedido/<int:pedido_id>/receita/', views.receita_pedido, name='receita_pedido'),
+    
+    # Relatório Financeiro
+    path('relatorio_financeiro/', views.relatorio_financeiro, name='relatorio_financeiro'),
 
 ]

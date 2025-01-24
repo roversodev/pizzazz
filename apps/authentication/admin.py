@@ -3,7 +3,7 @@ from .models import (
     CustomUser, Cliente, Empresa, EnderecoCliente, EnderecoEmpresa,
     EmpresaUsuario, EnderecoPedido, HistoricoPedido, Pedido, AvaliacaoPedido, Categoria, Cardapio,
     ItemPedido, Ingrediente, Estoque, MovimentacaoEstoque, IngredienteCardapio,
-    Carrinho, ItemCarrinho, Sequencia
+    Carrinho, ItemCarrinho, RelatorioFinanceiro, Sequencia
 )
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
@@ -15,12 +15,34 @@ except admin.sites.NotRegistered:
     pass
 
 
-# Registra o CustomUser com o modelo de administração
+# Registra o CustomUser  com o modelo de administração
 class CustomUserAdmin(UserAdmin):
-    list_display = ('email', 'is_cliente', 'is_empresa', 'is_first_login', 'date_joined')
+    # Campos a serem exibidos na lista de usuários
+    list_display = ('email', 'is_cliente', 'is_empresa', 'is_first_login', 'is_adm', 'papel_adm', 'date_joined')
     search_fields = ('email',)
-    list_filter = ('is_cliente', 'is_empresa')
+    list_filter = ('is_cliente', 'is_empresa', 'is_adm', 'papel_adm')
 
+    # Campos a serem exibidos na página de edição do usuário
+    fieldsets = (
+        (None, {'fields': ('username', 'email', 'password')}),
+        ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'profile_image', 'is_cliente', 'is_empresa', 'is_first_login', 'is_adm', 'papel_adm')}),
+        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Datas', {'fields': ('last_login', 'date_joined')}),
+    )
+
+    # Campos que podem ser editados na página de edição do usuário
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'password1', 'password2', 'is_cliente', 'is_empresa', 'is_first_login', 'is_adm', 'papel_adm')}
+        ),
+    )
+
+    # Define o modelo que será usado para criar novos usuários
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+# Registra o CustomUser Admin
 admin.site.register(CustomUser, CustomUserAdmin)
 
 
@@ -180,3 +202,10 @@ class ItemCarrinhoAdmin(admin.ModelAdmin):
     search_fields = ('carrinho__cliente__usuario__email', 'cardapio_item__nome')
 
 admin.site.register(ItemCarrinho, ItemCarrinhoAdmin)
+
+
+class RelatorioFinanceiroAdmin(admin.ModelAdmin):
+    list_display = ('empresa', 'ano', 'mes', 'vendas_mes_atual', 'lucro_mes_atual', 'vendas_mes_passado', 'lucro_mes_passado', 'variacao_percentual_lucro')
+    search_fields = ('empresa__nome', 'ano', 'mes')  # Ajuste conforme necessário
+
+admin.site.register(RelatorioFinanceiro, RelatorioFinanceiroAdmin)

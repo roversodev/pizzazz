@@ -1,0 +1,504 @@
+{% extends 'includes/side-nav-admin.html' %}
+
+{% load static %}
+
+{% load my_filters %}
+
+{% block title %}Admin Empresas{% endblock %}
+
+{% block content2 %}
+{% include 'includes/messages.html' %}
+<style>
+    .jvm-container{
+        touch-action: none;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+    }
+</style>
+<div class="container-fluid py-4 min-vh-85">
+    <div class="row">
+        <div class="col-lg-12 position-relative z-index-2">
+          <div class="ms-3">
+            <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
+            <p class="mb-4">
+              Confira os pedidos, valores e pedidos por bairro.
+            </p>
+          </div>
+          <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="mb-0 ">Visualizações do Site</h6>
+                  <p class="text-sm ">Performace da Ultima Campanha</p>
+                  <div class="pe-2">
+                    <div class="chart">
+                      <canvas id="chart-bars" class="chart-canvas" height="510" width="972" style="display: block; box-sizing: border-box; height: 170px; width: 324px;"></canvas>
+                    </div>
+                  </div>
+                  <hr class="dark horizontal">
+                  <div class="d-flex ">
+                    <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+                    <p class="mb-0 text-sm">campanha enviada 2 dias atrás</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+              <div class="card ">
+                <div class="card-body">
+                  <h6 class="mb-0 "> Vendas Diárias </h6>
+                  <p class="text-sm "> (<span class="font-weight-bolder">+15%</span>) nas vendas de hoje. </p>
+                  <div class="pe-2">
+                    <div class="chart">
+                      <canvas id="chart-line" class="chart-canvas" height="510" width="972" style="display: block; box-sizing: border-box; height: 170px; width: 324px;"></canvas>
+                    </div>
+                  </div>
+                  <hr class="dark horizontal">
+                  <div class="d-flex ">
+                    <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+                    <p class="mb-0 text-sm"> atualizado 4 min atrás </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="mb-0 ">Tarefas Concluídas</h6>
+                  <p class="text-sm ">Performace da Ultima Campanha</p>
+                  <div class="pe-2">
+                    <div class="chart">
+                      <canvas id="chart-line-tasks" class="chart-canvas" height="510" width="972" style="display: block; box-sizing: border-box; height: 170px; width: 324px;"></canvas>
+                    </div>
+                  </div>
+                  <hr class="dark horizontal">
+                  <div class="d-flex ">
+                    <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+                    <p class="mb-0 text-sm">atualizado agora</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-6">
+              <div class="card  mb-2">
+                <div class="card-header p-2 ps-3">
+                  <div class="d-flex justify-content-between">
+                    <div>
+                      <p class="text-sm mb-0 text-capitalize">Pedidos</p>
+                      <h4 class="mb-0">{{numero_pedidos}}</h4>
+                    </div>
+                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">weekend</i>
+                    </div>
+                  </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-2 ps-3">
+                  <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+55% </span>do que na semana passada</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6">
+              <div class="card  mb-2">
+                <div class="card-header p-2 ps-3">
+                  <div class="d-flex justify-content-between">
+                    <div>
+                      <p class="text-sm mb-0 text-capitalize">Usuários Hoje</p>
+                      <h4 class="mb-0">2,300</h4>
+                    </div>
+                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">leaderboard</i>
+                    </div>
+                  </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-2 ps-3">
+                  <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+3% </span>do que no mês passado</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6">
+              <div class="card  mb-2">
+                <div class="card-header p-2 ps-3">
+                  <div class="d-flex justify-content-between">
+                    <div>
+                      <p class="text-sm mb-0 text-capitalize">Vendas</p>
+                      <h4 class="mb-0">$34,000</h4>
+                    </div>
+                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">store</i>
+                    </div>
+                  </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-2 ps-3">
+                  <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+35% </span>do que no mês passado</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6">
+              <div class="card  mb-2">
+                <div class="card-header p-2 ps-3">
+                  <div class="d-flex justify-content-between">
+                    <div>
+                      <p class="text-sm mb-0 text-capitalize">Seguidores</p>
+                      <h4 class="mb-0">+2,910</h4>
+                    </div>
+                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">person_add</i>
+                    </div>
+                  </div>
+                </div>
+                <hr class="dark horizontal my-0">
+                <div class="card-footer p-2 ps-3">
+                  <p class="mb-0 text-sm">Atualizado agora</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="card mb-4">
+              <div class="card-header pb-0">
+                <h6 class="mb-0">Pedidos por Bairro</h6>
+                <p class="mb-2 text-sm">
+                  Confira os pedidos, valor e pizzaria por bairro.
+                </p>
+              </div>
+              <div class="card-body p-3">
+                <div class="row">
+                  <div class="col-lg-6 col-md-7">
+                    <div class="table-responsive">
+                        <table class="table align-items-center">
+                            <thead>
+                                <tr>
+                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Bairro</th>
+                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Pedidos</th>
+                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Valor Total</th>
+                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Clientes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bairro in bairros %}
+                                <tr>
+                                    <td class="w-30">
+                                        <h6 class="text-sm font-weight-normal mb-0">{{ bairro.endereco_cliente__bairro }}</h6>
+                                    </td>
+                                    <td>
+                                        <h6 class="text-sm font-weight-normal mb-0">{{ bairro.total_pedidos }}</h6>
+                                    </td>
+                                    <td>
+                                        <h6 class="text-sm font-weight-normal mb-0">R$ {{ bairro.total_valor|floatformat:2 }}</h6>
+                                    </td>
+                                    <td class="align-middle text-sm">
+                                        <h6 class="text-sm font-weight-normal mb-0">{{bairro.total_clientes}}</h6>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                  </div>
+                  <div class="col-lg-6 col-md-5">
+                    <div id="map" class="mt-0 mt-lg-n4 jvm-container"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+<script src="{{ ASSETS_ROOT }}/js/plugins/chartjs.min.js"></script>
+<script src="{{ ASSETS_ROOT }}/js/plugins/world.min.js"></script>
+<script>
+    var ctx = document.getElementById("chart-bars").getContext("2d");
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["M", "T", "W", "T", "F", "S", "S"],
+        datasets: [{
+          label: "Sales",
+          tension: 0.4,
+          borderWidth: 0,
+          borderRadius: 4,
+          borderSkipped: false,
+          backgroundColor: "#E53935",
+          data: [50, 45, 22, 28, 50, 60, 76],
+          barThickness: 'flex'
+        }, ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index',
+        },
+        scales: {
+          y: {
+            grid: {
+              drawBorder: false,
+              display: true,
+              drawOnChartArea: true,
+              drawTicks: false,
+              borderDash: [5, 5],
+              color: '#e5e5e5'
+            },
+            ticks: {
+              suggestedMin: 0,
+              suggestedMax: 500,
+              beginAtZero: true,
+              padding: 10,
+              font: {
+                size: 14,
+                lineHeight: 2
+              },
+              color: "#737373"
+            },
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              display: false,
+              drawOnChartArea: false,
+              drawTicks: false,
+              borderDash: [5, 5]
+            },
+            ticks: {
+              display: true,
+              color: '#737373',
+              padding: 10,
+              font: {
+                size: 14,
+                lineHeight: 2
+              },
+            }
+          },
+        },
+      },
+    });
+
+
+    var ctx2 = document.getElementById("chart-line").getContext("2d");
+
+    new Chart(ctx2, {
+      type: "line",
+      data: {
+        labels: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+        datasets: [{
+          label: "Mobile apps",
+          tension: 0,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: "#E53935",
+          pointBorderColor: "transparent",
+          borderColor: "#E53935",
+          backgroundColor: "transparent",
+          fill: true,
+          data: [120, 230, 130, 440, 250, 360, 270, 180, 90, 300, 310, 220],
+          maxBarThickness: 6
+
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                const fullMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                return fullMonths[context[0].dataIndex];
+              }
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index',
+        },
+        scales: {
+          y: {
+            grid: {
+              drawBorder: false,
+              display: true,
+              drawOnChartArea: true,
+              drawTicks: false,
+              borderDash: [4, 4],
+              color: '#e5e5e5'
+            },
+            ticks: {
+              display: true,
+              color: '#737373',
+              padding: 10,
+              font: {
+                size: 12,
+                lineHeight: 2
+              },
+            }
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              display: false,
+              drawOnChartArea: false,
+              drawTicks: false,
+              borderDash: [5, 5]
+            },
+            ticks: {
+              display: true,
+              color: '#737373',
+              padding: 10,
+              font: {
+                size: 12,
+                lineHeight: 2
+              },
+            }
+          },
+        },
+      },
+    });
+
+    var ctx3 = document.getElementById("chart-line-tasks").getContext("2d");
+
+    new Chart(ctx3, {
+      type: "line",
+      data: {
+        labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        datasets: [{
+          label: "Mobile apps",
+          tension: 0,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: "#E53935",
+          pointBorderColor: "transparent",
+          borderColor: "#E53935",
+          backgroundColor: "transparent",
+          fill: true,
+          data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
+          maxBarThickness: 6
+
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index',
+        },
+        scales: {
+          y: {
+            grid: {
+              drawBorder: false,
+              display: true,
+              drawOnChartArea: true,
+              drawTicks: false,
+              borderDash: [4, 4],
+              color: '#e5e5e5'
+            },
+            ticks: {
+              display: true,
+              padding: 10,
+              color: '#737373',
+              font: {
+                size: 14,
+                lineHeight: 2
+              },
+            }
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              display: false,
+              drawOnChartArea: false,
+              drawTicks: false,
+              borderDash: [4, 4]
+            },
+            ticks: {
+              display: true,
+              color: '#737373',
+              padding: 10,
+              font: {
+                size: 14,
+                lineHeight: 2
+              },
+            }
+          },
+        },
+      },
+    });
+
+    // Initialize the vector map
+    var map = new jsVectorMap({
+      selector: "#map",
+      map: "world_merc",
+      zoomOnScroll: false,
+      zoomButtons: false,
+      showTooltip: false,
+      selectedMarkers: [1, 3],
+      markersSelectable: true,
+      markers: [{
+          name: "USA",
+          coords: [40.71296415909766, -74.00437720027804]
+        },
+        {
+          name: "Germany",
+          coords: [51.17661451970939, 10.97947735117339],
+          style: {
+            fill: '#E53935'
+          }
+        },
+        {
+          name: "Brazil",
+          coords: [-7.596735421549542, -54.781694323779185],
+          style: {
+            fill: '#E53935'
+          }
+        },
+        {
+          name: "Russia",
+          coords: [62.318222797104276, 89.81564777631716]
+        },
+        {
+          name: "China",
+          coords: [22.320178999475512, 114.17161225541399],
+        }
+      ],
+      markerStyle: {
+        initial: {
+          fill: "#333333"
+        },
+        hover: {
+          fill: "#333333"
+        },
+        selected: {
+          fill: "#333333"
+        }
+      },
+        // Adicione esta linha para desativar o tooltip
+        tooltip: {
+            content: false // Desativa o conteúdo do tooltip
+        }
+
+    });
+</script>
+{% endblock %}

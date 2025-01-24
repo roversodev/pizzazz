@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 import json, locale, re
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, EnderecoPedido, Estoque, HistoricoPedido, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pagamento, Pedido, AvaliacaoPedido, Sequencia 
+from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, EnderecoPedido, Estoque, HistoricoPedido, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pagamento, Pedido, AvaliacaoPedido, RelatorioFinanceiro, Sequencia 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
@@ -15,8 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from notifications.signals import notify
 from notifications.models import Notification
 from django.utils import timezone
-
 from apps.authentication.views import logout
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def aplicar_mascara_cnpj(cnpj):
@@ -142,7 +143,7 @@ def dashboard(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -324,7 +325,7 @@ def avaliacoes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -349,7 +350,7 @@ def controle_usuarios(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -369,12 +370,12 @@ def controle_usuarios(request, cnpj):
     return render(request, 'appEmpresa/controle_usuarios.html', context)
 
 
-
+@login_required
 def excluir_user(request, cnpj, user_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -386,15 +387,25 @@ def excluir_user(request, cnpj, user_id):
     user_escolhido = CustomUser.objects.get(id=user_id)
     empresaUser = EmpresaUsuario.objects.get(usuario=user_escolhido)
 
-    if not request.user.is_superuser:
+    sessions = Session.objects.filter(expire_date__gte=timezone.now())
+                
+    for session in sessions:
+        data = session.get_decoded()
+        if data.get('_auth_user_id') == str(user_escolhido.id):
+            session.delete()
+
+    if not request.user.is_adm:
         if empresaUser.papel == 'Dono':
-            messages.error(request, f'Não é possivel excluir um usuário com papel de {empresaUser.papel} do sistema, favor contatar o Administrador do sistema.')
+            messages.error(request, f'Não é possivel inativar um usuário com papel de {empresaUser.papel} do sistema, favor contatar o Administrador do sistema.')
             return redirect(controle_usuarios, cnpj=cnpj)
 
-    user_escolhido.delete()
-    empresaUser.delete()
+    empresaUser.ativo = not empresaUser.ativo
+    empresaUser.save()
 
-    messages.success(request, f'{user_escolhido.first_name} excluido com sucesso!')
+    messages.success(request, f'{user_escolhido.first_name} inativado com sucesso!')
+    if empresaUser.ativo == True:
+        messages.success(request, f'Agora o usuário {user_escolhido.first_name} poderá acessar novamente.')
+    
     return redirect(controle_usuarios, cnpj=cnpj)
 
 
@@ -404,7 +415,7 @@ def cadastrar_user(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -471,7 +482,7 @@ def ingredientes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -497,7 +508,7 @@ def adicionar_ingredientes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -551,7 +562,7 @@ def editar_ingrediente(request, cnpj, ingrediente_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -593,7 +604,7 @@ def deletar_ingrediente(request, cnpj, ingrediente_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -622,7 +633,7 @@ def estoque(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -646,7 +657,7 @@ def cadastrar_movimentacao(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -657,16 +668,26 @@ def cadastrar_movimentacao(request, cnpj):
         ingrediente_id = request.POST.get('ingrediente')
         tipo = request.POST.get('tipo')
         quantidade = Decimal(request.POST.get('quantidade_inicial'))
-        preco_unitario = request.POST.get('preco_unitario', '0.00')  # Pega o preço unitário do formulário
         observacao = request.POST.get('observacao', '')
 
+        # Inicializa preco_unitario como None para saídas
+        preco_unitario_decimal = None
+
+        if tipo == 'entrada':
+            preco_unitario = request.POST.get('preco_unitario', '0,00')  # Pega o preço unitário do formulário
+
+            try:
+                # Tenta remover qualquer formatação inválida do preço
+                preco_unitario = remover_mascara_preço(preco_unitario)  # Certifique-se que essa função remova corretamente 'R$', ',' e outros caracteres
+
+                # Tenta converter para Decimal
+                preco_unitario_decimal = Decimal(preco_unitario)
+
+            except InvalidOperation:
+                messages.error(request, 'O preço unitário informado é inválido. Verifique o valor e tente novamente.')
+                return redirect('estoque', cnpj=cnpj)
+
         try:
-            # Tenta remover qualquer formatação inválida do preço
-            preco_unitario = remover_mascara_preço(preco_unitario)  # Certifique-se que essa função remova corretamente 'R$', ',' e outros caracteres
-
-            # Tenta converter para Decimal
-            preco_unitario_decimal = Decimal(preco_unitario)
-
             ingrediente = Ingrediente.objects.get(id_ingrediente=ingrediente_id, empresa=empresa)
             estoque, created = Estoque.objects.get_or_create(empresa=empresa, ingrediente=ingrediente)
 
@@ -690,16 +711,13 @@ def cadastrar_movimentacao(request, cnpj):
 
                         # Verifica se o preço do ingrediente foi alterado e envia uma notificação
                         if ingrediente.preco_unitario != preco_ingrediente_anterior:
-                            # TROCAR PARA MANDAR UMA NOTIFICAÇÃO NO BANCO DE DADOS
                             criar_notificacao(request.user, f"O preço do ingrediente {ingrediente.nome} foi atualizado de R${preco_ingrediente_anterior:.2f} para R${ingrediente.preco_unitario:.2f}.")
-
 
                 elif tipo == 'saida':
                     if quantidade > estoque.quantidade_disponivel:
                         messages.error(request, 'Quantidade insuficiente no estoque!')
                         return redirect('estoque', cnpj=cnpj)
                     estoque.quantidade_disponivel -= quantidade
-                    estoque.save()
 
                 # Registra a movimentação de estoque
                 MovimentacaoEstoque.objects.create(
@@ -707,7 +725,7 @@ def cadastrar_movimentacao(request, cnpj):
                     ingrediente=ingrediente,
                     tipo=tipo,
                     quantidade=quantidade,
-                    preco_unitario=float(preco_unitario_decimal) if preco_unitario_decimal else None,
+                    preco_unitario=float(preco_unitario_decimal) if preco_unitario_decimal is not None else None,  # Apenas para entradas
                     observacao=observacao,
                     atendente=request.user,
                 )
@@ -716,13 +734,10 @@ def cadastrar_movimentacao(request, cnpj):
                 estoque.save()
 
                 messages.success(request, 'Movimentação registrada com sucesso!')
-        except InvalidOperation:
-            messages.error(request, 'O preço unitário informado é inválido. Verifique o valor e tente novamente.')
         except Exception as e:
             messages.error(request, f'Erro no cadastro, verifique os dados e tente novamente. Erro: {str(e)}')
 
     return redirect('estoque', cnpj=cnpj)
-
 
 
 
@@ -768,7 +783,7 @@ def movimentacoes(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -799,7 +814,7 @@ def cardapio(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -895,7 +910,7 @@ def adicionar_item(request, cnpj, categoria_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -999,7 +1014,7 @@ def receitas(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1041,7 +1056,7 @@ def cadastrar_receita(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1134,7 +1149,7 @@ def pedidos(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1232,7 +1247,7 @@ def pedido_manual(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1396,7 +1411,7 @@ def buscar_cliente(request, cnpj):
 
 
 
-
+@login_required
 def cadastro_cliente_manual(request, cnpj):
     if request.method == 'POST':
         cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
@@ -1456,7 +1471,7 @@ def detalhes_pedido(request, cnpj, pedido_id):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1477,7 +1492,7 @@ def detalhes_pedido(request, cnpj, pedido_id):
 
 
 
-
+@login_required
 def alterar_status(request, cnpj, pedido_numero):
     if request.method == 'POST':
          try:
@@ -1525,15 +1540,15 @@ def perfil(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
         
-    if request.user.is_superuser:
-        return redirect('/admin')
+    if request.user.is_adm or request.user.papel_adm:
+        return redirect('perfil_admin')
 
     user = EmpresaUsuario.objects.get(usuario=request.user)
 
@@ -1556,6 +1571,18 @@ def perfil(request, cnpj):
                 'device_id': device_id,
             })
 
+    if request.method == "POST" and 'old_password' in request.POST:
+            form_senha = PasswordChangeForm(user, request.POST)
+            if form_senha.is_valid():
+                user = form_senha.save()
+                update_session_auth_hash(request, user)  # Mantém o usuário logado após a mudança de senha
+                messages.success(request, 'Sua senha foi atualizada com sucesso!')
+                return redirect('perfil_admin')  # Redireciona para a mesma página para evitar reenvio do formulário
+            else:
+                messages.error(request, 'Por favor, corrija os erros abaixo.')
+    else:
+            form_senha = PasswordChangeForm(user)
+
     # Se o botão de deslogar for pressionado
     if request.method == 'POST' and 'deslogar_todas_sessoes' in request.POST:
         for session in Session.objects.all():
@@ -1563,13 +1590,14 @@ def perfil(request, cnpj):
             if data.get('_auth_user_id') == str(request.user.id):
                 session.delete()  # Deleta a sessão
         logout(request)  # Desloga o usuário da sessão atual
-        return redirect('login')  # Redireciona para a página de login, ou onde desejar
+        return redirect('perfil', cnpj=cnpj)  # Redireciona para a página de login, ou onde desejar
     
     context = {
         'page_title': 'Perfil',
         'empresa': empresa,
         'user': user,
         'sessoes': sessoes,
+        'form_senha': form_senha,
     }
 
     return render(request, 'appEmpresa/perfil.html', context)
@@ -1577,8 +1605,8 @@ def perfil(request, cnpj):
 
 
 @csrf_exempt
+@login_required
 def editar_imagem_perfil(request, cnpj,user_id):
-    print(f"Recebida requisição para editar imagem: cnpj={cnpj}, user_id={user_id}")
     if request.method == "POST" and request.FILES.get('profile_image'):
         user = CustomUser.objects.get(id=user_id)
         user.profile_image = request.FILES['profile_image']
@@ -1595,7 +1623,7 @@ def perfil_empresa(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1631,12 +1659,12 @@ def perfil_empresa(request, cnpj):
     return render(request, 'appEmpresa/perfil_empresa.html', context)
 
 
-
+@login_required
 def pizzaiolo(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
 
-    if not request.user.is_superuser:
+    if not request.user.is_adm:
         empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
         if empUsu.usuario != request.user:
             usu = EmpresaUsuario.objects.get(usuario=request.user)
@@ -1653,6 +1681,7 @@ def pizzaiolo(request, cnpj):
 
 
 @csrf_exempt
+@login_required
 def listar_pedidos(request, cnpj):
     cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
     empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
@@ -1677,6 +1706,7 @@ def listar_pedidos(request, cnpj):
 
 
 @csrf_exempt
+@login_required
 def atualizar_status_pedido(request, cnpj, pedido_id):
     if request.method == 'POST':
         pedido = Pedido.objects.get(id=pedido_id)
@@ -1703,7 +1733,7 @@ def atualizar_status_pedido(request, cnpj, pedido_id):
 
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
-
+@login_required
 def receita_pedido(request, cnpj,pedido_id):
     pedido = Pedido.objects.get(id=pedido_id)
     itens_receita = []
@@ -1722,3 +1752,28 @@ def receita_pedido(request, cnpj,pedido_id):
         })
 
     return JsonResponse(itens_receita, safe=False)
+
+
+
+def relatorio_financeiro(request, cnpj):
+    cnpj_com_mascara = aplicar_mascara_cnpj(cnpj)    
+    empresa = Empresa.objects.get(cnpj=cnpj_com_mascara)
+
+    if not request.user.is_adm:
+        empUsu = EmpresaUsuario.objects.get(empresa=empresa, usuario=request.user)
+        if empUsu.usuario != request.user:
+            usu = EmpresaUsuario.objects.get(usuario=request.user)
+            cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
+            return redirect('dashboard', cnpj=cnpj_usuario)
+        
+
+    rf = RelatorioFinanceiro.objects.filter(empresa=empresa)
+
+        
+    context = {
+        'page_title': 'Relatório Financeiro',
+        'empresa': empresa,
+        'rf': rf,
+    }
+
+    return render(request, 'appEmpresa/relatorio_financeiro.html', context)

@@ -1,0 +1,68 @@
+{% extends 'includes/side-nav.html' %}
+
+{% load static %}
+
+{% load my_filters %}
+
+{% block title %}Relatório Financeiro{% endblock %}
+
+{% block content2 %}
+{% include 'includes/messages.html' %}
+<div class="container-fluid py-4 min-vh-85">
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6>Relatório Financeiro</h6>
+                </div>
+                <div class="table-responsive card-body">
+                    <table class="table table-flush dataTable-table" id="datatable-basic">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="false" style="width: 15%;">
+                                    Ano
+                                </th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 15%;">
+                                    Mês
+                                </th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
+                                    Vendas Mês Atual
+                                </th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
+                                    Lucro Mês Atual
+                                </th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
+                                    Vendas Mês Passado
+                                </th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
+                                    Lucro Mês Passado
+                                </th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
+                                    Variação Percentual do Lucro (%)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for relatorio in rf %}
+                            <tr>
+                                <td class="text-sm font-weight-normal">{{ relatorio.ano }}</td>
+                                <td class="text-sm font-weight-normal">{{ relatorio.mes }}</td>
+                                <td class="text-sm font-weight-normal">R$ {{ relatorio.vendas_mes_atual|floatformat:2 }}</td>
+                                <td class="text-sm font-weight-normal">R$ {{ relatorio.lucro_mes_atual|floatformat:2 }}</td>
+                                <td class="text-sm font-weight-normal">R$ {{ relatorio.vendas_mes_passado|floatformat:2 }}</td>
+                                <td class="text-sm font-weight-normal">R$ {{ relatorio.lucro_mes_passado|floatformat:2 }}</td>
+                                <td class="text-sm font-weight-normal">{{ relatorio.variacao_percentual_lucro|floatformat:2 }}%</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhum relatório encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

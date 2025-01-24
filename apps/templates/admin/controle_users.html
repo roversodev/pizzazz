@@ -1,10 +1,10 @@
-{% extends 'includes/side-nav.html' %}
+{% extends 'includes/side-nav-admin.html' %}
 
 {% load static %}
 
 {% load my_filters %}
 
-{% block title %}Controle de Usuários{% endblock %}
+{% block title %}Admin Controle de Usuários{% endblock %}
 
 {% block content2 %}
 <div class="container-fluid py-4 min-vh-85">
@@ -54,22 +54,22 @@
                                     <tr>
                                         <td class="text-sm font-weight-normal">
                                             <span class="my-2 text-xs">
-                                                <img src="{{ usuario.usuario.profile_image.url }}"
+                                                <img src="{{ usuario.profile_image.url }}"
                                                     alt="bruce" class="border-radius-lg shadow-sm" style="width: 110px; height: 110px; object-fit: cover;">
                                             </span>
                                         </td>
-                                        <td class="text-sm font-weight-normal">{{ usuario.usuario.first_name }} {{ usuario.usuario.last_name }}</td>
-                                        <td class="text-sm font-weight-normal">{{ usuario.usuario.email }}</td>
-                                        <td class="text-sm font-weight-normal">{{ usuario.papel }}</td>
-                                        <td class="text-sm font-weight-normal">{{ usuario.usuario.date_joined|date:'d/m/Y H:i' }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.email }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.papel_adm }}</td>
+                                        <td class="text-sm font-weight-normal">{{ usuario.date_joined|date:'d/m/Y H:i' }}</td>
                                         <td class="text-sm">
                                             {% if usuario.ativo == True %}
                                             <span class="d-flex align-items-center justify-content-center"></span>
-                                                <a href="#" class="btn btn-sm bg-gradient-danger" data-bs-toggle="modal" data-bs-target="#confirmarDeletarModal" data-id="{{ usuario.usuario.id }}" data-url="{% url 'excluir_user' cnpj=empresa.cnpj|remove_mask user_id=usuario.usuario.id %}">Invativar</a>
+                                                <a href="#" class="btn btn-sm bg-gradient-danger" data-bs-toggle="modal" data-bs-target="#confirmarDeletarModal" data-id="{{ usuario.usuario.id }}" data-url="{% url 'toggle_ativo_user' usuario.id %}">Invativar</a>
                                             </span>
                                             {% else %}
                                             <span class="d-flex align-items-center justify-content-center">
-                                                <a href="#" class="btn btn-sm bg-gradient-success" data-bs-toggle="modal" data-bs-target="#confirmarAtivarModal" data-id="{{ usuario.usuario.id }}" data-url="{% url 'excluir_user' cnpj=empresa.cnpj|remove_mask user_id=usuario.usuario.id %}">Ativar</a>
+                                                <a href="#" class="btn btn-sm bg-gradient-success" data-bs-toggle="modal" data-bs-target="#confirmarAtivarModal" data-id="{{ usuario.usuario.id }}" data-url="{% url 'toggle_ativo_user' usuario.id %}">Ativar</a>
                                             </span>
                                             {% endif %}
                                         </td>
@@ -88,12 +88,12 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-lg border-radius-xl shadow">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalCadastroUsuarioLabel">Cadastrar Novo Usuário</h5>
+                <h5 class="modal-title" id="modalCadastroUsuarioLabel">Cadastrar Novo Usuário Admin</h5>
                 <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
                     aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formCadastroUsuario" method="POST" action="{% url 'cadastrar_user' cnpj=empresa.cnpj|remove_mask %}"
+                <form id="formCadastroUsuario" method="post" action="{% url 'create_user_admin' %}"
                     class="needs-validation" novalidate>
                     {% csrf_token %}
                     <!-- Campo Nome -->
@@ -125,9 +125,9 @@
                             style="margin-top: 12px;"></i>
                         <select class="form-control pe-5" id="papel" name="papel" required>
                             <option value="" disabled selected>Selecione o papel</option>
-                            <option value="Dono">Dono</option>
-                            <option value="Caixa">Caixa</option>
-                            <option value="Pizzaiolo">Pizzaiolo</option>
+                            <option value="Master">Master</option>
+                            <option value="Atendente">Atendente</option>
+                            <option value="Gerente">Gerente</option>
                         </select>
                         <div class="invalid-feedback">Selecione o papel.</div>
                     </div>
@@ -150,7 +150,7 @@
                     </div>
                     <!-- Botão de Submissão -->
                     <div class="text-center">
-                        <button type="submit" id="submitBtn" class="btn bg-gradient-dark w-100 icon-move-right">Cadastrar <i class="fas fa-arrow-right text-xs ms-1 icon-move-right"></i></button>
+                        <button type="submit" id="submitBtn" class="btn bg-gradient-dark w-100 icon-move-right">Cadastrar <i class="fas fa-arrow-right text-xs ms-1"></i></button>
                     </div>
                 </form>
             </div>

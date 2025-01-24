@@ -52,6 +52,15 @@ def login(request):
         password = request.POST['password']
         user = authenticate(request, username=email, password=password)
         if user is not None:
+            if user.is_empresa:
+                emp = EmpresaUsuario.objects.get(usuario=user.id)
+                empresa = Empresa.objects.get(cnpj=emp.empresa.cnpj)
+                if empresa.ativo == False:
+                    messages.error(request, 'A empresa está desativada. Entre em contato com o administrador da plataforma.')
+                    return redirect('login')
+                if emp.ativo == False:
+                    messages.error(request, 'O seu usuário está desativado. Entre em contato com o administrador da empresa.')
+                    return redirect('login')
             auth_login(request, user)
 
             context = {
@@ -59,6 +68,15 @@ def login(request):
             }
             html_content = render_to_string('auth/mail/boas-vindas-emp.html', context)
             html_content_c = render_to_string('auth/mail/em-breve.html', context)
+
+
+            if user.is_adm:
+                if user.ativo:
+                    return redirect('adminD')
+                else:
+                    messages.error(request, 'O seu usuário está desativado. Entre em contato com o administrador da plataforma.')
+                    auth_logout(request)
+                    return redirect('login')
 
 
             if user.is_empresa:
@@ -73,6 +91,9 @@ def login(request):
                     recipient_list=[email],
                     html_message=html_content
                     )
+
+                    user.is_first_login = False
+                    user.save()
                 
                 if emp.papel == 'Pizzaiolo':
                     return redirect('pizzaiolo', cnpj=cnpj)

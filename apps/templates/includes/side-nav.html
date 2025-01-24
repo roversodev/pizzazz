@@ -85,6 +85,11 @@
     background: #f44335 !important;
 }
 
+.flatpickr-input.active {
+  background: transparent !important;
+}
+
+
   @media (max-width: 1200px) {
     .custom-bg {
       background-color: white !important;
@@ -190,6 +195,19 @@
             <span class="nav-link-text ms-1">Movimentações</span>
           </a>
         </li>
+        {% if request.user.is_dono or request.user.is_adm %}
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Relatório Financeiro' %}active{% endif %}"
+            href="{% url 'relatorio_financeiro' cnpj=empresa.cnpj|remove_mask %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+              <i
+                class="ph-bold ph-chart-line-up top-0 text-dark {% if page_title == 'Relatório Financeiro' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Relatório Financeiro</span>
+          </a>
+        </li>
+        {% endif %}
         <li class="nav-item mt-3">
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Conta</h6>
         </li>
@@ -204,7 +222,7 @@
             <span class="nav-link-text ms-1">Perfil</span>
           </a>
         </li>
-        {% if request.user.is_dono or request.user.is_superuser %}
+        {% if request.user.is_dono or request.user.is_adm %}
         <li class="nav-item">
           <a class="nav-link {% if page_title == 'Perfil Empresa' %}active{% endif %}"
             href="{% url 'perfil_empresa' cnpj=empresa.cnpj|remove_mask %}">
@@ -248,8 +266,8 @@
       <div class="container-fluid py-1 px-3">
         <h6 class="font-weight-bolder mb-0">{{ page_title }}</h6>
         <div class="ms-md-auto pe-md-3 d-flex align-items-center" id="navbar">
-          {% if request.user.is_superuser %}
-          <h6 class="justify-content-end text-danger font-weight-normal">Você está logado como: Admin</h6>
+          {% if request.user.is_adm %}
+          <h6 class="justify-content-end text-danger font-weight-normal">Você está logado como: <a href="{% url 'admin_empresas' %}" class="text-danger font-weight-bold">Admin</a></h6>
           {% endif %}
           <ul class="navbar-nav  justify-content-end">
             <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
