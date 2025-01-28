@@ -3,7 +3,11 @@ from . import views
 
 
 urlpatterns = [
+    # Dashboard
     path("", views.Dashboard.adminDashboard, name="adminD"),
+    path("atualizar_grafico/", views.Dashboard.atualizar_grafico, name="atualizar_grafico"),
+    path('exportar_dados/<int:ano>/', views.Dashboard.exportar_dados_excel, name='exportar_dados_excel'),
+    path('baixar_dados', views.Dashboard.baixar_dados, name='baixar_dados'),
     #Empresas
     path("empresas/", views.Empresas_Admin.empresas, name="admin_empresas"),
     path("empresas/toggle_ativo_empresa/<int:empresa_id>", views.Empresas_Admin.toggle_ativo_empresa, name="toggle_ativo_empresa"),

@@ -1,17 +1,21 @@
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from apps.appEmpresa.views import resumir_user_agent
 from apps.authentication.views import logout
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, EnderecoPedido, Estoque, HistoricoPedido, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pagamento, Pedido, AvaliacaoPedido, Sequencia 
+from apps.authentication.models import AvaliacaoPedido, Cardapio, Categoria, Cliente, CustomUser, Empresa, EmpresaUsuario, EnderecoCliente, EnderecoPedido, Estoque, HistoricoPedido, Ingrediente, IngredienteCardapio, ItemPedido, MovimentacaoEstoque, Pagamento, Pedido, AvaliacaoPedido, RelatorioFinanceiro, Sequencia 
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 import locale
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db import transaction
 from django.db.models import Count, Sum
+from datetime import timedelta
+from django.db.models.functions import TruncMonth
+import json
+import pandas as pd
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 
@@ -61,29 +65,221 @@ def deslogar_usuarios_empresa(request, empresa_id):
 
 class Dashboard:
     @login_required
-    @isadmin_required
+    @masteruser_required
     def adminDashboard(request):
-        if not request.user.papel_adm == 'Master':
-            messages.error(request, 'Apenas usuários Master tem a permissão de ver a dashboard.')
-            return redirect('admin_empresas')
+        hoje = timezone.now()
+        ano_atual = hoje.year
 
+        # Calcular os anos disponíveis
+        anos_disponiveis = Pedido.objects.dates('data_pedido', 'year')
+        anos = [ano.year for ano in anos_disponiveis]
+        # Total de pedidos no ano selecionado
+        total_pedidos_ano = Pedido.objects.filter(data_pedido__year=ano_atual).count()
+
+        # Total de vendas no ano selecionado
+        total_vendas_ano = Pedido.objects.filter(data_pedido__year=ano_atual).aggregate(total=Sum('total'))['total'] or 0
+
+        # Total de clientes cadastrados no ano selecionado
+        total_clientes_ano = Cliente.objects.filter(data_criacao__year=ano_atual).count()
+
+        # Total de empresas cadastradas no ano selecionado
+        total_empresas_ano = Empresa.objects.filter(data_criacao__year=ano_atual).count()
+
+        inicio_semana_atual = hoje - timedelta(days=hoje.weekday())
+        fim_semana_atual = inicio_semana_atual + timedelta(days=7)
+
+        inicio_semana_passada = inicio_semana_atual - timedelta(days=7)
+        fim_semana_passada = inicio_semana_atual
+
+        pedidos_semana_atual = Pedido.objects.filter(data_pedido__range=(inicio_semana_atual, fim_semana_atual)).count()
+        pedidos_semana_passada = Pedido.objects.filter(data_pedido__range=(inicio_semana_passada, fim_semana_passada)).count()
+
+        if pedidos_semana_passada > 0:
+            percentual = int(((pedidos_semana_atual - pedidos_semana_passada) / pedidos_semana_passada) * 100)
+        else:
+            percentual = 100 if pedidos_semana_atual > 0 else 0
+
+        # Calcular percentuais em relação ao ano anterior
+        total_pedidos_ano_anterior = Pedido.objects.filter(data_pedido__year=ano_atual - 1).count()
+        percentual_pedidos = int(((total_pedidos_ano - total_pedidos_ano_anterior) / total_pedidos_ano_anterior) * 100) if total_pedidos_ano_anterior > 0 else 100
+
+        total_vendas_ano_anterior = Pedido.objects.filter(data_pedido__year=ano_atual - 1).aggregate(total=Sum('total'))['total'] or 0
+        percentual_vendas = int(((total_vendas_ano - total_vendas_ano_anterior) / total_vendas_ano_anterior) * 100) if total_vendas_ano_anterior > 0 else 100
+
+        total_clientes_ano_anterior = Cliente.objects.filter(data_criacao__year=ano_atual - 1).count()
+        percentual_clientes = int(((total_clientes_ano - total_clientes_ano_anterior) / total_clientes_ano_anterior) * 100) if total_clientes_ano_anterior > 0 else 100
+
+        total_empresas_ano_anterior = Empresa.objects.filter(data_criacao__year=ano_atual - 1).count()
+        percentual_empresas = int(((total_empresas_ano - total_empresas_ano_anterior) / total_empresas_ano_anterior) * 100) if total_empresas_ano_anterior > 0 else 100
+
+       # Filtrar os pedidos por ano
         bairros = (
             Pedido.objects
+            .filter(data_pedido__year=ano_atual)  # Filtra pelo ano atual
             .values('endereco_cliente__bairro')
             .annotate(
                 total_pedidos=Count('id'),
                 total_valor=Sum('total'),
                 total_clientes=Count('cliente', distinct=True)
-            ).order_by('-total_pedidos')[:4])
-        
-        numero_pedidos = Pedido.objects.all().count()
+            ).order_by('-total_pedidos')[:4]
+        )
+
         context = {
             'page_title': 'Dashboard',
             'bairros': bairros,
-            'numero_pedidos': numero_pedidos,
+            'numero_pedidos': total_pedidos_ano,
+            'total_vendas': total_vendas_ano,
+            'total_clientes': total_clientes_ano,
+            'total_empresas': total_empresas_ano,
+            'percentual_pedidos': percentual,
+            'anos': anos,  # Adiciona os anos ao contexto
+            'ano_atual': ano_atual,
+            'percentual_pedidos': percentual_pedidos,
+            'percentual_vendas': percentual_vendas,
+            'percentual_clientes': percentual_clientes,
+            'percentual_empresas': percentual_empresas,
         }
         return render(request, 'admin/dashboard.html', context)
+    
 
+    @login_required
+    @masteruser_required
+    def atualizar_grafico(request):
+        tipo = request.GET.get('tipo', 'pedidos')  # Padrão para 'pedidos'
+        ano = int(request.GET.get('ano', timezone.now().year))  # Converte o ano para inteiro
+
+        # Definindo o intervalo de tempo (últimos 12 meses)
+        agora = timezone.now()
+        data_inicial = timezone.datetime(ano, 1, 1)  # Começo do ano selecionado
+        data_final = timezone.datetime(ano, 12, 31)  # Fim do ano selecionado
+
+        # Inicializa as variáveis para os cards
+        total_pedidos_ano = Pedido.objects.filter(data_pedido__year=ano).count()
+        total_vendas_ano = Pedido.objects.filter(data_pedido__year=ano).aggregate(total=Sum('total'))['total'] or 0
+        total_clientes_ano = Cliente.objects.filter(data_criacao__year=ano).count()
+        total_empresas_ano = Empresa.objects.filter(data_criacao__year=ano).count()
+
+        # Calcular percentuais em relação ao ano anterior
+        total_pedidos_ano_anterior = Pedido.objects.filter(data_pedido__year=ano - 1).count()
+        percentual_pedidos = int(((total_pedidos_ano - total_pedidos_ano_anterior) / total_pedidos_ano_anterior) * 100) if total_pedidos_ano_anterior > 0 else 100
+
+        total_vendas_ano_anterior = Pedido.objects.filter(data_pedido__year=ano - 1).aggregate(total=Sum('total'))['total'] or 0
+        percentual_vendas = int(((total_vendas_ano - total_vendas_ano_anterior) / total_vendas_ano_anterior) * 100) if total_vendas_ano_anterior > 0 else 100
+
+        total_clientes_ano_anterior = Cliente.objects.filter(data_criacao__year=ano - 1).count()
+        percentual_clientes = int(((total_clientes_ano - total_clientes_ano_anterior) / total_clientes_ano_anterior) * 100) if total_clientes_ano_anterior > 0 else 100
+
+        total_empresas_ano_anterior = Empresa.objects.filter(data_criacao__year=ano - 1).count()
+        percentual_empresas = int(((total_empresas_ano - total_empresas_ano_anterior) / total_empresas_ano_anterior) * 100) if total_empresas_ano_anterior > 0 else 100
+
+        # Lógica para obter dados do gráfico
+        if tipo == 'pedidos':
+            pedidos = Pedido.objects.filter(data_pedido__range=(data_inicial, data_final))
+            labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Set', 'Out', 'Nov', 'Dez']
+            data_values = [pedidos.filter(data_pedido__month=i).aggregate(total=Sum('total'))['total'] or 0 for i in range(1, 13)]
+        
+        elif tipo == 'clientes':
+            clientes = Cliente.objects.filter(data_criacao__range=(data_inicial, data_final))
+            labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Set', 'Out', 'Nov', 'Dez']
+            data_values = [clientes.filter(data_criacao__month=i).count() for i in range(1, 13)]
+        
+        elif tipo == 'empresas':
+            empresas = Empresa.objects.filter(data_criacao__range=(data_inicial, data_final))
+            labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Set', 'Out', 'Nov', 'Dez']
+            data_values = [empresas.filter(data_criacao__month=i).count() for i in range(1, 13)]
+
+        return JsonResponse({
+            'data_values': data_values,
+            'labels': labels,
+            'numero_pedidos': total_pedidos_ano,
+            'total_vendas': total_vendas_ano,
+            'total_clientes': total_clientes_ano,
+            'total_empresas': total_empresas_ano,
+            'percentual_pedidos': percentual_pedidos,
+            'percentual_vendas': percentual_vendas,
+            'percentual_clientes': percentual_clientes,
+            'percentual_empresas': percentual_empresas,
+        })
+    
+    @login_required
+    @masteruser_required
+    def exportar_dados_excel(request, ano):
+        # Filtrar os dados por ano
+        pedidos = Pedido.objects.filter(data_pedido__year=ano)
+        clientes = Cliente.objects.all()
+        empresas = Empresa.objects.all()
+        avaliacoes = AvaliacaoPedido.objects.filter(pedido__data_pedido__year=ano)
+        movimentacoes = MovimentacaoEstoque.objects.filter(data__year=ano)
+        relatorios = RelatorioFinanceiro.objects.filter(ano=ano)
+
+        # Função para remover timezone
+        def remove_timezone(dataframe):
+            for col in dataframe.select_dtypes(include=['datetime64[ns, UTC]', 'datetime64[ns]']).columns:
+                dataframe[col] = dataframe[col].dt.tz_localize(None)
+            return dataframe
+
+        # Criar um Excel writer
+        with pd.ExcelWriter('dados_pizzazzz_adm.xlsx', engine='openpyxl') as writer:
+            # Exportar pedidos
+            df_pedidos = pd.DataFrame(list(pedidos.values()))
+            df_pedidos = remove_timezone(df_pedidos)
+            df_pedidos.to_excel(writer, sheet_name='Pedidos', index=False)
+
+            # Exportar clientes
+            df_clientes = pd.DataFrame(list(clientes.values()))
+            df_clientes = remove_timezone(df_clientes)
+            df_clientes.to_excel(writer, sheet_name='Clientes', index=False)
+
+            # Exportar empresas
+            df_empresas = pd.DataFrame(list(empresas.values()))
+            df_empresas = remove_timezone(df_empresas)
+            df_empresas.to_excel(writer, sheet_name='Empresas', index=False)
+
+            # Exportar avaliações
+            df_avaliacoes = pd.DataFrame(list(avaliacoes.values()))
+            df_avaliacoes = remove_timezone(df_avaliacoes)
+            df_avaliacoes.to_excel(writer, sheet_name='Avaliações', index=False)
+
+            # Exportar movimentações de estoque
+            df_movimentacoes = pd.DataFrame(list(movimentacoes.values()))
+            df_movimentacoes = remove_timezone(df_movimentacoes)
+            df_movimentacoes.to_excel(writer, sheet_name='Movimentações', index=False)
+
+            # Exportar relatórios financeiros
+            df_relatorios = pd.DataFrame(list(relatorios.values()))
+            df_relatorios = remove_timezone(df_relatorios)
+            df_relatorios.to_excel(writer, sheet_name='Relatórios Financeiros', index=False)
+
+        # Retornar o arquivo como resposta
+        with open('dados_pizzazzz_adm.xlsx', 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename=dados_pizzazzz_adm.xlsx'
+            messages.success(request, 'Download Iniciado.')
+            redirect('adminD')
+            return response
+
+
+    @login_required
+    @masteruser_required
+    def baixar_dados(request):
+        ano = request.POST.get('ano')
+
+        # Obter os anos disponíveis
+        anos_disponiveis = Pedido.objects.dates('data_pedido', 'year')
+        anos = [ano.year for ano in anos_disponiveis]
+
+        # Verificar se o ano é válido
+        if ano not in map(str, anos):  # Converte anos para string para comparação
+            messages.error(request, 'Ano inválido')
+            return redirect('adminD')
+
+        # Verificar se existem dados para o ano selecionado
+        total_pedidos_ano = Pedido.objects.filter(data_pedido__year=ano).count()
+        if total_pedidos_ano == 0:
+            messages.error(request, 'Não há dados disponíveis para o ano selecionado.')
+            return redirect('adminD')
+
+        return redirect('exportar_dados_excel', ano)
 
 
 class Empresas_Admin:
@@ -293,3 +489,4 @@ class Controle_Users:
                 return redirect('controle_usuarios_admin')
             
         return redirect('controle_usuarios_admin')
+    

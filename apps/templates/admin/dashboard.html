@@ -9,496 +9,446 @@
 {% block content2 %}
 {% include 'includes/messages.html' %}
 <style>
-    .jvm-container{
-        touch-action: none;
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-        width: 100%;
-    }
+  .jvm-container {
+    touch-action: none;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+
+  .btn-outline-danger:not(.active):hover {
+    transform: translateY(-1px) !important;
+  }
+
+  .btn-outline-danger:active {
+    transform: translateY(2px) !important;
+  }
+
+  .btn-outline-danger.active {
+    background: linear-gradient(195deg, #EF5350 0%, #E53935 100%) !important;
+    color: #fff !important;
+  }
 </style>
 <div class="container-fluid py-4 min-vh-85">
-    <div class="row">
-        <div class="col-lg-12 position-relative z-index-2">
-          <div class="ms-3">
-            <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
-            <p class="mb-4">
-              Confira os pedidos, valores e pedidos por bairro.
-            </p>
-          </div>
-          <div class="row">
-            <div class="col-lg-4 col-md-6 mb-4">
-              <div class="card">
-                <div class="card-body">
-                  <h6 class="mb-0 ">Visualizações do Site</h6>
-                  <p class="text-sm ">Performace da Ultima Campanha</p>
-                  <div class="pe-2">
-                    <div class="chart">
-                      <canvas id="chart-bars" class="chart-canvas" height="510" width="972" style="display: block; box-sizing: border-box; height: 170px; width: 324px;"></canvas>
-                    </div>
-                  </div>
-                  <hr class="dark horizontal">
-                  <div class="d-flex ">
-                    <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
-                    <p class="mb-0 text-sm">campanha enviada 2 dias atrás</p>
-                  </div>
+  <div class="row">
+    <div class="col-lg-12 position-relative z-index-2">
+      <div class="d-flex justify-content-between">
+        <div class="ms-3">
+          <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
+          <p class="mb-4">
+            O filtro se aplica aos dados fora do gráfico.
+          </p>
+        </div>
+        <div class="d-flex justify-content-center align-items-center">
+          <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#confirmarDeletarModal" class="btn btn-icon btn-outline-secondary ms-auto">
+            <span class="btn-inner--text">Exportar</span>
+            <span class="btn-inner--icon ms-2"><i class="ni ni-folder-17"></i></span>
+          </a>
+          <div class="dropleft ms-3">
+            <button class="btn bg-gradient-danger dropdown-toggle" type="button" id="dropdownImport" data-bs-toggle="dropdown" aria-expanded="false">
+                Ano Atual
+            </button>
+            <ul class="dropdown-menu shadow" aria-labelledby="dropdownImport">
+                {% for ano in anos %}
+                    <li><a class="dropdown-item" href="javascript:;" onclick="atualizarGraficoAno({{ ano }})">{{ ano }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12 mb-4">
+          <div class="card z-index-2">
+            <div class="card-header p-3 pt-2">
+              <div
+                class="icon icon-lg icon-shape bg-gradient-danger shadow-danger text-center border-radius-xl mt-n4 me-3 float-start">
+                <i class="material-symbols-rounded opacity-10">auto_graph</i>
+              </div>
+              <div class="d-block d-md-flex">
+                <div class="me-auto">
+                  <h6 class="mb-0">Gráfico Insights</h6>
+                  <p class="mb-0 text-sm">Escolha o que deseja ver anual</p>
+                </div>
+                <div class="btn-group h-50">
+                  <button class="btn btn-sm btn-outline-danger font-weight-bolder active"
+                    id="btn-pedidos">Pedidos</button>
+                  <button class="btn btn-sm btn-outline-danger font-weight-bolder" id="btn-clientes">Clientes</button>
+                  <button class="btn btn-sm btn-outline-danger font-weight-bolder" id="btn-empresas">Empresas</button>
                 </div>
               </div>
             </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-              <div class="card ">
-                <div class="card-body">
-                  <h6 class="mb-0 "> Vendas Diárias </h6>
-                  <p class="text-sm "> (<span class="font-weight-bolder">+15%</span>) nas vendas de hoje. </p>
-                  <div class="pe-2">
-                    <div class="chart">
-                      <canvas id="chart-line" class="chart-canvas" height="510" width="972" style="display: block; box-sizing: border-box; height: 170px; width: 324px;"></canvas>
-                    </div>
-                  </div>
-                  <hr class="dark horizontal">
-                  <div class="d-flex ">
-                    <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
-                    <p class="mb-0 text-sm"> atualizado 4 min atrás </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-              <div class="card">
-                <div class="card-body">
-                  <h6 class="mb-0 ">Tarefas Concluídas</h6>
-                  <p class="text-sm ">Performace da Ultima Campanha</p>
-                  <div class="pe-2">
-                    <div class="chart">
-                      <canvas id="chart-line-tasks" class="chart-canvas" height="510" width="972" style="display: block; box-sizing: border-box; height: 170px; width: 324px;"></canvas>
-                    </div>
-                  </div>
-                  <hr class="dark horizontal">
-                  <div class="d-flex ">
-                    <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
-                    <p class="mb-0 text-sm">atualizado agora</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-6">
-              <div class="card  mb-2">
-                <div class="card-header p-2 ps-3">
-                  <div class="d-flex justify-content-between">
-                    <div>
-                      <p class="text-sm mb-0 text-capitalize">Pedidos</p>
-                      <h4 class="mb-0">{{numero_pedidos}}</h4>
-                    </div>
-                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
-                      <i class="material-symbols-rounded opacity-10">weekend</i>
-                    </div>
-                  </div>
-                </div>
-                <hr class="dark horizontal my-0">
-                <div class="card-footer p-2 ps-3">
-                  <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+55% </span>do que na semana passada</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-              <div class="card  mb-2">
-                <div class="card-header p-2 ps-3">
-                  <div class="d-flex justify-content-between">
-                    <div>
-                      <p class="text-sm mb-0 text-capitalize">Usuários Hoje</p>
-                      <h4 class="mb-0">2,300</h4>
-                    </div>
-                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
-                      <i class="material-symbols-rounded opacity-10">leaderboard</i>
-                    </div>
-                  </div>
-                </div>
-                <hr class="dark horizontal my-0">
-                <div class="card-footer p-2 ps-3">
-                  <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+3% </span>do que no mês passado</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-              <div class="card  mb-2">
-                <div class="card-header p-2 ps-3">
-                  <div class="d-flex justify-content-between">
-                    <div>
-                      <p class="text-sm mb-0 text-capitalize">Vendas</p>
-                      <h4 class="mb-0">$34,000</h4>
-                    </div>
-                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
-                      <i class="material-symbols-rounded opacity-10">store</i>
-                    </div>
-                  </div>
-                </div>
-                <hr class="dark horizontal my-0">
-                <div class="card-footer p-2 ps-3">
-                  <p class="mb-0 text-sm"><span class="text-success font-weight-bolder">+35% </span>do que no mês passado</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-6">
-              <div class="card  mb-2">
-                <div class="card-header p-2 ps-3">
-                  <div class="d-flex justify-content-between">
-                    <div>
-                      <p class="text-sm mb-0 text-capitalize">Seguidores</p>
-                      <h4 class="mb-0">+2,910</h4>
-                    </div>
-                    <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
-                      <i class="material-symbols-rounded opacity-10">person_add</i>
-                    </div>
-                  </div>
-                </div>
-                <hr class="dark horizontal my-0">
-                <div class="card-footer p-2 ps-3">
-                  <p class="mb-0 text-sm">Atualizado agora</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-4">
-            <div class="card mb-4">
-              <div class="card-header pb-0">
-                <h6 class="mb-0">Pedidos por Bairro</h6>
-                <p class="mb-2 text-sm">
-                  Confira os pedidos, valor e pizzaria por bairro.
-                </p>
-              </div>
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-lg-6 col-md-7">
-                    <div class="table-responsive">
-                        <table class="table align-items-center">
-                            <thead>
-                                <tr>
-                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Bairro</th>
-                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Pedidos</th>
-                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Valor Total</th>
-                                    <th class="text-secondary text-sm font-weight-normal text-left p-2">Clientes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for bairro in bairros %}
-                                <tr>
-                                    <td class="w-30">
-                                        <h6 class="text-sm font-weight-normal mb-0">{{ bairro.endereco_cliente__bairro }}</h6>
-                                    </td>
-                                    <td>
-                                        <h6 class="text-sm font-weight-normal mb-0">{{ bairro.total_pedidos }}</h6>
-                                    </td>
-                                    <td>
-                                        <h6 class="text-sm font-weight-normal mb-0">R$ {{ bairro.total_valor|floatformat:2 }}</h6>
-                                    </td>
-                                    <td class="align-middle text-sm">
-                                        <h6 class="text-sm font-weight-normal mb-0">{{bairro.total_clientes}}</h6>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 col-md-5">
-                    <div id="map" class="mt-0 mt-lg-n4 jvm-container"></div>
-                  </div>
-                </div>
+            <div class="pe-2 card-body">
+              <div class="chart">
+                <canvas id="chart-line-tasks" class="chart-canvas"
+                  style="display: block; box-sizing: border-box; height: 220px; width: 905px;"></canvas>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card mb-2">
+          <div class="card-header p-2 ps-3">
+              <div class="d-flex justify-content-between">
+                  <div>
+                      <p class="text-sm mb-0 text-capitalize">Pedidos</p>
+                      <h4 class="mb-0" id="numero-pedidos">{{ numero_pedidos }}</h4>
+                  </div>
+                  <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">room_service</i>
+                  </div>
+              </div>
+          </div>
+          <hr class="dark horizontal my-0">
+          <div class="card-footer p-2 ps-3">
+              <p class="mb-0 text-sm"><span class="{% if percentual_pedidos >= 0 %}text-success{% else %}text-danger{% endif %} font-weight-bolder" id="percentual-pedidos">
+                  {% if percentual_pedidos >= 0 %}+{% endif %}{{ percentual_pedidos }}% </span>do que no ano passado
+              </p>
+          </div>
+      </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card mb-2">
+          <div class="card-header p-2 ps-3">
+              <div class="d-flex justify-content-between">
+                  <div>
+                      <p class="text-sm mb-0 text-capitalize">Vendas</p>
+                      <h4 class="mb-0" id="total-vendas">R$ {{ total_vendas|floatformat:2 }}</h4>
+                  </div>
+                  <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">sell</i>
+                  </div>
+              </div>
+          </div>
+          <hr class="dark horizontal my-0">
+          <div class="card-footer p-2 ps-3">
+              <p class="mb-0 text-sm"><span class="{% if percentual_vendas >= 0 %}text-success{% else %}text-danger{% endif %} font-weight-bolder" id="percentual-vendas">
+                {% if percentual_vendas >= 0 %}+{% endif %}{{ percentual_vendas }}% </span>do que no ano passado</p>
+          </div>
+      </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card mb-2">
+          <div class="card-header p-2 ps-3">
+              <div class="d-flex justify-content-between">
+                  <div>
+                      <p class="text-sm mb-0 text-capitalize">Clientes</p>
+                      <h4 class="mb-0" id="total-clientes">{{ total_clientes }}</h4>
+                  </div>
+                  <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">person_add</i>
+                  </div>
+              </div>
+          </div>
+          <hr class="dark horizontal my-0">
+          <div class="card-footer p-2 ps-3">
+              <p class="mb-0 text-sm"><span class="text-success font-weight-bolder" id="percentual-clientes">+{{ percentual_clientes }}% </span>do que no ano passado</p>
+          </div>
+      </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6 col-sm-6">
+      <div class="card mb-2">
+          <div class="card-header p-2 ps-3">
+              <div class="d-flex justify-content-between">
+                  <div>
+                      <p class="text-sm mb-0 text-capitalize">Empresas</p>
+                      <h4 class="mb-0" id="total-empresas">{{ total_empresas }}</h4>
+                  </div>
+                  <div class="icon icon-md icon-shape bg-gradient-danger shadow-dark shadow text-center border-radius-lg">
+                      <i class="material-symbols-rounded opacity-10">business</i>
+                  </div>
+              </div>
+          </div>
+          <hr class="dark horizontal my-0">
+          <div class="card-footer p-2 ps-3">
+              <p class="mb-0 text-sm"><span class="text-success font-weight-bolder" id="percentual-empresas">+{{ percentual_empresas }}% </span>do que no ano passado</p>
+          </div>
+      </div>
+  </div>
+    <div class="mt-4">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <h6 class="mb-0">Pedidos por Bairro</h6>
+          <p class="mb-2 text-sm">
+            Confira os pedidos, valor e pizzaria por bairro.
+          </p>
+        </div>
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-lg-6 col-md-7">
+              <div class="table-responsive">
+                <table class="table align-items-center">
+                  <thead>
+                    <tr>
+                      <th class="text-secondary text-sm font-weight-normal text-left p-2">Bairro</th>
+                      <th class="text-secondary text-sm font-weight-normal text-left p-2">Pedidos</th>
+                      <th class="text-secondary text-sm font-weight-normal text-left p-2">Valor Total</th>
+                      <th class="text-secondary text-sm font-weight-normal text-left p-2">Clientes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for bairro in bairros %}
+                    <tr>
+                      <td class="w-30">
+                        <h6 class="text-sm font-weight-normal mb-0">{{ bairro.endereco_cliente__bairro }}</h6>
+                      </td>
+                      <td>
+                        <h6 class="text-sm font-weight-normal mb-0">{{ bairro.total_pedidos }}</h6>
+                      </td>
+                      <td>
+                        <h6 class="text-sm font-weight-normal mb-0">R$ {{ bairro.total_valor|floatformat:2 }}</h6>
+                      </td>
+                      <td class="align-middle text-sm">
+                        <h6 class="text-sm font-weight-normal mb-0">{{bairro.total_clientes}}</h6>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-lg-6 col-md-5">
+              <div id="map" class="mt-0 mt-lg-n4 jvm-container"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<script src="{{ ASSETS_ROOT }}/js/plugins/chartjs.min.js"></script>
+</div>
+
+<div class="modal fade" id="confirmarDeletarModal" tabindex="-1" aria-labelledby="confirmarDeletarModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-lg border-radius-xl shadow">
+          <div class="row p-4 pb-0">
+              <h5 class="text-xxl mb-0" id="confirmarDeletarModalLabel">Exportar Dados</h5>
+              <p class="">Tem certeza que deseja baixar os dados da plataforma?</p>
+          </div>
+          <div class="modal-body text-center mt-0 pt-0">
+              <div class="mb-3">
+                  <img src="{% static 'paid-gif.gif' %}" alt="Paid GIF" class="img-fluid border-radius-lg" style="width: 450px; object-fit: cover;">
+              </div>
+              <form id="formDeletar" method="post" action="{% url 'baixar_dados' %}" class="needs-validation" style="display: inline;" novalidate>
+                {% csrf_token %}
+                <div class="input-group input-group-outline px-2">
+                  <label for="ano" class="form-label" style="width: 96.6%;">Ano</label>
+                  <input type="number" class="form-control px-2" id="ano" name="ano" required>
+                  <div class="invalid-feedback">Precisa preencher qual o ano que deseja baixar.</div>
+                </div>
+              <div class="d-flex justify-content-between p-2 pb-0">
+                  <button type="button" class="btn text-dark" style="border: 1px solid #e9e9e9;" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+                      <button type="submit" class="btn btn-dark shadow-sm">Iniciar download</button>
+                  </form>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+
+<script src="{% static 'assets/js/plugins/chartjs.min.js' %}"></script>
 <script src="{{ ASSETS_ROOT }}/js/plugins/world.min.js"></script>
 <script>
-    var ctx = document.getElementById("chart-bars").getContext("2d");
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: ["M", "T", "W", "T", "F", "S", "S"],
-        datasets: [{
-          label: "Sales",
-          tension: 0.4,
-          borderWidth: 0,
-          borderRadius: 4,
-          borderSkipped: false,
-          backgroundColor: "#E53935",
-          data: [50, 45, 22, 28, 50, 60, 76],
-          barThickness: 'flex'
-        }, ],
+  var ctx = document.getElementById("chart-line-tasks").getContext("2d");
+  var gradientStrokeEntrada = ctx.createLinearGradient(0, 230, 0, 50);
+  gradientStrokeEntrada.addColorStop(1, 'rgba(239, 83, 80, 0.2)'); // Cor inicial com opacidade total
+  gradientStrokeEntrada.addColorStop(0.2, 'rgba(239, 83, 80, 0.0)'); // Cor intermediária com opacidade 50%
+  gradientStrokeEntrada.addColorStop(0, 'rgba(233, 57, 53, 0)'); // Cor final com total transparência
+  var meuGrafico = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Set', 'Out', 'Nov', 'Dez'],
+      datasets: [{
+        label: "Total",
+        data: [], // Inicialmente vazio
+        fill: true,
+        backgroundColor: gradientStrokeEntrada,
+        borderColor: '#E53935',
+        borderWidth: 2,
+        borderDash: [],
+        borderDashOffset: 0.0,
+        pointBackgroundColor: '#E53935',
+        pointBorderColor: 'rgba(255,255,255,0)',
+        pointHoverBackgroundColor: '#E53935',
+        pointBorderWidth: 20,
+        pointHoverRadius: 4,
+        pointHoverBorderWidth: 15,
+        pointRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
+      scales: {
+        y: {
+          grid: {
             display: false,
+            drawBorder: false,
+            drawOnChartArea: true,
+            drawTicks: false,
+            color: 'transparent',
+            zeroLineColor: 'transparent',
+          },
+          ticks: {
+            display: true,
+            padding: 10,
+            color: '#737373',
+            font: {
+              size: 14,
+              lineHeight: 2
+            },
           }
         },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
-        scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [5, 5],
-              color: '#e5e5e5'
-            },
-            ticks: {
-              suggestedMin: 0,
-              suggestedMax: 500,
-              beginAtZero: true,
-              padding: 10,
-              font: {
-                size: 14,
-                lineHeight: 2
-              },
-              color: "#737373"
-            },
+        x: {
+          grid: {
+            drawBorder: false,
+            display: true,
+            drawOnChartArea: true,
+            drawTicks: false,
+            borderDash: [4, 4],
+            color: 'rgba(229, 57, 53, 0.1)'
           },
-          x: {
-            grid: {
-              drawBorder: false,
-              display: false,
-              drawOnChartArea: false,
-              drawTicks: false,
-              borderDash: [5, 5]
+          ticks: {
+            display: true,
+            color: '#737373',
+            padding: 10,
+            font: {
+              size: 14,
+              lineHeight: 2
             },
-            ticks: {
-              display: true,
-              color: '#737373',
-              padding: 10,
-              font: {
-                size: 14,
-                lineHeight: 2
-              },
-            }
-          },
+          }
         },
       },
+    },
+  });
+
+  function atualizarGraficoAno(ano) {
+    const tipoAtivo = document.querySelector('.btn-group .btn.active').id.split('-')[1]; // Obtém o tipo ativo
+    atualizarGrafico(tipoAtivo, ano); // Chama a função de atualização do gráfico com o tipo e ano
+}
+
+// Atualiza a função de atualização do gráfico para aceitar o ano
+function atualizarGrafico(tipo, ano) {
+    fetch(`/admin/atualizar_grafico/?tipo=${tipo}&ano=${ano}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Atualiza os rótulos do gráfico
+            meuGrafico.data.labels = data.labels; 
+            meuGrafico.data.datasets[0].data = data.data_values; 
+            meuGrafico.update(); // Atualiza o gráfico
+
+            // Atualiza os valores dos cards
+            document.getElementById('numero-pedidos').innerText = data.numero_pedidos;
+            document.getElementById('total-vendas').innerText = `R$ ${data.total_vendas.toFixed(2)}`;
+            document.getElementById('total-clientes').innerText = data.total_clientes;
+            document.getElementById('total-empresas').innerText = data.total_empresas;
+
+            // Atualiza os percentuais
+            document.getElementById('percentual-pedidos').innerText = `${data.percentual_pedidos}%`;
+            document.getElementById('percentual-vendas').innerText = `${data.percentual_vendas}%`;
+            document.getElementById('percentual-clientes').innerText = `${data.percentual_clientes}%`;
+            document.getElementById('percentual-empresas').innerText = `${data.percentual_empresas}%`;
+        })
+        .catch(error => console.error('Erro ao buscar dados:', error));
+}
+
+  // Função para trocar a classe ativa
+  function trocarClasseAtiva(botaoAtivo) {
+    const botoes = document.querySelectorAll('.btn-group .btn');
+    botoes.forEach(botao => {
+      botao.classList.remove('active'); // Remove a classe active de todos os botões
     });
+    botaoAtivo.classList.add('active'); // Adiciona a classe active ao botão clicado
+  }
 
+  // Adiciona eventos de clique aos botões
+  document.getElementById('btn-pedidos').addEventListener('click', function () {
+    trocarClasseAtiva(this); // Troca a classe ativa
+    atualizarGrafico('pedidos', {{ ano_atual }});
+  });
 
-    var ctx2 = document.getElementById("chart-line").getContext("2d");
+  document.getElementById('btn-clientes').addEventListener('click', function () {
+    trocarClasseAtiva(this); // Troca a classe ativa
+    atualizarGrafico('clientes', {{ ano_atual }});
+  });
 
-    new Chart(ctx2, {
-      type: "line",
-      data: {
-        labels: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        datasets: [{
-          label: "Mobile apps",
-          tension: 0,
-          borderWidth: 2,
-          pointRadius: 3,
-          pointBackgroundColor: "#E53935",
-          pointBorderColor: "transparent",
-          borderColor: "#E53935",
-          backgroundColor: "transparent",
-          fill: true,
-          data: [120, 230, 130, 440, 250, 360, 270, 180, 90, 300, 310, 220],
-          maxBarThickness: 6
+  document.getElementById('btn-empresas').addEventListener('click', function () {
+    trocarClasseAtiva(this); // Troca a classe ativa
+    atualizarGrafico('empresas', {{ ano_atual }});
+  });
 
-        }],
+  // Chama a função para carregar os dados iniciais
+  atualizarGrafico('pedidos', {{ ano_atual }});
+</script>
+<script>
+  // Initialize the vector map
+  var map = new jsVectorMap({
+    selector: "#map",
+    map: "world_merc",
+    zoomOnScroll: false,
+    zoomButtons: false,
+    showTooltip: false,
+    selectedMarkers: [1, 3],
+    markersSelectable: true,
+    markers: [{
+      name: "USA",
+      coords: [40.71296415909766, -74.00437720027804]
+    },
+    {
+      name: "Germany",
+      coords: [51.17661451970939, 10.97947735117339],
+      style: {
+        fill: '#E53935'
+      }
+    },
+    {
+      name: "Brazil",
+      coords: [-7.596735421549542, -54.781694323779185],
+      style: {
+        fill: '#E53935'
+      }
+    },
+    {
+      name: "Russia",
+      coords: [62.318222797104276, 89.81564777631716]
+    },
+    {
+      name: "China",
+      coords: [22.320178999475512, 114.17161225541399],
+    }
+    ],
+    markerStyle: {
+      initial: {
+        fill: "#333333"
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            callbacks: {
-              title: function(context) {
-                const fullMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                return fullMonths[context[0].dataIndex];
-              }
-            }
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
-        scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [4, 4],
-              color: '#e5e5e5'
-            },
-            ticks: {
-              display: true,
-              color: '#737373',
-              padding: 10,
-              font: {
-                size: 12,
-                lineHeight: 2
-              },
-            }
-          },
-          x: {
-            grid: {
-              drawBorder: false,
-              display: false,
-              drawOnChartArea: false,
-              drawTicks: false,
-              borderDash: [5, 5]
-            },
-            ticks: {
-              display: true,
-              color: '#737373',
-              padding: 10,
-              font: {
-                size: 12,
-                lineHeight: 2
-              },
-            }
-          },
-        },
+      hover: {
+        fill: "#333333"
       },
-    });
+      selected: {
+        fill: "#333333"
+      }
+    },
+    // Adicione esta linha para desativar o tooltip
+    tooltip: {
+      content: false // Desativa o conteúdo do tooltip
+    }
 
-    var ctx3 = document.getElementById("chart-line-tasks").getContext("2d");
-
-    new Chart(ctx3, {
-      type: "line",
-      data: {
-        labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [{
-          label: "Mobile apps",
-          tension: 0,
-          borderWidth: 2,
-          pointRadius: 3,
-          pointBackgroundColor: "#E53935",
-          pointBorderColor: "transparent",
-          borderColor: "#E53935",
-          backgroundColor: "transparent",
-          fill: true,
-          data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
-          maxBarThickness: 6
-
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
-        scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [4, 4],
-              color: '#e5e5e5'
-            },
-            ticks: {
-              display: true,
-              padding: 10,
-              color: '#737373',
-              font: {
-                size: 14,
-                lineHeight: 2
-              },
-            }
-          },
-          x: {
-            grid: {
-              drawBorder: false,
-              display: false,
-              drawOnChartArea: false,
-              drawTicks: false,
-              borderDash: [4, 4]
-            },
-            ticks: {
-              display: true,
-              color: '#737373',
-              padding: 10,
-              font: {
-                size: 14,
-                lineHeight: 2
-              },
-            }
-          },
-        },
-      },
-    });
-
-    // Initialize the vector map
-    var map = new jsVectorMap({
-      selector: "#map",
-      map: "world_merc",
-      zoomOnScroll: false,
-      zoomButtons: false,
-      showTooltip: false,
-      selectedMarkers: [1, 3],
-      markersSelectable: true,
-      markers: [{
-          name: "USA",
-          coords: [40.71296415909766, -74.00437720027804]
-        },
-        {
-          name: "Germany",
-          coords: [51.17661451970939, 10.97947735117339],
-          style: {
-            fill: '#E53935'
-          }
-        },
-        {
-          name: "Brazil",
-          coords: [-7.596735421549542, -54.781694323779185],
-          style: {
-            fill: '#E53935'
-          }
-        },
-        {
-          name: "Russia",
-          coords: [62.318222797104276, 89.81564777631716]
-        },
-        {
-          name: "China",
-          coords: [22.320178999475512, 114.17161225541399],
-        }
-      ],
-      markerStyle: {
-        initial: {
-          fill: "#333333"
-        },
-        hover: {
-          fill: "#333333"
-        },
-        selected: {
-          fill: "#333333"
-        }
-      },
-        // Adicione esta linha para desativar o tooltip
-        tooltip: {
-            content: false // Desativa o conteúdo do tooltip
-        }
-
-    });
+  });
 </script>
 {% endblock %}
