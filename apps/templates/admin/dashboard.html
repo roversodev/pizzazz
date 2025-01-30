@@ -4,7 +4,7 @@
 
 {% load my_filters %}
 
-{% block title %}Admin Empresas{% endblock %}
+{% block title %}Admin{% endblock %}
 
 {% block content2 %}
 {% include 'includes/messages.html' %}
@@ -221,7 +221,7 @@
     </div>
   </div>
 </div>
-</div>
+{% include 'includes/footer-emp.html' %}
 
 <div class="modal fade" id="confirmarDeletarModal" tabindex="-1" aria-labelledby="confirmarDeletarModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

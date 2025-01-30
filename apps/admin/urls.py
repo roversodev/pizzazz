@@ -17,4 +17,8 @@ urlpatterns = [
     path("controle_usuarios", views.Controle_Users.controle_usuarios_admin, name='controle_usuarios_admin'),
     path("controle_usuarios/toggle_ativo_user/<int:user_id>", views.Controle_Users.toggle_ativo_user, name="toggle_ativo_user"),
     path("create_user_admin/", views.Controle_Users.create_user_admin, name="create_user_admin"),
+    # Pedidos
+    path("pedidos/", views.Pedidos.pedidos_admin, name="pedidos_admin"),
+    path("pedidos/<int:pedido_numero>", views.Pedidos.detalhes_pedido_admin, name='detalhes_pedido_admin'),
+    path("pedidos/<int:pedido_numero>/alterar_status/", views.Pedidos.alterar_status, name="alterar_status"),
 ]

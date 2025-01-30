@@ -11,11 +11,12 @@ from django.utils import timezone
 import locale
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, OuterRef, Subquery
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
 import json
 import pandas as pd
+from django.core.paginator import Paginator
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 
@@ -64,6 +65,7 @@ def deslogar_usuarios_empresa(request, empresa_id):
 
 
 class Dashboard:
+    
     @login_required
     @masteruser_required
     def adminDashboard(request):
@@ -73,11 +75,23 @@ class Dashboard:
         # Calcular os anos disponíveis
         anos_disponiveis = Pedido.objects.dates('data_pedido', 'year')
         anos = [ano.year for ano in anos_disponiveis]
+
+        # Subconsulta para obter o último status de cada pedido
+        last_status = HistoricoPedido.objects.filter(
+            pedido=OuterRef('pk')  # Referencia ao pedido atual
+        ).order_by('-data_alteracao')  # Ordena pela data de alteração (mais recente primeiro)
+
+        # Filtrar pedidos cujo último status é "entregue"
+        pedidos_entregues = Pedido.objects.filter(
+            historico__status='entregue',
+            historico__status__in=Subquery(last_status.values('status')[:1])
+        )
+
         # Total de pedidos no ano selecionado
-        total_pedidos_ano = Pedido.objects.filter(data_pedido__year=ano_atual).count()
+        total_pedidos_ano = pedidos_entregues.filter(data_pedido__year=ano_atual).count()
 
         # Total de vendas no ano selecionado
-        total_vendas_ano = Pedido.objects.filter(data_pedido__year=ano_atual).aggregate(total=Sum('total'))['total'] or 0
+        total_vendas_ano = pedidos_entregues.filter(data_pedido__year=ano_atual).aggregate(total=Sum('total'))['total'] or 0
 
         # Total de clientes cadastrados no ano selecionado
         total_clientes_ano = Cliente.objects.filter(data_criacao__year=ano_atual).count()
@@ -91,8 +105,8 @@ class Dashboard:
         inicio_semana_passada = inicio_semana_atual - timedelta(days=7)
         fim_semana_passada = inicio_semana_atual
 
-        pedidos_semana_atual = Pedido.objects.filter(data_pedido__range=(inicio_semana_atual, fim_semana_atual)).count()
-        pedidos_semana_passada = Pedido.objects.filter(data_pedido__range=(inicio_semana_passada, fim_semana_passada)).count()
+        pedidos_semana_atual = pedidos_entregues.filter(data_pedido__range=(inicio_semana_atual, fim_semana_atual)).count()
+        pedidos_semana_passada = pedidos_entregues.filter(data_pedido__range=(inicio_semana_passada, fim_semana_passada)).count()
 
         if pedidos_semana_passada > 0:
             percentual = int(((pedidos_semana_atual - pedidos_semana_passada) / pedidos_semana_passada) * 100)
@@ -100,10 +114,10 @@ class Dashboard:
             percentual = 100 if pedidos_semana_atual > 0 else 0
 
         # Calcular percentuais em relação ao ano anterior
-        total_pedidos_ano_anterior = Pedido.objects.filter(data_pedido__year=ano_atual - 1).count()
+        total_pedidos_ano_anterior = pedidos_entregues.filter(data_pedido__year=ano_atual - 1).count()
         percentual_pedidos = int(((total_pedidos_ano - total_pedidos_ano_anterior) / total_pedidos_ano_anterior) * 100) if total_pedidos_ano_anterior > 0 else 100
 
-        total_vendas_ano_anterior = Pedido.objects.filter(data_pedido__year=ano_atual - 1).aggregate(total=Sum('total'))['total'] or 0
+        total_vendas_ano_anterior = pedidos_entregues.filter(data_pedido__year=ano_atual - 1).aggregate(total=Sum('total'))['total'] or 0
         percentual_vendas = int(((total_vendas_ano - total_vendas_ano_anterior) / total_vendas_ano_anterior) * 100) if total_vendas_ano_anterior > 0 else 100
 
         total_clientes_ano_anterior = Cliente.objects.filter(data_criacao__year=ano_atual - 1).count()
@@ -112,9 +126,9 @@ class Dashboard:
         total_empresas_ano_anterior = Empresa.objects.filter(data_criacao__year=ano_atual - 1).count()
         percentual_empresas = int(((total_empresas_ano - total_empresas_ano_anterior) / total_empresas_ano_anterior) * 100) if total_empresas_ano_anterior > 0 else 100
 
-       # Filtrar os pedidos por ano
+        # Filtrar os pedidos entregues por ano
         bairros = (
-            Pedido.objects
+            pedidos_entregues
             .filter(data_pedido__year=ano_atual)  # Filtra pelo ano atual
             .values('endereco_cliente__bairro')
             .annotate(
@@ -153,9 +167,19 @@ class Dashboard:
         data_inicial = timezone.datetime(ano, 1, 1)  # Começo do ano selecionado
         data_final = timezone.datetime(ano, 12, 31)  # Fim do ano selecionado
 
+        last_status = HistoricoPedido.objects.filter(
+            pedido=OuterRef('pk')  # Referencia ao pedido atual
+        ).order_by('-data_alteracao')  # Ordena pela data de alteração (mais recente primeiro)
+
+        # Filtrar pedidos cujo último status é "entregue"
+        pedidos_entregues = Pedido.objects.filter(
+            historico__status='entregue',
+            historico__status__in=Subquery(last_status.values('status')[:1])
+        )
+
         # Inicializa as variáveis para os cards
         total_pedidos_ano = Pedido.objects.filter(data_pedido__year=ano).count()
-        total_vendas_ano = Pedido.objects.filter(data_pedido__year=ano).aggregate(total=Sum('total'))['total'] or 0
+        total_vendas_ano = pedidos_entregues.filter(data_pedido__year=ano).aggregate(total=Sum('total'))['total'] or 0
         total_clientes_ano = Cliente.objects.filter(data_criacao__year=ano).count()
         total_empresas_ano = Empresa.objects.filter(data_criacao__year=ano).count()
 
@@ -163,7 +187,7 @@ class Dashboard:
         total_pedidos_ano_anterior = Pedido.objects.filter(data_pedido__year=ano - 1).count()
         percentual_pedidos = int(((total_pedidos_ano - total_pedidos_ano_anterior) / total_pedidos_ano_anterior) * 100) if total_pedidos_ano_anterior > 0 else 100
 
-        total_vendas_ano_anterior = Pedido.objects.filter(data_pedido__year=ano - 1).aggregate(total=Sum('total'))['total'] or 0
+        total_vendas_ano_anterior = pedidos_entregues.filter(data_pedido__year=ano - 1).aggregate(total=Sum('total'))['total'] or 0
         percentual_vendas = int(((total_vendas_ano - total_vendas_ano_anterior) / total_vendas_ano_anterior) * 100) if total_vendas_ano_anterior > 0 else 100
 
         total_clientes_ano_anterior = Cliente.objects.filter(data_criacao__year=ano - 1).count()
@@ -174,7 +198,7 @@ class Dashboard:
 
         # Lógica para obter dados do gráfico
         if tipo == 'pedidos':
-            pedidos = Pedido.objects.filter(data_pedido__range=(data_inicial, data_final))
+            pedidos = pedidos_entregues.filter(data_pedido__range=(data_inicial, data_final))
             labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Set', 'Out', 'Nov', 'Dez']
             data_values = [pedidos.filter(data_pedido__month=i).aggregate(total=Sum('total'))['total'] or 0 for i in range(1, 13)]
         
@@ -280,6 +304,7 @@ class Dashboard:
             return redirect('adminD')
 
         return redirect('exportar_dados_excel', ano)
+
 
 
 class Empresas_Admin:
@@ -489,4 +514,112 @@ class Controle_Users:
                 return redirect('controle_usuarios_admin')
             
         return redirect('controle_usuarios_admin')
+
+
+
+class Pedidos:
     
+    @login_required
+    @isadmin_required
+    def pedidos_admin(request):
+        # Obter parâmetros de pesquisa
+        numero = request.GET.get('numero', '')
+        status = request.GET.get('status', '')
+        empresa_cnpj = request.GET.get('empresa', '')
+
+        # Filtrar pedidos
+        pedidos = Pedido.objects.all().order_by('-numero_pedido')
+
+        if numero:
+            pedidos = pedidos.filter(numero_pedido__icontains=numero)
+
+        if status:
+            last_status = HistoricoPedido.objects.filter(
+                pedido=OuterRef('pk')  # Referencia ao pedido atual
+            ).order_by('-data_alteracao')  # Ordena pela data de alteração (mais recente primeiro)
+            
+            # Pega o status da última alteração
+            last_status = last_status.values('status')[:1]
+            
+            # Filtra os pedidos com o último status correspondente
+            pedidos = pedidos.filter(
+                historico__status=status,
+                historico__status__in=Subquery(last_status)
+            )
+
+        if empresa_cnpj:
+            pedidos = pedidos.filter(empresa__cnpj=empresa_cnpj)
+
+        # Paginação
+        paginator = Paginator(pedidos, 10)
+        page_number = request.GET.get('page')
+        pedidos_paginated = paginator.get_page(page_number)
+
+        # Obter todas as empresas para o filtro
+        empresas = Empresa.objects.all()
+
+        context = {
+            'page_title': 'Pedidos',
+            'pedidos': pedidos_paginated,
+            'empresas': empresas,
+            'search': numero,
+            'selected_status': status,
+            'selected_empresa': empresa_cnpj,
+        }
+        return render(request, 'admin/pedidos.html', context)
+
+
+    @login_required
+    @isadmin_required
+    def detalhes_pedido_admin(request, pedido_numero):
+
+        pedido = get_object_or_404(Pedido, numero_pedido=pedido_numero)
+        historico_pedido = pedido.historico.all()
+
+        context = {
+            'page_title': 'Pedidos',
+            'pedido': pedido,
+            'historico_pedido': historico_pedido,
+        }
+
+        return render(request, 'admin/detalhes_pedido.html', context)
+    
+
+    @login_required
+    @isadmin_required
+    def alterar_status(request, pedido_numero):
+        if request.method == 'POST':
+         try:
+            pedido = Pedido.objects.get(numero_pedido=pedido_numero)
+            status = request.POST.get('status')
+            obs = request.POST.get('observacao')
+
+            if status == '':
+                messages.error(request, f'Ocorreu um erro ao tentar alterar o status do pedido #{pedido.numero_pedido}, verifique as informações e tente novamente.')
+                return redirect('detalhes_pedido_admin', pedido_id=pedido.numero_pedido)
+
+            if not request.POST.get('observacao'):
+                if status == 'pendente':
+                    obs = 'Pedido criado'
+                if status == 'confirmado':
+                    obs = 'Pedido confirmado pela Pizzaria'
+                if status == 'preparando':
+                    obs = 'Pedido em preparação'
+                if status == 'saiu_entrega':
+                    obs = 'Pedido saiu para a entrega'
+                if status == 'entregue':
+                    obs = 'Pedido entregue'
+
+
+            historico = HistoricoPedido.objects.create(
+                 status=status,
+                 observacao=obs,
+                 pedido=pedido,
+                 alterado_por=request.user,
+             )
+
+            messages.success(request, f'Status do pedido #{pedido.numero_pedido} alterado!')
+            return redirect('detalhes_pedido_admin', pedido.numero_pedido)
+         except Exception as e:
+             messages.error(request, f'Ocorreu um erro ao tentar alterar o status do pedido #{pedido.numero_pedido}, verifique as informações e tente novamente.')
+             return redirect('detalhes_pedido_admin', pedido.numero_pedido)

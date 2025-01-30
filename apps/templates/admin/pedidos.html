@@ -1,0 +1,213 @@
+{% extends 'includes/side-nav-admin.html' %}
+
+{% load static %}
+
+{% load my_filters %}
+
+{% block title %}Admin Pedidos{% endblock %}
+
+{% block content2 %}
+{% include 'includes/messages.html' %}
+<div class="container-fluid py-4 min-vh-85">
+    <div class="row px-3">
+        <div class="card">
+            <div class="card-header">
+                <div class="col-md-12">
+                    <h5 class="mb-3">Lista de Pedidos</h5>
+                    <form action="{% url 'pedidos_admin' %}" method="get" class="row">
+                        <div class="col-3">
+                            <div class="input-group input-group-outline">
+                                <input type="text" class="form-control" placeholder="Número do Pedido" id="numero" name="numero" value="{{ search }}">
+                            </div>
+                        </div>
+                        <div class="col-3 px-0">
+                            <div class="mb-3 input-group input-group-outline position-relative" id="select">
+                                <i class="fas fa-chevron-down position-absolute end-0 me-3 text-danger text-xs" style="margin-top: 12px;"></i>
+                                <select class="form-control pe-5 text-body" id="status" name="status">
+                                    <option value="" disabled {% if not selected_status %}selected{% endif %}>Situação</option>
+                                    <option value="pendente" {% if selected_status == "pendente" %}selected{% endif %}>Pendente</option>
+                                    <option value="confirmado" {% if selected_status == "confirmado" %}selected{% endif %}>Confirmado</option>
+                                    <option value="preparando" {% if selected_status == "preparando" %}selected{% endif %}>Preparando</option>
+                                    <option value="saiu_entrega" {% if selected_status == "saiu_entrega" %}selected{% endif %}>Saiu para Entrega</option>
+                                    <option value="entregue" {% if selected_status == "entregue" %}selected{% endif %}>Entregue</option>
+                                    <option value="cancelado" {% if selected_status == "cancelado" %}selected{% endif %}>Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                
+                        <div class="col-md-4 col-6">
+                            <div class="row">
+                                <div class="col-10">
+                                    <div class="mb-3 input-group input-group-outline position-relative">
+                                        <i class="fas fa-chevron-down position-absolute end-0 me-3 text-danger text-xs" style="margin-top: 12px;"></i>
+                                        <select class="form-control text-body" id="empresa" name="empresa">
+                                            <option value="" disabled {% if not selected_empresa %}selected{% endif %}>Selecione a Empresa</option>
+                                            {% for empresa in empresas %}
+                                                <option value="{{ empresa.cnpj }}" {% if selected_empresa == empresa.cnpj %}selected{% endif %}>{{ empresa.nome_fantasia }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-2" style="padding-left: 0;">
+                                    <div class="px-0">
+                                        <button class="btn bg-gradient-secondary m-0" type="submit"><i class="fas fa-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-2 px-0 d-md-block d-none">
+                            <a href="{% url 'pedidos_admin' %}" class="btn text-danger m-0 px-0 text-start"><i class="ph-bold ph-sliders-horizontal"></i> Limpar os Filtros</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    
+            <div class="col-12">
+                <div class="">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Horário</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Canal</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Pedido</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Situação</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Total do Pedido</th>
+                                    <th class="text-uppercase text-danger font-weight-bolder opacity-9 ps-2"><i class="ph-bold ph-gear"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if pedidos %}
+                                    {% for pedido in pedidos %}
+                                        <tr>
+                                            <td class="align-middle" style="padding-left: 1.5rem;">
+                                                <p class="text-sm mb-0 text-body">{{ pedido.data_pedido|time:"H:i" }}</p>
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <p class="text-xs font-weight-bold mb-0">{{ pedido.canal|default:"Manual" }}</p>
+                                            </td>
+                                            <td class="align-middle text-center text-sm">
+                                                <p class="text-sm mb-0 text-body">{{ pedido.numero_pedido }}</p>
+                                            </td>
+                                            <td class="align-middle text-center text-sm">
+                                                {% if pedido.historico.last.status == "entregue" %}
+                                                    <span class="badge badge-sm text-success badge-perso-success">
+                                                        <span class="dot-success"></span>Entregue
+                                                    </span>
+                                                {% elif pedido.historico.last.status == "pendente" %}
+                                                    <span class="badge badge-sm text-danger badge-perso-danger">
+                                                        <span class="dot-danger"></span>Pendente
+                                                    </span>
+                                                {% elif pedido.historico.last.status == "cancelado" %}
+                                                    <span class="badge badge-sm text-danger badge-perso-danger">
+                                                        <span class="dot-danger"></span>Cancelado
+                                                    </span>
+                                                {% elif pedido.historico.last.status == "confirmado" %}
+                                                    <span class="badge badge-sm text-info badge-perso-info">
+                                                        <span class="dot-info"></span>Confirmado
+                                                    </span>
+                                                {% elif pedido.historico.last.status == "preparando" %}
+                                                    <span class="badge badge-sm text-warning badge-perso-warning">
+                                                        <span class="dot-warning"></span>Preparando
+                                                    </span>
+                                                {% elif pedido.historico.last.status == "saiu_entrega" %}
+                                                    <span class="badge badge-sm text-primary badge-perso-primary">
+                                                        <span class="dot-primary"></span>Saiu para Entrega
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge badge-sm text-secondary">Desconhecido</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <p class="text-sm font-weight-bold mb-0">R$ {{ pedido.total|floatformat:2 }}</p>
+                                            </td>
+                                            <td class="align-middle text-start">
+                                                <p class="mb-0 text-danger">
+                                                    <a href="{% url 'detalhes_pedido_admin' pedido.numero_pedido %}" class="text-danger">
+                                                        <i class="ph-bold ph-caret-right"></i>
+                                                    </a>
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            Nenhum pedido encontrado.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginação -->
+<div class="d-flex justify-content-center">
+    <ul class="pagination pagination-danger pagination-sm m-4">
+        {% if pedidos.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pedidos.previous_page_number }}&numero={{ search }}&status={{ selected_status }}&empresa={{ selected_empresa }}" aria-label="Previous">
+                    <span aria-hidden="true"><i class="fa fa-angle-double-left" aria-hidden="true"></i></span>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in pedidos.paginator.page_range %}
+            {% if pedidos.number == num %}
+                <li class="page-item active">
+                    <a class="page-link text-white" href="javascript:;">{{ num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}&numero={{ search }}&status={{ selected_status }}&empresa={{ selected_empresa }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if pedidos.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pedidos.next_page_number }}&numero={{ search }}&status={{ selected_status }}&empresa={{ selected_empresa }}" aria-label="Next">
+                    <span aria-hidden="true"><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+        </div>
+    </div>
+</div>
+</div>
+
+
+{% include 'includes/footer-emp.html' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const selectStatus = document.getElementById('status');
+    const selectEmpresa = document.getElementById('empresa');
+
+    const updateClass = (selectElement) => {
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        if (selectedOption && selectedOption.value) {
+            selectElement.classList.remove('text-body'); // Remove a classe text-body
+        } else {
+            selectElement.classList.add('text-body'); // Adiciona a classe text-body se nenhuma opção estiver selecionada
+        }
+    };
+
+    // Adiciona evento de mudança aos selects
+    selectStatus.addEventListener('change', function() {
+        updateClass(selectStatus);
+    });
+
+    selectEmpresa.addEventListener('change', function() {
+        updateClass(selectEmpresa);
+    });
+
+    // Chama a função ao carregar a página para definir o estado inicial
+    updateClass(selectStatus);
+    updateClass(selectEmpresa);
+});
+</script>
+{% endblock %}

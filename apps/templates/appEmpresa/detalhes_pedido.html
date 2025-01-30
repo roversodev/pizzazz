@@ -189,7 +189,7 @@
                                     {% endif %}
                                             <td class="align-middle text-center">{{ item.observacao }}</td>
                                             <td class="align-middle text-center">{{ item.data_alteracao|date:"d/m/Y - H:i" }}</td>
-                                            <td class="align-middle text-center">{{ item.alterado_por.first_name }} {{ item.alterado_por.last_name }}</td>
+                                            <td class="align-middle text-center">{% if item.alterado_por.is_adm == True %}Operador PizzazzZ{% else %}{{ item.alterado_por.first_name }} {{ item.alterado_por.last_name }}{% endif %}</td>
                                         </tr>
                                 {% endfor %}
                               </tbody>

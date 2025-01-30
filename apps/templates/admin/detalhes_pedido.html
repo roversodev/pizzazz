@@ -1,0 +1,267 @@
+{% extends 'includes/side-nav-admin.html' %}
+
+{% load static %}
+
+{% load my_filters %}
+
+{% block title %}Admin Detalhe Pedido{% endblock %}
+
+{% block content2 %}
+{% include 'includes/messages.html' %}
+<div class="container-fluid py-4 min-vh-85">
+    <div class="row">
+        <!-- Título e informações principais -->
+        <div class="col-6 mb-4">
+            <h2 class="mb-0">Detalhes do Pedido #{{ pedido.numero_pedido }} - Empresa {{pedido.empresa.nome_fantasia}} <a href="{{ pedido.empresa.link_whatsapp }}" class="text-success ps-1"><i class="fa-brands fa-whatsapp"></i></a></h2>
+            <p class="text-muted">Realizado em {{ pedido.data_pedido|date:"d/m/Y H:i" }}</p>
+        </div>
+        <div class="col-6">
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn bg-gradient-dark btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#modalAlterarStatusPedido">Alterar Status</button>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card shadow-sm w-100">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Informações do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0 row gap-4">
+                        <li><strong>Canal:</strong> {{ pedido.canal|default:"Manual" }}</li>
+                        <li><strong>Status:</strong>
+                            {% if pedido.historico.last.status == "entregue" %}
+                            <span class="badge bg-success">Entregue</span>
+                            {% elif pedido.historico.last.status == "pendente" %}
+                            <span class="badge bg-danger text-white">Pendente</span>
+                            {% elif pedido.historico.last.status == "confirmado" %}
+                            <span class="badge bg-info">confirmado</span>
+                            {% elif pedido.historico.last.status == "cancelado" %}
+                            <span class="badge bg-danger">cancelado</span>
+                            {% elif pedido.historico.last.status == "preparando" %}
+                            <span class="badge bg-warning">preparando</span>
+                            {% elif pedido.historico.last.status == "saiu_entrega" %}
+                            <span class="badge bg-primary">Saiu para Entrega</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Desconhecido</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>Total do Pedido:</strong> R$ {{ pedido.total|floatformat:2 }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card shadow-sm w-100">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Informações do Cliente</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Nome:</strong> {{ pedido.cliente.nome }}</li>
+                        <li><strong>Email:</strong> {{ pedido.cliente.usuario.email|default:"Não cadastrado" }}</li>
+                        <li><strong>Telefone:</strong> {{ pedido.cliente.telefone|default:"Não informado" }} {% if pedido.cliente.telefone %} <a href="{{ pedido.cliente.link_whatsapp }}" class="text-success"><i class="fa-brands fa-whatsapp"></i></a>{% endif %}</li>
+                        <li><strong>Endereço:</strong> {{ pedido.endereco_cliente.endereco }}, {{pedido.endereco_cliente.numero }} - {{ pedido.endereco_cliente.complemento }} <br>{{pedido.endereco_cliente.cep }} - {{ pedido.endereco_cliente.municipio }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Itens do Pedido -->
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card shadow-sm" style="min-height: 270px;">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Itens do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for item in pedido.itens.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                {% if item.cardapio_item.imagem %}
+                                <img src="{{ item.cardapio_item.imagem.url }}" alt="{{ item.cardapio_item.nome }}"
+                                    class="rounded-circle me-3" width="50" height="50">
+                                {% else %}
+                                <span
+                                    class="rounded-circle bg-secondary me-3 d-flex justify-content-center align-items-center text-white"
+                                    style="width: 50px; height: 50px;">N/A</span>
+                                {% endif %}
+                                <div>
+                                    <p class="mb-0 fw-bold">{{ item.cardapio_item.nome }}</p>
+                                    <p class="mb-0 text-muted">Quantidade: {{ item.quantidade }}</p>
+                                </div>
+                            </div>
+                            <span class="fw-bold">R$ {{ item.preco_unitario|floatformat:2 }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-muted text-center">Nenhum item encontrado.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex">
+            <div class="card shadow-sm w-100">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Informações de Pagamento</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>
+                                {% if pedido.pagamento.forma_pagamento == 'cartao_debito' or pedido.pagamento.forma_pagamento == 'cartao_credito' %}
+                                <i class="fa-regular fa-credit-card"></i>
+                                {% elif pedido.pagamento.forma_pagamento == 'pix' %}
+                                <i class="fa-brands fa-pix"></i>
+                                {% else %}
+                                <i class="fa-solid fa-money-bills"></i>
+                                {% endif %}
+                            </strong>
+                            <span>{{ pedido.pagamento.get_forma_pagamento_display }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <strong><i class="fa-solid fa-coins"></i></strong>
+                            <span class="text-success fw-bold">R$ {{ pedido.pagamento.valor|floatformat:2 }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            {% if pedido.pagamento.status == 'aprovado' %}
+                            <span class="badge bg-success">{{ pedido.pagamento.status }}</span>
+                            {% elif pedido.pagamento.status == 'pendente' %}
+                            <span class="badge bg-warning text-dark">{{ pedido.pagamento.status }}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ pedido.pagamento.status }}</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <span class="text-secondary">{{ pedido.pagamento.data_pagamento|date:"d/m/Y H:i" }}</span>
+                        </li>
+                        {% if pedido.pagamento.codigo_transacao %}
+                        <li class="list-group-item">
+                            <strong>Transação:</strong>
+                            <span class="text-muted">{{ pedido.pagamento.codigo_transacao }}</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Histórico Pedido -->
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0 text-white">Histórico do Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Icon
+                                    </th>
+                                    <th
+                                        class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Status</th>
+                                    <th
+                                        class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Observação</th>
+                                    <th
+                                        class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Horário</th>
+                                    <th
+                                        class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Atualizado por</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in historico_pedido %}
+                                <tr>
+                                    {% if item.status == "pendente" %}
+                                    <td class="align-middle text-danger opacity-9" style="padding-left: 1.5rem;"><i
+                                            class="fa-solid fa-clock-rotate-left"></i></td>
+                                    <td class="align-middle text-center">Pendente</td>
+                                    {% elif item.status == "confirmado" %}
+                                    <td class="align-middle text-info opacity-9" style="padding-left: 1.5rem;"><i
+                                            class="fa-regular fa-circle-check"></i></td>
+                                    <td class="align-middle text-center">Confirmado</td>
+                                    {% elif item.status == "preparando" %}
+                                    <td class="align-middle text-warning opacity-9" style="padding-left: 1.5rem;"><i
+                                            class="fa-solid fa-kitchen-set"></i></td>
+                                    <td class="align-middle text-center">Preparando</td>
+                                    {% elif item.status == "saiu_entrega" %}
+                                    <td class="align-middle text-primary opacity-9" style="padding-left: 1.5rem;"><i
+                                            class="fa-solid fa-motorcycle"></i></td>
+                                    <td class="align-middle text-center">Saiu para entrega</td>
+                                    {% elif item.status == "entregue" %}
+                                    <td class="align-middle text-success opacity-9" style="padding-left: 1.5rem;"><i
+                                            class="fa-solid fa-truck-ramp-box"></i></td>
+                                    <td class="align-middle text-center">Entregue</td>
+                                    {% elif item.status == "cancelado" %}
+                                    <td class="align-middle text-danger opacity-9" style="padding-left: 1.5rem;"><i
+                                            class="fa-solid fa-ban"></i></td>
+                                    <td class="align-middle text-center">Cancelado</td>
+                                    {% endif %}
+                                    <td class="align-middle text-center">{{ item.observacao }}</td>
+                                    <td class="align-middle text-center">{{ item.data_alteracao|date:"d/m/Y - H:i" }}
+                                    </td>
+                                    <td class="align-middle text-center">{% if item.alterado_por.is_adm == True %}Operador PizzazzZ{% else %}{{ item.alterado_por.first_name }} {{item.alterado_por.last_name }}{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="modalAlterarStatusPedido" tabindex="-1" aria-labelledby="modalAlterarStatusPedidoLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-lg border-radius-xl shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAlterarStatusPedidoLabel">Alterar Status do Pedido</h5>
+                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal"
+                        aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'alterar_status' pedido.numero_pedido %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3 input-group input-group-outline position-relative" id="select">
+                            <i class="fas fa-chevron-down position-absolute end-0 me-3 text-danger text-xs" style="margin-top: 12px;"></i>
+                            <select id="status" class="form-control" name="status" required>
+                                <option value="" selected disabled>Selecione o status</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="preparando">Preparando</option>
+                                <option value="saiu_entrega">Saiu para Entrega</option>
+                                <option value="entregue">Entregue</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                            <div class="invalid-feedback">Selecione o status.</div>
+                        </div>
+                        <div class="mb-3 input-group input-group-outline">
+                            <textarea name="observacao" class="form-control" id="observacao"
+                                placeholder="Digite aqui se deseja cadastrar alguma observação específica..." rows="4"
+                                required></textarea>
+                            <div class="invalid-feedback">Escreva o motivo da alteração.</div>
+                        </div>
+                        <!-- Botão de Submissão -->
+                        <div class="text-center">
+                            <button type="submit" id="submitBtn"
+                                class="btn bg-gradient-dark w-100 icon-move-right">Alterar <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'includes/footer-emp.html' %}
+</div>
+{% endblock %}

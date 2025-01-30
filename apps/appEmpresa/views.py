@@ -152,8 +152,14 @@ def dashboard(request, cnpj):
 
     data_atual = timezone.now()
 
-    # Filtro de pedidos entregues
-    pedidos_entregues = Pedido.objects.filter(empresa=empresa, historico__status='entregue')
+    last_status = HistoricoPedido.objects.filter(
+        pedido=OuterRef('pk')  # Referencia ao pedido atual
+    ).order_by('-data_alteracao')
+
+    pedidos_entregues = Pedido.objects.filter(
+        historico__status='entregue',
+        historico__status__in=Subquery(last_status.values('status')[:1])
+    )
 
     pedidos_total = pedidos_entregues.count()
     vendas_total = pedidos_entregues.aggregate(total=Sum('total'))['total'] or 0

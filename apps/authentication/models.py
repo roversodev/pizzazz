@@ -60,6 +60,14 @@ class Empresa(models.Model):
     perfil_empresa = models.ImageField(upload_to='profile_pics/', default='profile_pics/user2.jpg')
     ativo = models.BooleanField(default=True)
 
+    def telefone_formatado(self):
+        telefone_numeros = ''.join(filter(str.isdigit, self.telefone))
+        return f"55{telefone_numeros}"
+
+    def link_whatsapp(self):
+        telefone_formatado = self.telefone_formatado()
+        return f"https://wa.me/{telefone_formatado}"
+
     # Itens em destaque
     itens_destaque = models.ManyToManyField('Cardapio', related_name='em_destaque', blank=True)
 

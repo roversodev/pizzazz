@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from django.contrib.messages import constants as message_constants
 import os
+import sentry_sdk
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -271,3 +272,20 @@ DEFAULT_FROM_EMAIL = 'no-reply@pizzazzz.com.br'
 # EMAIL_HOST_USER = 'roversodev@gmail.com'
 # EMAIL_HOST_PASSWORD = 'zpwf aavr olkx mteg'
 # DEFAULT_FROM_EMAIL = 'roversodev@gmail.com'
+
+
+sentry_sdk.init(
+    dsn="https://07214851f9cbcf601d93fe8e78a1b554@o4508262541623296.ingest.us.sentry.io/4508733718003712",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
+)

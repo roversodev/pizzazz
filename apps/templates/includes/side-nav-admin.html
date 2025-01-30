@@ -135,6 +135,17 @@
             <span class="nav-link-text ms-1">Empresas</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page_title == 'Pedidos' %}active{% endif %}"
+            href="{% url 'pedidos_admin' %}">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center sidenav-dv">
+              <i
+                class="ph-bold ph-receipt top-0 text-dark {% if page_title == 'Pedidos' %}text-white{% endif %}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Pedidos</span>
+          </a>
+        </li>
         <li class="nav-item mt-3">
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Conta</h6>
         </li>
