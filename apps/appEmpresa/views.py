@@ -1307,13 +1307,6 @@ def pedido_manual(request, cnpj):
 
             # 4. Se o estoque for suficiente, criar o pedido
             with transaction.atomic():
-                numero_pedido = Sequencia.obter_novo_valor()
-                pedido = Pedido.objects.create(
-                    cliente=cliente,
-                    empresa=empresa,
-                    numero_pedido=numero_pedido,
-                    canal='Manual'
-                )
 
                 # Criando o endereço do pedido
                 endereco_pedido = EnderecoPedido.objects.create(
@@ -1324,7 +1317,16 @@ def pedido_manual(request, cnpj):
                     bairro=bairro,
                     estado=estado,
                     municipio=municipio,
-                    pedido=pedido
+                )
+                
+                
+                numero_pedido = Sequencia.obter_novo_valor()
+                pedido = Pedido.objects.create(
+                    cliente=cliente,
+                    empresa=empresa,
+                    numero_pedido=numero_pedido,
+                    canal='Manual',
+                    endereco_cliente=endereco_pedido
                 )
 
                 endereco_cliente = EnderecoCliente.objects.filter(cliente=cliente, principal=True).first()
@@ -1771,15 +1773,59 @@ def relatorio_financeiro(request, cnpj):
             usu = EmpresaUsuario.objects.get(usuario=request.user)
             cnpj_usuario = remover_mascara_cnpj(usu.empresa.cnpj)
             return redirect('dashboard', cnpj=cnpj_usuario)
-        
 
-    rf = RelatorioFinanceiro.objects.filter(empresa=empresa)
+
+    rf = RelatorioFinanceiro.objects.filter(empresa=empresa).order_by('mes')
+
+    vendas = [0] * 12
+    lucros = [0] * 12
+    meses_abreviados = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+    for relatorio in rf:
+        vendas[relatorio.mes - 1] = float(relatorio.vendas_mes_atual)
+        lucros[relatorio.mes - 1] = float(relatorio.lucro_mes_atual)
+
+
+    last_status = HistoricoPedido.objects.filter(
+        pedido=OuterRef('pk')
+        ).order_by('-data_alteracao')
+
+    pedidos_entregues = Pedido.objects.filter(
+            historico__status='entregue',
+            historico__status__in=Subquery(last_status.values('status')[:1])
+        )
+
+    total_faturamento = float(pedidos_entregues.aggregate(total=Sum('total'))['total'] or 0)
+    total_pedidos= pedidos_entregues.count()
+    total_clientes = pedidos_entregues.values('cliente').distinct().count()
+    total_lucro = float(sum([calcular_lucro(pedido) for pedido in pedidos_entregues]))
+
+    valores = [total_lucro, total_pedidos, total_clientes, total_faturamento]
+
+
+
+
+
+
+    #vendas = []
+    #lucros = []
+    #meses_abreviados = []
+
+    #for relatorio in rf:
+        #meses_abreviados.append(['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][relatorio.mes - 1])
+        #vendas.append(float(relatorio.vendas_mes_atual))
+        #lucros.append(float(relatorio.lucro_mes_atual))
+        
 
         
     context = {
         'page_title': 'Relatório Financeiro',
         'empresa': empresa,
         'rf': rf,
+        'vendas': vendas,
+        'lucros': lucros,
+        'meses_abreviados': meses_abreviados,
+        'valores': valores
     }
 
     return render(request, 'appEmpresa/relatorio_financeiro.html', context)

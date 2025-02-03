@@ -274,7 +274,7 @@ class Pedido(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_pedido = models.IntegerField(unique=True, null=False, blank=False)
     canal = models.CharField(max_length=50, default='Manual')
-    endereco_cliente = models.ForeignKey(EnderecoCliente, on_delete=models.PROTECT)
+    endereco_cliente = models.ForeignKey('EnderecoPedido', on_delete=models.PROTECT)
     
 
     def calcular_total(self):
@@ -595,7 +595,6 @@ class HistoricoPedido(models.Model):
 
 
 class EnderecoPedido(models.Model):
-    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='endereco_pedido')
     cep = models.CharField(max_length=9)
     endereco = models.CharField(max_length=255)
     numero = models.IntegerField(null=True)

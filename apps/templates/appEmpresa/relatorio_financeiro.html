@@ -26,19 +26,13 @@
                                     Mês
                                 </th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
-                                    Vendas Mês Atual
+                                    Faturamento Mês
                                 </th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
-                                    Lucro Mês Atual
+                                    Lucro Mês
                                 </th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
-                                    Vendas Mês Passado
-                                </th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
-                                    Lucro Mês Passado
-                                </th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sortable="" style="width: 20%;">
-                                    Variação Percentual do Lucro (%)
+                                    Comparado ao Mês Anterior (%)
                                 </th>
                             </tr>
                         </thead>
@@ -46,12 +40,24 @@
                             {% for relatorio in rf %}
                             <tr>
                                 <td class="text-sm font-weight-normal">{{ relatorio.ano }}</td>
-                                <td class="text-sm font-weight-normal">{{ relatorio.mes }}</td>
-                                <td class="text-sm font-weight-normal">R$ {{ relatorio.vendas_mes_atual|floatformat:2 }}</td>
-                                <td class="text-sm font-weight-normal">R$ {{ relatorio.lucro_mes_atual|floatformat:2 }}</td>
-                                <td class="text-sm font-weight-normal">R$ {{ relatorio.vendas_mes_passado|floatformat:2 }}</td>
-                                <td class="text-sm font-weight-normal">R$ {{ relatorio.lucro_mes_passado|floatformat:2 }}</td>
-                                <td class="text-sm font-weight-normal">{{ relatorio.variacao_percentual_lucro|floatformat:2 }}%</td>
+                                <td class="text-sm font-weight-normal">
+                                    {% if relatorio.mes == 1 %}Janeiro
+                                    {% elif relatorio.mes == 2 %}Fevereiro
+                                    {% elif relatorio.mes == 3 %}Março
+                                    {% elif relatorio.mes == 4 %}Abril
+                                    {% elif relatorio.mes == 5 %}Maio
+                                    {% elif relatorio.mes == 6 %}Junho
+                                    {% elif relatorio.mes == 7 %}Julio
+                                    {% elif relatorio.mes == 8 %}Agosto
+                                    {% elif relatorio.mes == 9 %}Setembro
+                                    {% elif relatorio.mes == 10 %}Outubro
+                                    {% elif relatorio.mes == 11 %}Novembro
+                                    {% elif relatorio.mes == 12 %}Dezembro
+                                    {% endif %}
+                                </td>
+                                <td class="text-sm font-weight-bolder">R$ {{ relatorio.vendas_mes_atual|floatformat:2 }}</td>
+                                <td class="text-sm font-weight-bolder text-success">R$ {{ relatorio.lucro_mes_atual|floatformat:2 }}</td>
+                                <td class="text-sm font-weight-bolder {% if relatorio.variacao_percentual_lucro >= 0 %}text-success{% else %}text-danger{% endif %} text-center">{{ relatorio.variacao_percentual_lucro|floatformat:2 }}%</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -64,5 +70,253 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-4 col-sm-6">
+          <div class="card h-100">
+            <div class="card-header pb-0 p-3">
+              <div class="d-flex justify-content-between">
+                <h6 class="mb-0">Visão Geral</h6>
+                <button type="button" class="btn btn-icon-only btn-rounded btn-outline-secondary mb-0 ms-2 btn-sm d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Veja a visão geral do seu negócio">
+                  <i class="material-symbols-rounded text-sm">priority_high</i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body pb-0 p-3 mt-4">
+              <div class="row">
+                <div class="col-7 text-start">
+                  <div class="chart">
+                    <canvas id="chart-pie" class="chart-canvas" height="400" width="467" style="display: block; box-sizing: border-box; height: 200px; width: 233px;"></canvas>
+                  </div>
+                </div>
+                <div class="col-5 my-auto">
+                  <span class="badge badge-md badge-dot me-4 d-block text-start">
+                    <i class="bg-info"></i>
+                    <span class="text-dark text-xs">Lucro</span>
+                  </span>
+                  <span class="badge badge-md badge-dot me-4 d-block text-start">
+                    <i class="bg-primary"></i>
+                    <span class="text-dark text-xs">Pedidos</span>
+                  </span>
+                  <span class="badge badge-md badge-dot me-4 d-block text-start">
+                    <i class="bg-dark"></i>
+                    <span class="text-dark text-xs">Clientes</span>
+                  </span>
+                  <span class="badge badge-md badge-dot me-4 d-block text-start">
+                    <i class="bg-secondary"></i>
+                    <span class="text-dark text-xs">Faturamento</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer pt-0 pb-0 p-3 d-flex align-items-center">
+              <div class="w-60">
+                <p class="text-sm">
+                    Esses dados ajudam a <b>avaliar</b> o desempenho e identificar <b>oportunidades</b>.
+                </p>
+              </div>
+              <div class="w-40 text-end">
+                <a class="btn bg-light mb-0 text-end" href="{% url 'pedidos' empresa.cnpj|remove_mask %}">Ver pedidos</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8 col-sm-6 mt-sm-0 mt-4">
+          <div class="card">
+            <div class="card-header pb-0 p-3">
+              <div class="d-flex justify-content-between">
+                <h6 class="mb-0">Mês a Mês</h6>
+                <button type="button" class="btn btn-icon-only btn-rounded btn-outline-secondary mb-0 ms-2 btn-sm d-flex align-items-center justify-content-center" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-original-title="Veja seu lucro e faturamento mês a mês">
+                  <i class="material-symbols-rounded text-sm">priority_high</i>
+                </button>
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="badge badge-md badge-dot me-4">
+                  <i class="bg-primary"></i>
+                  <span class="text-dark text-xs">faturamento</span>
+                </span>
+                <span class="badge badge-md badge-dot me-4">
+                  <i class="bg-dark"></i>
+                  <span class="text-dark text-xs">Lucro</span>
+                </span>
+              </div>
+            </div>
+            <div class="card-body p-3">
+              <div class="chart">
+                <canvas id="chart-line" class="chart-canvas" height="600" style="display: block; box-sizing: border-box; height: 300px; width: 417px;" width="835"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 </div>
+{% include "includes/footer-emp.html" %}
+<script src="{{ ASSETS_ROOT }}/js/plugins/chartjs.min.js"></script>
+<script>
+
+var ctx1 = document.getElementById("chart-line").getContext("2d");
+    var ctx2 = document.getElementById("chart-pie").getContext("2d");
+
+    // Line chart
+    new Chart(ctx1, {
+      type: "line",
+      data: {
+        labels: {{ meses_abreviados|safe }},
+        datasets: [{
+            label: "Faturamento",
+            tension: 0,
+            pointRadius: 5,
+            pointBackgroundColor: "#e91e63",
+            pointBorderColor: "transparent",
+            borderColor: "#e91e63",
+            borderWidth: 4,
+            backgroundColor: "transparent",
+            fill: true,
+            data: {{ vendas|safe }},
+            maxBarThickness: 6
+          },
+          {
+            label: "Lucro",
+            tension: 0,
+            borderWidth: 0,
+            pointRadius: 5,
+            pointBackgroundColor: "#3A416F",
+            pointBorderColor: "transparent",
+            borderColor: "#3A416F",
+            borderWidth: 4,
+            backgroundColor: "transparent",
+            fill: true,
+            data: {{ lucros|safe }},
+            maxBarThickness: 6
+          }
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': R$ ' + tooltipItem.raw.toFixed(2);
+                            }
+                        }
+                    }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index',
+        },
+        scales: {
+          y: {
+            grid: {
+              drawBorder: false,
+              display: true,
+              drawOnChartArea: true,
+              drawTicks: false,
+              borderDash: [5, 5],
+              color: '#c1c4ce5c'
+            },
+            ticks: {
+              display: true,
+              padding: 10,
+              color: '#9ca2b7',
+              font: {
+                size: 14,
+                weight: 300,
+                family: "Roboto",
+                style: 'normal',
+                lineHeight: 2
+              },
+            }
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              display: true,
+              drawOnChartArea: true,
+              drawTicks: true,
+              borderDash: [5, 5],
+              color: '#c1c4ce5c'
+            },
+            ticks: {
+              display: true,
+              color: '#9ca2b7',
+              padding: 10,
+              font: {
+                size: 14,
+                weight: 300,
+                family: "Roboto",
+                style: 'normal',
+                lineHeight: 2
+              },
+            }
+          },
+        },
+      },
+    });
+
+
+    // Pie chart
+    new Chart(ctx2, {
+      type: "pie",
+      data: {
+        labels: ['Lucro R$', 'Pedidos', 'Clientes', 'Faturamento R$'],
+        datasets: [{
+          label: "Total",
+          weight: 9,
+          cutout: 0,
+          tension: 0.9,
+          pointRadius: 2,
+          borderWidth: 1,
+          backgroundColor: ['#17c1e8', '#e91e63', '#3A416F', '#a8b8d8'],
+          data: {{ valores|safe }},
+          fill: false
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index',
+        },
+        scales: {
+          y: {
+            grid: {
+              drawBorder: false,
+              display: false,
+              drawOnChartArea: false,
+              drawTicks: false,
+              color: '#c1c4ce5c'
+            },
+            ticks: {
+              display: false
+            }
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              display: false,
+              drawOnChartArea: false,
+              drawTicks: false,
+              color: '#c1c4ce5c'
+            },
+            ticks: {
+              display: false,
+            }
+          },
+        },
+      },
+    });
+
+</script>
 {% endblock %}

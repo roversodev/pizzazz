@@ -1,14 +1,23 @@
 from django.utils import timezone
 from apps.appEmpresa.views import calcular_lucro
-from apps.authentication.models import RelatorioFinanceiro, Empresa, Pedido
-from django.db.models import Sum
+from apps.authentication.models import HistoricoPedido, RelatorioFinanceiro, Empresa, Pedido
+from django.db.models import Sum, OuterRef, Subquery
+import locale
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 def salvar_relatorio_financeiro():
     data_atual = timezone.now()
     empresas = Empresa.objects.all()  # Obter todas as empresas
 
     for empresa in empresas:
-        pedidos_entregues = Pedido.objects.filter(empresa=empresa, status='entregue')  # Filtra pedidos da empresa
+        last_status = HistoricoPedido.objects.filter(
+        pedido=OuterRef('pk')  # Referencia ao pedido atual
+        ).order_by('-data_alteracao')
+
+        pedidos_entregues = Pedido.objects.filter(
+            historico__status='entregue',
+            historico__status__in=Subquery(last_status.values('status')[:1])
+        )
 
         # Vendas do mês atual
         vendas_mes_atual = pedidos_entregues.filter(
