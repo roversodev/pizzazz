@@ -1,0 +1,91 @@
+{% extends 'includes/nav-clientes.html' %}
+
+{% load my_filters %}
+
+{% load static %}
+
+{% block title %}Pizzarias{% endblock %}
+
+{% block content2 %}
+<style>
+    .merchant {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(max(320px, 33.3333333333% - 32px), 1fr));
+        grid-gap: 16px;
+    }
+
+    .card {
+        transition: .5s;
+    }
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(64, 64, 64, 0.4) !important;
+    }
+
+    .merchant__item {
+        display: grid;
+        grid-template-columns: 100px calc(100% - 112px);
+        grid-column-gap: 12px;
+        transition: .5s;
+    }
+
+    .merchant-v2 {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        grid-template-areas: "figure content";
+        grid-column-gap: 12px;
+        transition: background-color .2s ease-out;
+        border-radius: 8px;
+    }
+</style>
+<div class="container my-5">
+    <h5>Pizzarias</h5>
+    <div class="merchant">
+        {% for pizzaria in pizzarias %}
+        <div class="card">
+            <a class="merchant__item w-100 h-100 p-2" href="#">
+                    <div class="img-container">
+                        <div class="cardstack-image" style="height: 100px; width: 100px;"><span
+                                style="box-sizing: border-box; display: inline-block; overflow: hidden; width: 100px; height: 100px; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; position: relative; border-radius: 10px;"><img
+                                    alt="{{pizzaria.nome_fantasia}}" src="{{pizzaria.perfil_empresa.url}}"
+                                    decoding="async" data-nimg="fixed"
+                                    class="img-fluid"
+                                    style="position: absolute; inset: 0px; box-sizing: border-box; padding: 0px; border: none; margin: auto; display: block; width: 0px; height: 0px; min-width: 100%; max-width: 100%; min-height: 100%; max-height: 100%;"
+                                    srcset="{{pizzaria.perfil_empresa.url}}"><noscript></noscript></span>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column justify-content-center">
+                        <h6  class="mb-0 text-truncate">{{ pizzaria.nome_fantasia }}</h6>
+                        <span class="text-xs text-body">
+                            <i class="fas fa-star text-warning"></i>
+                            <span class="text-warning">{% if pizzaria.media_avaliacoes %}{{pizzaria.media_avaliacoes|floatformat:1|replace_comma_with_dot}}{%else%}0.0{% endif %}</span>
+                            <span class="px-1"> • </span>
+                            <span>Novo</span>
+                            <span class="px-1"> • </span>
+                            {{pizzaria.distancia|floatformat:1}} km
+                        </span>
+                        <span class="text-xs text-body py-1">
+                            <span>{{ pizzaria.tempo_entrega_min }}-{{pizzaria.tempo_entrega_max}} min</span>
+                            <span class="px-1"> • </span>
+                            {% if pizzaria.preco_frete > 0 %}
+                            <span>R$ {{pizzaria.preco_frete}}</span>
+                            {% else %}
+                            <span class="text-success">Gratis</span>
+                            {% endif %}
+                        </span>
+                    </div>
+            </a>
+        </div>
+        {% endfor %}
+        
+
+    </div>
+
+
+</div>
+
+
+
+{% endblock %}

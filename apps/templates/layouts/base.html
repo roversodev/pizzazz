@@ -26,7 +26,6 @@
     <script src="https://kit.fontawesome.com/2c7dc414d4.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Michroma&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'assets/css/nucleo-icons.css' %}">
 
     <!-- CSS Files -->
@@ -43,15 +42,79 @@
     <script src="{% static 'assets/js/plugins/tilt.min.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="https://js.sentry-cdn.com/07214851f9cbcf601d93fe8e78a1b554.min.js" crossorigin="anonymous"></script>
+    <script>
+        function darkMode() {
+        const checkbox = document.getElementById("dark-version");
+    
+        // Verificar o tema do dispositivo (usando matchMedia)
+        const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    
+        // Verificar se o usuário já salvou um tema no localStorage
+        const savedTheme = localStorage.getItem("theme");
+    
+        // Definir o tema inicial com base no dispositivo ou no localStorage
+        if (savedTheme === "dark" || (savedTheme !== "light" && prefersDarkScheme)) {
+            document.body.classList.add("dark-version");
+            checkbox.checked = true;
+        } else {
+            document.body.classList.remove("dark-version");
+            checkbox.checked = false;
+        }
+    
+        // Adicionar um listener para alternar o tema quando o usuário clicar no checkbox
+        checkbox.addEventListener("change", function() {
+            if (this.checked) {
+                document.body.classList.add("dark-version");
+                localStorage.setItem("theme", "dark");
+            } else {
+                document.body.classList.remove("dark-version");
+                localStorage.setItem("theme", "light");
+            }
+        });
+    
+        // Detectar se o tema do sistema mudar enquanto a página estiver aberta
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+            if (!localStorage.getItem("theme")) {
+                // Se o usuário não tiver escolhido um tema manualmente, atualizar conforme a preferência do sistema
+                if (e.matches) {
+                    document.body.classList.add("dark-version");
+                    checkbox.checked = true;
+                } else {
+                    document.body.classList.remove("dark-version");
+                    checkbox.checked = false;
+                }
+            }
+        });
+    }
+    
+    // Inicializar o tema quando a página carregar
+    document.addEventListener("DOMContentLoaded", function() {
+        darkMode();
+    });
+    
+    </script>
 
 
     {% block stylesheets %}{% endblock stylesheets %}
+    <style>
+        /* Estilo para a seleção de texto */
+::selection {
+    background-color: #E53935;
+    color: #fff;
+}
 
+/* Para o navegador Internet Explorer e Edge */
+::-moz-selection {
+    background-color: #E53935;
+    color: #fff;
+}
+    </style>
 </head>
 
 <body class="lexend" cz-shortcut-listen="true">
 
-    
+
     {% block content %} {% endblock %}
 
 

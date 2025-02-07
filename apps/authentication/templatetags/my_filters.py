@@ -42,3 +42,11 @@ def filter_by_date(pedidos, data):
 @register.filter(name='range')
 def range_filter(number):
     return range(int(number))
+
+@register.filter
+def replace_comma_with_dot(value):
+    """Substitui vírgula por ponto."""
+    try:
+        return str(value).replace(',', '.')
+    except (TypeError, AttributeError):
+        return value

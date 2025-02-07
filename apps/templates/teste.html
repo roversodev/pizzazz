@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container {
+            position: relative;
+            height: 100vh; /* Usa a altura da tela inteira */
+            width: 100%;
+            background-color: white;
+            z-index: 1;
+            }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(to right, rgba(79, 79, 79, 0.18) 1px, transparent 1px), 
+                linear-gradient(to bottom, rgba(79, 79, 79, 0.18) 1px, transparent 1px);
+            background-size: 14px 24px;
+            mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 70%, transparent 110%);
+            z-index: 0;
+            }
+
+    </style>
+</head>
+<body style="font-family: 'Inter', sans-serif;">
+    <div class="container">
+        <div class="overlay"></div>
+
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+            <h1 style="font-size: 100px; background: linear-gradient(to right, blue 1px, black);  -webkit-background-clip: text; color: transparent;">Plura</h1>
+        </div>
+        <h1>teste</h1>
+        
+
+      </div>
+</body>
+</html>

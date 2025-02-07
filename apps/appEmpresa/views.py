@@ -1791,6 +1791,7 @@ def relatorio_financeiro(request, cnpj):
         ).order_by('-data_alteracao')
 
     pedidos_entregues = Pedido.objects.filter(
+            empresa=empresa,
             historico__status='entregue',
             historico__status__in=Subquery(last_status.values('status')[:1])
         )

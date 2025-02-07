@@ -5,6 +5,9 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+from core import settings
 from .models import Empresa, EmpresaUsuario, EnderecoEmpresa, CustomUser, Ingrediente, IngredienteCardapio, Cardapio, Estoque, PasswordResetVerification, Pedido, ItemPedido, Cliente, EnderecoCliente
 from django.db import transaction
 from django.contrib.auth import logout as auth_logout, authenticate, login as auth_login
@@ -107,6 +110,9 @@ def login(request):
                     recipient_list=[email],
                     html_message=html_content_c
                     )
+            if settings.DEBUG == True:
+                return redirect('restaurantes')
+
             return redirect('em_breve')
         else:
             messages.error(request, "E-mail ou senha inválidos")
@@ -130,10 +136,10 @@ def logout(request):
     return redirect('login')
 
 
-
+@login_required
 def cadastrar_parceiros(request):
     try:
-        if request.user.is_superuser:
+        if request.user.is_superuser or request.user.is_adm:
     
             if request.method == 'POST':
                 try:
@@ -184,27 +190,38 @@ def cadastrar_parceiros(request):
                     return redirect('cadastrar_parceiros')
 
             return render(request, 'auth/cadastrar-parceiros.html')
+        else:
+            messages.error(request, 'Sem permissão para acessar essa pagina. Apenas administradores')
+            return redirect('login')
     except Exception as e:
         messages.error(request, f'Sem permissão para acessar essa pagina. Apenas administradores {e}')
         return redirect('login')
 
 
 #TO DO: Colocar login required e apenas acessar o dono do login em questão
+@login_required
 def cadastrar_parceiros_etapa2(request, empresa_id):
     try:
-        if request.user.is_superuser:
+        if request.user.is_superuser or request.user.is_adm:
             empresa = Empresa.objects.get(id_empresa=empresa_id)
 
             if request.method == 'POST':
                 try:
                     # Capturando os dados de endereço
-                    cep = request.POST.get('txtCep')
-                    endereco = request.POST.get('endereco')
+                    cep = request.POST.get('cep_hidden')
+                    endereco = request.POST.get('endereco_hidden')
                     numero = request.POST.get('numero')
                     complemento = request.POST.get('complemento')
-                    bairro = request.POST.get('bairro')
-                    estado = request.POST.get('estado')
-                    municipio = request.POST.get('municipio')
+                    bairro = request.POST.get('bairro_hidden')
+                    estado = request.POST.get('estado_hidden')
+                    municipio = request.POST.get('municipio_hidden')
+
+                    latitude = request.POST.get('latitude')
+                    longitude = request.POST.get('longitude')
+
+                    if not latitude or not longitude:
+                        messages.error(request, "Por favor, confirme a localização no mapa.")
+                        return redirect('cadastrar_parceiros_etapa2', empresa_id=empresa_id)
 
                     # Criando o endereço da empresa
                     endereco_empresa = EnderecoEmpresa.objects.create(
@@ -215,7 +232,9 @@ def cadastrar_parceiros_etapa2(request, empresa_id):
                         complemento=complemento,
                         bairro=bairro,
                         estado=estado,
-                        municipio=municipio
+                        municipio=municipio,
+                        latitude=latitude,
+                        longitude=longitude
                     )
 
                     messages.success(request, "Endereço cadastrado com sucesso!")
@@ -224,8 +243,11 @@ def cadastrar_parceiros_etapa2(request, empresa_id):
                 except Exception as e:
                     messages.error(request, f"Erro ao cadastrar endereço: {e}")
                     return redirect('cadastrar_parceiros_etapa2', empresa_id=empresa_id)
-
+                
             return render(request, 'auth/cadastrar-parceiros-2.html', {'empresa': empresa})
+        else:
+            messages.error(request, 'Sem permissão para acessar essa pagina. Apenas administradores')
+            return redirect('login')
     except Exception as e:
         messages.error(request, 'Sem permissão para acessar essa pagina. Apenas administradores')
         return redirect('login')
@@ -289,7 +311,7 @@ def cadastrar_parceiros_etapa3(request, empresa_id):
                 except Exception as e:
                     messages.error(request, f"Erro ao cadastrar a empresa: {e}")
 
-            return render(request, 'auth/cadastrar-parceiros-3.html')
+            return render(request, 'auth/cadastrar-parceiros-3.html', {'empresa': empresa})
     except Exception as e:
         messages.error(request, 'Sem permissão para acessar essa pagina. Apenas administradores')
         return redirect('login')
@@ -373,15 +395,22 @@ def cadastrar_clientes_etapa2(request, cliente_id):
     if request.method == 'POST':
         try:
             # Capturando os dados de endereço
-            cep = request.POST.get('txtCep')
-            endereco = request.POST.get('endereco')
+            cep = request.POST.get('cep_hidden')
+            endereco = request.POST.get('endereco_hidden')
             numero = request.POST.get('numero')
             complemento = request.POST.get('complemento')
-            bairro = request.POST.get('bairro')
-            estado = request.POST.get('estado')
-            municipio = request.POST.get('municipio')
+            bairro = request.POST.get('bairro_hidden')
+            estado = request.POST.get('estado_hidden')
+            municipio = request.POST.get('municipio_hidden')
 
             local = request.POST.get('local')
+
+            latitude = request.POST.get('latitude')
+            longitude = request.POST.get('longitude')
+
+            if not latitude or not longitude:
+                messages.error(request, "Por favor, confirme a localização no mapa.")
+                return redirect('cadastrar_clientes_etapa2', cliente_id=cliente.id_cliente)
 
             # Criando o endereço do cliente
             EnderecoCliente.objects.create(
@@ -393,14 +422,16 @@ def cadastrar_clientes_etapa2(request, cliente_id):
                 complemento=complemento,
                 bairro=bairro,
                 estado=estado,
-                municipio=municipio
+                municipio=municipio,
+                latitude=latitude,
+                longitude=longitude
             )
 
             messages.success(request, "Cadastro feito por completo!")
             return redirect('login')
 
         except Exception as e:
-            messages.error(request, "Erro ao cadastrar endereço, tente novamente")
+            messages.error(request, f"Erro ao cadastrar endereço, tente novamente {e}")
             return redirect('cadastrar_clientes_etapa2', cliente_id=cliente.id_cliente)
 
     return render(request, 'auth/cadastrar-clientes-2.html', {'cliente': cliente})

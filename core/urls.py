@@ -14,6 +14,8 @@ urlpatterns = [
     path("empresas/<str:cnpj>/", include("apps.appEmpresa.urls")),
     # ADMIN PIZZAZZZ
     path("admin/", include("apps.admin.urls")),
+    # CLIENTES
+    path("pizzarias/", include("apps.appClientes.urls")),
 ]
 
 if settings.DEBUG:

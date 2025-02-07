@@ -2,35 +2,3 @@
 <script src="{{ ASSETS_ROOT }}/js/plugins/perfect-scrollbar.min.js" type="text/javascript"></script>
 <script src="{{ ASSETS_ROOT }}/js/plugins/choices.min.js" type="text/javascript"></script>
 <script src="{{ ASSETS_ROOT }}/js/core.min.js" type="text/javascript"></script>
-<script>
-    function darkMode() {
-    // Verificar o tema atual ao carregar a página
-    const savedTheme = localStorage.getItem("theme");
-    const checkbox = document.getElementById("dark-version");
-
-    // Definir o tema inicial ao carregar a página
-    if (savedTheme === "dark") {
-        document.body.classList.add("dark-version");
-        checkbox.checked = true; // Marcar o checkbox
-    } else {
-        document.body.classList.remove("dark-version");
-        checkbox.checked = false; // Desmarcar o checkbox
-    }
-
-    // Adicionar um listener para alternar o tema
-    checkbox.addEventListener("change", function() {
-        if (this.checked) {
-            document.body.classList.add("dark-version");
-            localStorage.setItem("theme", "dark");
-        } else {
-            document.body.classList.remove("dark-version");
-            localStorage.setItem("theme", "light");
-        }
-    });
-}
-
-// Inicializar o tema quando a página carregar
-document.addEventListener("DOMContentLoaded", function() {
-    darkMode();
-});
-</script>

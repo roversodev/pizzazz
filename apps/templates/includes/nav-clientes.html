@@ -1,0 +1,140 @@
+{% extends 'layouts/base.html' %}
+
+{% load my_filters %}
+
+{% load static %}
+
+{% block content %}
+<style>
+    .dark-version .navbar-light {
+        background: #171717 !important;
+    }
+
+    .dark-version .navbar {
+        box-shadow: 0 2px 12px 0 rgba(202, 202, 202, 0.16);
+    }
+
+    body {
+        background: #F5F5F5 !important;
+    }    
+</style>
+
+<!-- Navbar Light -->
+<div id="loaderOverlay" class="d-none align-items-center justify-content-center bg-gray-100">
+    <div id="wifi-loader">
+        <svg class="circle-outer" viewBox="0 0 86 86">
+            <circle class="back" cx="43" cy="43" r="40"></circle>
+            <circle class="front" cx="43" cy="43" r="40"></circle>
+            <circle class="new" cx="43" cy="43" r="40"></circle>
+        </svg>
+        <svg class="circle-middle" viewBox="0 0 60 60">
+            <circle class="back" cx="30" cy="30" r="27"></circle>
+            <circle class="front" cx="30" cy="30" r="27"></circle>
+        </svg>
+        <svg class="circle-inner" viewBox="0 0 34 34">
+            <circle class="back" cx="17" cy="17" r="14"></circle>
+            <circle class="front" cx="17" cy="17" r="14"></circle>
+        </svg>
+        <div class="text" data-text="Carregando"></div>
+    </div>
+</div>
+<nav class="navbar navbar-expand-lg navbar-light position-sticky z-index-sticky py-3">
+    <div class="container">
+        <a class="navbar-brand font-weight-bolder" href="{% url 'restaurantes' %}" rel="tooltip" title="PizzazzZ"
+            data-placement="bottom">
+            PizzazzZ
+        </a>
+
+        <div class="collapse navbar-collapse w-100 pt-3 pb-2 py-lg-0" id="navigation">
+            <ul class="navbar-nav navbar-nav-hover mx-auto">
+                <li class="nav-item">
+                    <div class="input-group input-group-outline">
+                        <span class="input-group-text"><i
+                                class="ph-bold ph-magnifying-glass position-absolute end-0 me-3"
+                                style="margin-top: 14px;"></i></span>
+                        <input type="text" class="form-control"
+                            style="width: 250px !important; padding-right: 35px !important;"
+                            placeholder="Busque por item ou pizzaria" id="search" name="search">
+                    </div>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav d-lg-block d-none">
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}"
+                        class="btn btn-sm  btn-dark  btn-round mb-0 me-1" role="button">Sair</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- End Navbar -->
+
+<div class="tab-bar">
+    <div class="bg-white w-100 shadow-dark" style="height: 58px;">
+        <div class="d-flex justify-content-around align-items-center p-3">
+            <a href="{% url 'restaurantes' %}" class="d-flex flex-column justify-content-center align-items-center text-center {% if page_title == 'Home' %}tab-active{% endif %}">
+                {% if page_title == 'Home' %}
+                <img src="{% static 'icons/house-red.svg' %}" alt="icon-house-fill">
+                {% else %}
+                <img src="{% static 'icons/house.svg' %}" alt="icon-house">
+                {% endif %}
+                <p class="{% if page_title == 'Home' %}text-danger{% else %}text-body{% endif %}" style="font-size: 12px;">Home</p>
+            </a>
+
+            <a href="{% url 'busca' %}" class="d-flex flex-column justify-content-center align-items-center text-center {% if page_title == 'Busca' %}tab-active{% endif %}">
+                {% if page_title == 'Busca' %}
+                <img src="{% static 'icons/search-red.svg' %}" alt="icon-search-fill">
+                {% else %}
+                <img src="{% static 'icons/search.svg' %}" alt="icon-search">
+                {% endif %}
+                <p class="{% if page_title == 'Busca' %}text-danger{% else %}text-body {% endif %}" style="font-size: 12px;">Busca</p>
+            </a>
+
+            <a href="{% url 'pedidos' %}" class="d-flex flex-column justify-content-center align-items-center text-center {% if page_title == 'Pedidos' %}tab-active{% endif %}">
+                {% if page_title == 'Pedidos' %}
+                <img src="{% static 'icons/pedidos-red.svg' %}" alt="icon-pedidos">
+                {% else %}
+                <img src="{% static 'icons/pedidos.svg' %}" alt="icon-pedidos">
+                {% endif %}
+                <p class="{% if page_title == 'Pedidos' %}text-danger{% else %}text-body {% endif %}" style="font-size: 12px;">Pedidos</p>
+            </a>
+
+            <a href="{% url 'perfil' %}" class="d-flex flex-column justify-content-center align-items-center text-center {% if page_title == 'Perfil' %}tab-active{% endif %}">
+                {% if page_title == 'Perfil' %}
+                <img src="{% static 'icons/user-red.svg' %}" alt="icon-user">
+                {% else %}
+                <img src="{% static 'icons/user.svg' %}" alt="icon-user">
+                {% endif %}
+                <p class="{% if page_title == 'Perfil' %}text-danger{% else %}text-body {% endif %}" style="font-size: 12px;">Perfil</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% block content2 %}
+{% endblock %}
+
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<script>
+    // Funções para mostrar e ocultar o loader
+    function showLoader() {
+        const loader = document.getElementById('loaderOverlay');
+        loader.classList.add('show');
+        loader.classList.remove('d-none');
+    }
+
+    function hideLoader() {
+        const loader = document.getElementById('loaderOverlay');
+        loader.classList.remove('show');
+        setTimeout(() => loader.classList.add('d-none'), 300); // Garante que a transição termine antes de ocultar
+    }
+
+    showLoader();
+
+    // Exemplo de uso: Simula uma operação com loader
+    window.addEventListener('load', () => {
+        hideLoader();
+    });
+</script>
+{% endblock %}

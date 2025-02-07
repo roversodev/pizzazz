@@ -1,10 +1,8 @@
 {% extends 'layouts/base.html' %}
 
-{% load static %}
-
 {% load my_filters %}
-
-{% block title %}Cadastrar Parceiros Etapa 2{% endblock %}
+{% load static %}
+{% block title %}Cadastrar Endereço{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'css/form-reset.css' %}">
@@ -16,18 +14,14 @@
         <div class="container">
             <div class="row">
                 <!-- Coluna da esquerda - Imagem -->
-                <div
-                    class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
-                    <div
-                        class="position-relative bg-gradient-danger h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center">
-                        <img src="{{ASSETS_ROOT}}/img/shapes/pattern-lines.svg" alt="pattern-lines"
-                            class="position-absolute opacity-4 start-0">
+                <div class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
+                    <div class="position-relative bg-gradient-danger h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center">
+                        <img src="{{ASSETS_ROOT}}/img/shapes/pattern-lines.svg" alt="pattern-lines" class="position-absolute opacity-4 start-0">
                         <div class="position-relative">
-                            <img class="max-width-500 w-100 position-relative z-index-2"
-                                src="{{ASSETS_ROOT}}/img/illustrations/chat.png" alt="image">
+                            <img class="max-width-500 w-100 position-relative z-index-2" src="{{ASSETS_ROOT}}/img/illustrations/chat.png" alt="image">
                         </div>
                         <h4 class="mt-5 text-white font-weight-bolder">Você está quase lá</h4>
-                        <p class="text-white">Faltam poucos passos para pedir sua pizza.</p>
+                        <p class="text-white">Faltam poucos passos para cadastrar seu endereço.</p>
                     </div>
                 </div>
 
@@ -36,92 +30,82 @@
                     {% include 'includes/messages.html' %}
                     <div class="card card-plain">
                         <div class="card-header pb-0 text-left">
-                            <img src="{{ASSETS_ROOT}}/img/logo-black.png" alt="Logo" class="mb-4"
-                                style="max-width: 150px; margin-left: -5px;">
-                            <h4 class="font-weight-bolder text-gradient text-danger">{% with cliente.nome|split as nomes %}
+                            <img src="{{ASSETS_ROOT}}/img/logo-black.png" alt="Logo" class="mb-4" style="max-width: 150px; margin-left: -5px;">
+                            <h4 class="font-weight-bolder text-gradient text-danger">
+                                {% with cliente.nome|split as nomes %}
                                 {{ nomes.0|capitalize_words }} {{ nomes.1|capitalize_words }}
-                                {% endwith %}</h4>
-                            <p class="mb-0">Complete as informações abaixo para cadastrar seu endereço principal
-                            </p>
+                                {% endwith %}
+                            </h4>
+                            <p class="mb-0">Complete as informações abaixo para cadastrar seu endereço</p>
                         </div>
+
                         <div class="card-body pb-3">
-                            <form action="{% url 'cadastrar_clientes_etapa2' cliente_id=cliente.id_cliente %}"
-                                method="post" class="needs-validation" novalidate>
+                            <form id="enderecoForm" action="{% url 'cadastrar_clientes_etapa2' cliente_id=cliente.id_cliente %}" method="post" class="needs-validation" novalidate>
                                 {% csrf_token %}
 
-                                <!-- Campo de CEP -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="txtCep">CEP</label>
-                                    <input type="text" class="form-control" id="txtCep" name="txtCep" required
-                                        minlength="9">
-                                    <div class="invalid-feedback">Digite o CEP corretamente.</div>
-                                </div>
-
-                                <!-- Campo de Endereço -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="endereco">Endereço</label>
-                                    <input type="text" class="form-control" id="endereco" name="endereco"
-                                        aria-label="endereco" required autocomplete="off">
-                                    <div class="invalid-feedback">Digite o endereço completo.</div>
-                                </div>
-
-                                <!-- Campo de Número -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="numero">Número</label>
-                                    <input type="text" class="form-control" id="numero" name="numero"
-                                        aria-label="numero" required autocomplete="off">
-                                    <div class="invalid-feedback">Digite o número do endereço.</div>
-                                </div>
-
-                                <!-- Campo de Complemento -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="complemento">Complemento</label>
-                                    <input type="text" class="form-control" id="complemento" name="complemento"
-                                        aria-label="complemento" autocomplete="off">
-                                </div>
-
-                                <!-- Campo de Bairro -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="bairro">Bairro</label>
-                                    <input type="text" class="form-control" id="bairro" name="bairro"
-                                        aria-label="bairro" required autocomplete="off">
-                                    <div class="invalid-feedback">Digite o bairro do endereço.</div>
-                                </div>
-
-                                <!-- Campo de Estado -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="estado">Estado</label>
-                                    <input type="text" class="form-control" id="estado" name="estado"
-                                        aria-label="estado" required autocomplete="off">
-                                    <div class="invalid-feedback">Digite o estado do endereço.</div>
-                                </div>
-
-                                <!-- Campo de Município -->
-                                <div class="mb-3 input-group input-group-outline">
-                                    <label class="form-label" for="municipio">Município</label>
-                                    <input type="text" class="form-control" id="municipio" name="municipio"
-                                        aria-label="municipio" required autocomplete="off">
-                                    <div class="invalid-feedback">Digite o município do endereço.</div>
-                                </div>
-
-                                <div style="transition: all 0.3s ease;">
-                                    <label class="form-label">Favoritar Endereço</label><br>
-                                    <div class="btn-group gap-3" role="group" aria-label="Seleção de Tipo de Endereço">
-                                        <button type="button" class="btn btn-light text-dark rounded-pill px-4 py-2" id="casaButton">
-                                            <i class="fas fa-home me-2"></i> Casa
-                                        </button>
-                                        <button type="button" class="btn btn-light text-dark rounded-pill px-4 py-2" id="trabalhoButton">
-                                            <i class="fas fa-briefcase me-2"></i> Trabalho
-                                        </button>
+                                <!-- Etapa 1: Endereço -->
+                                <div id="etapa1">
+                                    <div class="mb-3 input-group input-group-outline">
+                                        <label class="form-label" for="endereco">Endereço</label>
+                                        <input type="text" class="form-control" id="endereco" name="endereco" aria-label="endereco" required autocomplete="off" placeholder="">
+                                        <div class="invalid-feedback">Digite o endereço completo.</div>
                                     </div>
-                                    <input type="hidden" id="local" name="local">
+
+                                    <p class="text-center text-xs font-weight-bold text-body">Digite o endereço para avançar para a proxima etapa</p>
+                                    <p class="text-center font-weight-bold text-danger text-xs">Escolha com atenção qualquer erro basta atualizar a página!</p>
+
+                                    <!-- Campos ocultos para enviar ao backend -->
+                                    <input type="hidden" id="bairro_hidden" name="bairro_hidden">
+                                    <input type="hidden" id="estado_hidden" name="estado_hidden">
+                                    <input type="hidden" id="municipio_hidden" name="municipio_hidden">
+                                    <input type="hidden" id="cep_hidden" name="cep_hidden">
+                                    <input type="hidden" id="endereco_hidden" name="endereco_hidden">
                                 </div>
 
-                                <!-- Botão de Enviar -->
-                                <div class="text-center">
-                                    <button type="submit" id="submitBtn"
-                                        class="btn bg-gradient-danger w-100 mt-4 mb-0 icon-move-right">Continuar <i
-                                            class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                <!-- Etapa 2: Número -->
+                                <div id="etapa2" style="display: none;">
+                                    <p id="bairro" class="text-center text-xs opacity-7">Jardim Prudencia - São Paulo - SP</p>
+                                    <div class="mb-3 input-group input-group-outline">
+                                        <label class="form-label" for="numero">Número</label>
+                                        <input type="text" class="form-control" id="numero" name="numero" aria-label="numero" required autocomplete="off">
+                                        <div class="invalid-feedback">Digite o número do endereço.</div>
+                                    </div>
+
+                                    <button type="button" id="nextToMapa" class="btn bg-gradient-danger w-100 mt-4 icon-move-right">Confirmar Localização <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                </div>
+
+                                <!-- Etapa 3: Mapa para Confirmar Localização -->
+                                <div id="etapa3" style="display: none;">
+                                    <h6 class="text-center text-secondary font-weight-bolder">Arraste o marcador vermelho para ajustar a localização</h6>
+                                    <div id="map" class="border-radius-lg" style="height: 400px; width: 100%;"></div>
+
+                                    <input type="hidden" id="latitude" name="latitude">
+                                    <input type="hidden" id="longitude" name="longitude">
+
+                                    <button type="button" id="nextToComplemento" class="btn bg-gradient-danger w-100 mt-4 icon-move-right">Próxima Etapa <i class="fas fa-arrow-right text-xs ms-1"></i></button>
+                                </div>
+
+                                <!-- Etapa 4: Complemento e Tipo de Local -->
+                                <div id="etapa4" style="display: none;">
+                                    <div class="mb-3 input-group input-group-outline">
+                                        <label class="form-label" for="complemento">Complemento</label>
+                                        <input type="text" class="form-control" id="complemento" name="complemento" aria-label="complemento" autocomplete="off">
+                                    </div>
+
+                                    <div style="transition: all 0.3s ease;">
+                                        <label class="form-label">Tipo de Endereço</label><br>
+                                        <div class="btn-group gap-3" role="group" aria-label="Seleção de Tipo de Endereço">
+                                            <button type="button" class="btn btn-light text-dark rounded-pill px-4 py-2" id="casaButton">
+                                                <i class="fas fa-home me-2"></i> Casa
+                                            </button>
+                                            <button type="button" class="btn btn-light text-dark rounded-pill px-4 py-2" id="trabalhoButton">
+                                                <i class="fas fa-briefcase me-2"></i> Trabalho
+                                            </button>
+                                        </div>
+                                        <input type="hidden" id="local" name="local">
+                                    </div>
+
+                                    <button type="submit" id="submitBtn" class="btn bg-gradient-danger w-100 mt-4 mb-0">Cadastrar</button>
                                 </div>
                             </form>
                         </div>
@@ -134,14 +118,168 @@
 {% endblock %}
 
 {% block javascripts %}
-<script src="{% static 'js/cadastrar-clientes-2.js' }"></script>
-<script src="{% static 'js/buscacep.js' %}"></script>
-<script>
-    $(document).ready(function () {
-        $('#txtCep').mask('00000-000');
-    });
-</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5HQfo7Zu19zes77l4EPAC6jc9mczKsvw&libraries=places&callback=initAutocomplete&loading=async" async defer></script>
+<script src="{% static 'js/cadastrar-clientes-2.js' %}"></script>
 <script src="{% static 'js/validar-form.js' %}"></script>
 
+<script>
+    let map, marker;
+    let autocomplete;
 
+    // Etapa 1: Passa para Etapa 2
+
+
+    // Etapa 2: Passa para Etapa 3 (Mapa)
+    document.getElementById('nextToMapa').addEventListener('click', function() {
+        const numero = document.getElementById('numero').value;
+        if (numero.trim() === '') {
+            showSweetAlert("Erro", "Por favor, insira o número do endereço.", "error");
+            return;
+        }
+        document.getElementById('etapa2').style.display = 'none';
+        document.getElementById('etapa3').style.display = 'block';
+        initMap();
+    });
+
+    // Etapa 3: Passa para Etapa 4 (Complemento)
+    document.getElementById('nextToComplemento').addEventListener('click', function() {
+        document.getElementById('etapa3').style.display = 'none';
+        document.getElementById('etapa4').style.display = 'block';
+    });
+
+    // Função de inicialização do autocomplete
+    function initAutocomplete() {
+        autocomplete = new google.maps.places.Autocomplete(document.getElementById('endereco'), {
+            types: ['address'],
+            componentRestrictions: { country: 'BR' }
+        });
+        autocomplete.setFields(['address_component',]);
+
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            fillAddress(place);
+        });
+    }
+
+    // Preenche os campos de bairro, cidade e estado
+    function fillAddress(place) {
+        let bairro = '';
+        let cidade = '';
+        let estado = '';
+        let cep = '';
+        let enderecoCompleto = '';
+        document.getElementById('etapa1').style.display = 'none';
+        document.getElementById('etapa2').style.display = 'block';
+        
+        for (const component of place.address_components) {
+            const types = component.types;
+            if (types.includes('route')) {
+                enderecoCompleto += component.long_name;  // Rua
+            }
+            if (types.includes('sublocality') || types.includes('neighborhood')) {
+                bairro = component.long_name;
+            }
+            if (types.includes('administrative_area_level_1')) {
+                cidade = component.long_name;
+            }
+            if (types.includes('administrative_area_level_1')) {
+                estado = component.short_name;
+            }
+            if (types.includes('postal_code')) {
+                cep = component.long_name;
+            }
+        }
+
+        document.getElementById('bairro').textContent = bairro ? `${bairro} - ${cidade} - ${estado}` : 'Bairro, Cidade e Estado não encontrados';
+
+        // Preencher os campos ocultos com os valores corretos
+        document.getElementById('endereco_hidden').value = enderecoCompleto;
+        document.getElementById('bairro_hidden').value = bairro;
+        document.getElementById('estado_hidden').value = estado;
+        document.getElementById('municipio_hidden').value = cidade;
+        document.getElementById('cep_hidden').value = cep;
+    }
+
+    // Função de inicialização do mapa
+    function initMap() {
+        const geocoder = new google.maps.Geocoder();
+        const endereco = document.getElementById('endereco_hidden').value + ', ' + document.getElementById('numero').value;
+
+        geocoder.geocode({'address': endereco}, function(results, status) {
+            if (status === 'OK') {
+                const location = results[0].geometry.location;
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: location,
+                    zoom: 17,
+                    disableDefaultUI: true,
+                });
+
+                marker = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    draggable: true,
+                });
+
+                marker.addListener('dragend', function(event) {
+                    document.getElementById('latitude').value = event.latLng.lat();
+                    document.getElementById('longitude').value = event.latLng.lng();
+                    map.setCenter(event.latLng);  // Mover o mapa para o novo marcador
+                });
+
+                document.getElementById('latitude').value = location.lat();
+                document.getElementById('longitude').value = location.lng();
+            } else {
+                console.log(Error)
+                showSweetAlert("Erro", "Não foi possível localizar o endereço. Por favor, tente novamente.", "error");
+            }
+        });
+    }
+</script>
+
+<style>
+    /* Customização do contêiner de sugestões */
+.pac-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  /* Sombra sutil */
+    font-family: 'Lexend', sans-serif;
+    z-index: 1000;
+    padding: 0;
+}
+
+/* Itens dentro do autocomplete */
+.pac-item {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Efeito ao passar o mouse por cima */
+.pac-item:hover {
+    background-color: #f5f5f5;
+    color: #E53935;
+    transform: scale(1.02);
+}
+
+/* Ícones do pac-item (você pode adicionar um ícone personalizado aqui) */
+.pac-icon {
+    color: #E53935;
+}
+
+/* Texto da consulta (endereço, rua, etc) */
+.pac-item-query {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* Endereço completo ou detalhes (bairro, cidade, estado) */
+.pac-item-location {
+    font-size: 7px;
+    color: #888;
+    margin-left: 10px;
+}
+</style>
 {% endblock %}

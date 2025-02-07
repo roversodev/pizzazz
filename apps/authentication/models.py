@@ -199,6 +199,8 @@ class EnderecoCliente(models.Model):
     municipio = models.CharField(max_length=255)
     principal = models.BooleanField(default=True)
     data_criacao = models.DateTimeField(default=now)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
 
     LOCAL_CHOICES = [
     ('casa', 'Casa'),
@@ -233,7 +235,7 @@ class EnderecoCliente(models.Model):
 
 class EnderecoEmpresa(models.Model):
     id_enderecoempresa = models.AutoField(primary_key=True)
-    empresa = models.OneToOneField(Empresa, on_delete=models.CASCADE)
+    empresa = models.OneToOneField(Empresa, on_delete=models.CASCADE, related_name='endereco')
     cep = models.CharField(max_length=9)
     endereco = models.CharField(max_length=255)
     numero = models.IntegerField(null=True)
@@ -242,6 +244,8 @@ class EnderecoEmpresa(models.Model):
     estado = models.CharField(max_length=255)
     municipio = models.CharField(max_length=255)
     data_criacao = models.DateTimeField(default=now)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
 
     def __str__(self):
         return f"{self.endereco}, {self.numero} - {self.municipio}/{self.estado}"
@@ -330,7 +334,7 @@ class AvaliacaoPedido(models.Model):
     nota = models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')], default=5)
     comentario = models.TextField(null=True, blank=True)
     data_avaliacao = models.DateTimeField(auto_now_add=True)
-    resposta = models.TextField(null=True, blank=True, unique=True)
+    resposta = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"Avaliação do pedido #{self.pedido.id} - Nota: {self.nota} - {self.pedido.cliente.usuario.username}"
